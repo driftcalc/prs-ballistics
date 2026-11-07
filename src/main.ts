@@ -1,6 +1,8 @@
 import './style.css'
-import { getData, updateData } from './data/store.ts'
+import { updateData } from './data/store.ts'
 import { renderAccuracyPage } from './ui/accuracyPage.ts'
+import { renderDataPage } from './ui/dataPage.ts'
+import { applyNightMode } from './ui/nightMode.ts'
 import { renderRiflesPage } from './ui/riflesPage.ts'
 import { renderShootPage } from './ui/shootPage.ts'
 
@@ -8,6 +10,7 @@ const PAGES: Record<string, { title: string; render: (root: HTMLElement, param?:
   shoot: { title: 'Shoot', render: renderShootPage },
   rifles: { title: 'Rifles', render: renderRiflesPage },
   check: { title: 'Check', render: renderAccuracyPage },
+  data: { title: 'Data', render: renderDataPage },
 }
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -29,15 +32,6 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <span class="version">v${__APP_VERSION__}</span>
 </footer>
 `
-
-// Red night mode: black screen, dim red everything, so your eyes stay dark-adapted.
-function applyNightMode() {
-  const night = getData().settings.night
-  document.documentElement.toggleAttribute('data-night', night)
-  document.querySelector('.night-toggle')!.toggleAttribute('aria-pressed', night)
-  // Colours the phone's status bar to match.
-  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', night ? '#000000' : '#1b2a1f'))
-}
 
 document.querySelector('[data-action="night"]')!.addEventListener('click', () => {
   updateData((d) => void (d.settings.night = !d.settings.night))

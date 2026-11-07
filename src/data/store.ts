@@ -28,6 +28,8 @@ export interface ShootState extends WindInputs {
 export interface Settings {
   angleUnit: 'mil' | 'moa'
   night: boolean
+  /** When the last full backup was exported, to remind the user. */
+  lastBackupAt?: string
 }
 
 export interface AppData {

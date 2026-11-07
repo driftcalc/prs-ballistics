@@ -231,6 +231,33 @@ button.danger,
   gap: 8px;
 }
 
+.stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.stack small {
+  color: var(--muted);
+  margin-bottom: 8px;
+}
+
+.file-button {
+  cursor: pointer;
+}
+
+.import-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 8px;
+}
+
+.ok-note {
+  color: var(--good);
+  font-weight: 700;
+}
+
 .big-button {
   min-height: 56px;
   font-size: 1.1rem;
