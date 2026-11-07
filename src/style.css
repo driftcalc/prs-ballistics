@@ -329,6 +329,13 @@ button.danger,
   margin: 8px 0 0;
 }
 
+.replaces {
+  margin: 0;
+  padding: 8px 10px;
+  border-left: 4px solid var(--accent);
+  font-size: 0.9rem;
+}
+
 .estimate {
   margin: 0;
   font-size: 1.15rem;

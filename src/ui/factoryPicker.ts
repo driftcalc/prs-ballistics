@@ -1,9 +1,22 @@
 // "Fill from factory ammo": pick a load from the library, enter your barrel
 // length, preview the estimated velocity, and only then fill the rifle.
-import { updateData } from '../data/store.ts'
+import type { RifleData } from '../data/profiles.ts'
+import { getData, updateData } from '../data/store.ts'
 import { FACTORY_LOADS, loadName, searchLoads, type FactoryLoad } from '../library/ammo.ts'
 import { estimateVelocity, FPS_PER_INCH, MAX_BARREL_IN, MIN_BARREL_IN } from '../library/barrelEstimate.ts'
 import { escapeHtml } from './format.ts'
+
+/** The values a factory load would replace, described as "MV 2617 fps", "BC G7 0.310", etc. */
+function replacedValues(current: RifleData, next: RifleData, mvTrued: boolean): string[] {
+  const out: string[] = []
+  if (current.muzzleVelocityFps !== next.muzzleVelocityFps)
+    out.push(`MV ${current.muzzleVelocityFps} fps${mvTrued ? ' (trued or entered by you)' : ''}`)
+  if (current.bc !== next.bc || current.dragModel !== next.dragModel) out.push(`BC ${current.dragModel} ${current.bc.toFixed(3)}`)
+  if (current.bulletWeightGr !== next.bulletWeightGr) out.push(`${current.bulletWeightGr} gr`)
+  if (current.bulletDiameterIn !== next.bulletDiameterIn) out.push(`diameter ${current.bulletDiameterIn ?? '–'} in`)
+  if (current.bulletLengthIn !== next.bulletLengthIn) out.push(`length ${current.bulletLengthIn ?? '–'} in`)
+  return out
+}
 
 export function renderFactoryPicker(box: HTMLElement, profileId: string, lastBarrelIn: number | undefined, onApplied: () => void): void {
   let chosen: FactoryLoad | undefined
@@ -46,6 +59,20 @@ export function renderFactoryPicker(box: HTMLElement, profileId: string, lastBar
     const barrel = barrelText.trim() === '' ? undefined : Number(barrelText)
     const est = estimateVelocity(l, barrel)
     const per = FPS_PER_INCH[l.cartridge]
+    const profile = getData().profiles.find((x) => x.id === profileId)
+    const nextRifle = (r: RifleData): RifleData => ({
+      ...r,
+      muzzleVelocityFps: est.fps,
+      bc: l.bc,
+      dragModel: l.dragModel,
+      bulletWeightGr: l.bulletWeightGr,
+      bulletDiameterIn: l.bulletDiameterIn,
+      // Don't keep a length that belonged to a different bullet.
+      bulletLengthIn: l.bulletLengthIn,
+    })
+    // Anything other than an untouched library estimate counts as your own value.
+    const mvTrued = !!profile && !profile.factory?.mvEstimated
+    const replaced = profile ? replacedValues(profile.rifle, nextRifle(profile.rifle), mvTrued) : []
     $('[data-preview]').innerHTML = `
       <div class="factory-preview stack">
         <h3>${escapeHtml(loadName(l))}</h3>
@@ -69,6 +96,11 @@ export function renderFactoryPicker(box: HTMLElement, profileId: string, lastBar
         ${l.note ? `<small>${escapeHtml(l.note)}</small>` : ''}
         <small>Source: <a href="${escapeHtml(l.source)}" target="_blank" rel="noopener">maker's page</a> (checked ${l.checked}).
           Sight height, zero and twist are not changed.</small>
+        ${
+          replaced.length
+            ? `<p class="replaces">This replaces your current ${escapeHtml(replaced.join(', '))}. The old values are saved in the rifle notes.</p>`
+            : ''
+        }
         <button class="primary big-button" data-action="factory-use">Use these values</button>
       </div>`
     const barrelBox = $<HTMLInputElement>('[name="factoryBarrel"]')
@@ -83,16 +115,13 @@ export function renderFactoryPicker(box: HTMLElement, profileId: string, lastBar
       updateData((data) => {
         const p = data.profiles.find((x) => x.id === profileId)
         if (!p) return
-        p.rifle = {
-          ...p.rifle,
-          muzzleVelocityFps: est.fps,
-          bc: l.bc,
-          dragModel: l.dragModel,
-          bulletWeightGr: l.bulletWeightGr,
-          bulletDiameterIn: l.bulletDiameterIn,
-          // Don't keep a length that belonged to a different bullet.
-          bulletLengthIn: l.bulletLengthIn,
+        // Keep a record of what was replaced, like the truing assistant does.
+        const old = replacedValues(p.rifle, nextRifle(p.rifle), !p.factory?.mvEstimated)
+        if (old.length) {
+          const note = `Filled from ${loadName(l)} on ${new Date().toLocaleDateString()} (was: ${old.join(', ')}).`
+          p.notes = p.notes ? `${p.notes} ${note}` : note
         }
+        p.rifle = nextRifle(p.rifle)
         p.factory = { loadId: l.id, barrelIn: est.adjusted || barrel !== undefined ? est.barrelIn : undefined, mvEstimated: true }
         p.updatedAt = new Date().toISOString()
       })
