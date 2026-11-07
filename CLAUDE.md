@@ -17,6 +17,21 @@ The owner is not a programmer and relies on Claude for all code.
 - Vite + TypeScript, no UI framework unless agreed. Keep it simple.
 - No backend, no accounts. All user data is saved on the device only.
 - Hosted free on GitHub Pages. Vite `base` is `/prs-ballistics/`.
+- Pages (hash routes): Shoot (home), Rifles, Check (accuracy), Data.
+- Shoot screen is used with gloves: tap targets at least 64 px, holds in huge text.
+  Every colour must come from CSS variables so red night mode (`:root[data-night]`)
+  covers it — no hard-coded colours.
+
+## Saved data
+
+- All saved data is one bundle (`src/data/store.ts`, localStorage key `prs.data`,
+  `DATA_VERSION`). Read with `getData()`, change with `updateData()`.
+- If the bundle's shape changes: bump `DATA_VERSION` and add a conversion from
+  the old version so nobody loses data. Old 0.1 keys are converted by `migrateLegacy`.
+- Nothing may be trapped: anything new that is saved must also be included in the
+  JSON backup (`src/data/backup.ts`) and covered by the round-trip test.
+- Rifles CSV columns are listed in `CSV_COLUMNS`; keep import tolerant of
+  missing optional columns.
 
 ## Ballistics rules (most important)
 
