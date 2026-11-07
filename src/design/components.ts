@@ -39,14 +39,28 @@ export function setReadout(root: ParentNode, id: string, v: { dir?: string; valu
  * Big stepper: − value +. Buttons carry data-stepper="name" and data-dir="-1|1".
  * With `input`, the value is a text box you can type into (name = input name).
  */
-export function stepper(o: { name: string; label: string; value: string; unit?: string; input?: boolean; inputMode?: string }): string {
+export function stepper(o: {
+  name: string
+  label: string
+  value: string
+  unit?: string
+  input?: boolean
+  inputMode?: string
+  /** Extra markup shown before the value (e.g. a wind arrow). Trusted HTML only. */
+  prefixHtml?: string
+  /** Button symbols; default − and +. */
+  minus?: string
+  plus?: string
+  minusLabel?: string
+  plusLabel?: string
+}): string {
   const value = o.input
     ? `<input class="stepper-input" name="${esc(o.name)}" type="text" inputmode="${o.inputMode ?? 'numeric'}" autocomplete="off" value="${esc(o.value)}" aria-label="${esc(o.label)}" />`
     : `<strong class="stepper-text" data-stepper-value="${esc(o.name)}">${esc(o.value)}</strong>`
   return `<div class="stepper" role="group" aria-label="${esc(o.label)}">
-    <button class="btn stepper-btn" type="button" data-stepper="${esc(o.name)}" data-dir="-1" aria-label="${esc(o.label)} down">−</button>
-    <label class="stepper-value">${value}${o.unit ? `<span class="stepper-unit">${esc(o.unit)}</span>` : ''}</label>
-    <button class="btn stepper-btn" type="button" data-stepper="${esc(o.name)}" data-dir="1" aria-label="${esc(o.label)} up">+</button>
+    <button class="btn stepper-btn" type="button" data-stepper="${esc(o.name)}" data-dir="-1" aria-label="${esc(o.minusLabel ?? `${o.label} down`)}">${o.minus ?? '−'}</button>
+    <label class="stepper-value">${o.prefixHtml ?? ''}${value}${o.unit ? `<span class="stepper-unit">${esc(o.unit)}</span>` : ''}</label>
+    <button class="btn stepper-btn" type="button" data-stepper="${esc(o.name)}" data-dir="1" aria-label="${esc(o.plusLabel ?? `${o.label} up`)}">${o.plus ?? '+'}</button>
   </div>`
 }
 
@@ -108,6 +122,8 @@ export interface SheetHandle {
   /** The sheet's content area, to wire up its controls. */
   body: HTMLElement
   close: () => void
+  /** Closes the sheet, then goes to another page (e.g. '#/data'). */
+  closeAndGo: (hash: string) => void
 }
 
 /**
@@ -156,7 +172,13 @@ export function openSheet(o: { title: string; content: string; onClose?: () => v
   })
   wrap.querySelector<HTMLElement>('.sheet-close')!.focus()
 
-  return { body: wrap.querySelector<HTMLElement>('.sheet-body')!, close: () => close() }
+  const closeAndGo = (hash: string) => {
+    // Wait for the sheet's own history step to be undone, then navigate.
+    window.addEventListener('popstate', () => (location.hash = hash), { once: true })
+    close()
+  }
+
+  return { body: wrap.querySelector<HTMLElement>('.sheet-body')!, close: () => close(), closeAndGo }
 }
 
 function trapFocus(e: KeyboardEvent, container: HTMLElement) {

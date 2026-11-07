@@ -1,6 +1,8 @@
 // Shoot screen: the one you use on the line. Opens on the last-used rifle,
-// shows huge holds, and has glove-sized buttons for range and wind.
+// shows huge holds at the top and keeps the glove-sized controls lower down,
+// where the thumb reaches. Built from the design components.
 import { BallisticsError, getEngine } from '../ballistics/index.ts'
+import { chipRow, openSheet, readout, segmented, setReadout, setSelected, stepper } from '../design/components.ts'
 import { combine, type Conditions, type RifleData } from '../data/profiles.ts'
 import { RANGE_STEPS_YD, MAX_RANGE_YD, MIN_RANGE_YD, rotateClock, stepRange, stepWindSpeed } from '../data/shootControls.ts'
 import { currentProfile, getData, updateData } from '../data/store.ts'
@@ -18,7 +20,7 @@ function conditionsSummary(c: Conditions): string {
 function windArrow(clock: number): string {
   const angle = clock * 30 + 180 // wind from 3 o'clock travels toward 9 o'clock
   return `<svg class="wind-arrow" viewBox="-50 -50 100 100" aria-hidden="true">
-    <circle r="44" fill="none" stroke="currentColor" stroke-width="4" opacity="0.4" />
+    <circle r="44" fill="none" stroke="currentColor" stroke-width="3" />
     <g transform="rotate(${angle})">
       <line x1="0" y1="34" x2="0" y2="-24" stroke="currentColor" stroke-width="8" stroke-linecap="round" />
       <path d="M -16 -16 L 0 -38 L 16 -16 Z" fill="currentColor" />
@@ -52,89 +54,84 @@ export function renderShootPage(root: HTMLElement): void {
   if (!profile) {
     root.innerHTML = `
       <section class="card">
-        <h2>Welcome</h2>
+        <h2 class="card-title">Welcome</h2>
         <p>Add your rifle and load first. After that this screen opens straight to it.</p>
-        <a class="button primary big-button" href="#/rifles">Add a rifle</a>
+        <a class="btn btn-primary" href="#/rifles">Add a rifle</a>
       </section>`
     return
   }
 
+  const unitLabel = d.settings.angleUnit === 'mil' ? 'MIL' : 'MOA'
   root.innerHTML = `
-    <select class="rifle-picker" name="rifle" aria-label="Rifle">
-      ${d.profiles.map((p) => `<option value="${p.id}"${p.id === profile.id ? ' selected' : ''}>${escapeHtml(p.name)}</option>`).join('')}
-    </select>
+    <button class="btn picker" type="button" data-action="pick-rifle" aria-haspopup="dialog">
+      <span data-rifle-name>${escapeHtml(profile.name)}</span><span aria-hidden="true">▾</span>
+    </button>
 
-    <div class="holds" aria-live="polite">
-      <span class="hold"><span class="hold-label">ELEV</span><span class="hold-dir" data-elev-dir></span><span class="hold-num" data-elev>…</span><span class="hold-u" data-unit></span></span>
-      <span class="hold"><span class="hold-label">WIND</span><span class="hold-dir" data-wind-dir></span><span class="hold-num" data-wind>…</span><span class="hold-u" data-unit></span></span>
+    <div class="readout-pair" aria-live="polite">
+      ${readout({ id: 'elev', label: 'Elevation', unit: unitLabel })}
+      ${readout({ id: 'wind', label: 'Wind', unit: unitLabel })}
     </div>
-    <div class="unit-switch" role="group" aria-label="Units">
-      <button data-unit-set="mil">MIL</button><button data-unit-set="moa">MOA</button>
+    <div class="shot-notes">
+      <p data-sub>Loading the ballistics engine…</p>
+      <p data-breakdown></p>
+      <p data-mv-note hidden><a href="#/log">MV estimated from factory data — log confirmed hits to true it</a></p>
     </div>
-    <p class="hold-sub" data-sub aria-live="polite">Loading the ballistics engine…</p>
-    <p class="hold-breakdown" data-breakdown></p>
-    <p class="mv-estimate" data-mv-note hidden><a href="#/log">MV estimated from factory data — log confirmed hits to true it</a></p>
-    <a class="button big-button log-button" href="#/log/new">✎ Log this shot</a>
 
-    <section class="control">
-      <span class="control-label">Range</span>
-      <div class="stepper">
-        <button class="step" data-action="range-down" aria-label="Range down">−</button>
-        <label class="step-value"><input name="range" type="text" inputmode="numeric" autocomplete="off" aria-label="Range in yards" /><small>yd</small></label>
-        <button class="step" data-action="range-up" aria-label="Range up">+</button>
-      </div>
-      <p class="range-error" data-range-error hidden>Range must be ${MIN_RANGE_YD}–${MAX_RANGE_YD} yd — still showing ${'<span data-range-shown></span>'} yd.</p>
-      <div class="chips" role="group" aria-label="Range step">
-        ${RANGE_STEPS_YD.map((s) => `<button class="chip" data-step="${s}">±${s}</button>`).join('')}
-      </div>
+    <section class="control" aria-label="Range">
+      <h2 class="control-label">Range</h2>
+      ${stepper({ name: 'range', label: 'Range', value: String(d.shoot.rangeYd), unit: 'yd', input: true })}
+      <p class="field-error" data-range-error hidden role="alert">Range must be ${MIN_RANGE_YD}–${MAX_RANGE_YD} yd — still showing <span data-range-shown></span> yd.</p>
+      ${chipRow({ name: 'step', label: 'Range step', selected: String(d.shoot.rangeStepYd), options: RANGE_STEPS_YD.map((s) => ({ value: String(s), label: `±${s}` })) })}
     </section>
 
-    <section class="control">
-      <span class="control-label">Wind speed</span>
-      <div class="stepper">
-        <button class="step" data-action="wind-down" aria-label="Wind slower">−</button>
-        <div class="step-value"><strong data-wind-speed></strong><small>mph</small></div>
-        <button class="step" data-action="wind-up" aria-label="Wind faster">+</button>
-      </div>
+    <section class="control" aria-label="Wind">
+      <h2 class="control-label">Wind speed</h2>
+      ${stepper({ name: 'wind', label: 'Wind speed', value: String(d.shoot.windSpeedMph), unit: 'mph', minusLabel: 'Wind slower', plusLabel: 'Wind faster' })}
+      <h2 class="control-label">Wind from</h2>
+      ${stepper({
+        name: 'clock',
+        label: 'Wind direction',
+        value: String(d.shoot.windClock),
+        unit: "o'clock",
+        prefixHtml: '<span class="wind-arrow-box" data-wind-arrow></span>',
+        minus: '⟲',
+        plus: '⟳',
+        minusLabel: 'Turn wind counter-clockwise',
+        plusLabel: 'Turn wind clockwise',
+      })}
     </section>
 
-    <section class="control">
-      <span class="control-label">Wind from</span>
-      <div class="stepper">
-        <button class="step" data-action="clock-back" aria-label="Turn wind counter-clockwise">⟲</button>
-        <div class="step-value wind-dir"><span data-wind-arrow></span><strong data-wind-clock></strong><small>o'clock</small></div>
-        <button class="step" data-action="clock-fwd" aria-label="Turn wind clockwise">⟳</button>
-      </div>
+    <section class="control" aria-label="Units">
+      <h2 class="control-label">Units</h2>
+      ${segmented({ name: 'unit', label: 'Units', selected: d.settings.angleUnit, options: [{ value: 'mil', label: 'MIL' }, { value: 'moa', label: 'MOA' }] })}
     </section>
+    <a class="btn" href="#/log/new">✎ Log this shot</a>
 
-    <details class="card conditions">
-      <summary><strong>Conditions:</strong> <span data-conditions></span></summary>
-      <form class="shot-form" novalidate>${renderShotFields(toFormValues(combine(profile.rifle, d.conditions, d.shoot)), false, ['weather'])}</form>
-      <ul class="errors" data-errors></ul>
-    </details>`
+    <button class="btn picker" type="button" data-action="conditions" aria-haspopup="dialog">
+      <span><strong>Conditions</strong> <span data-conditions></span></span><span aria-hidden="true">▸</span>
+    </button>`
 
   const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!
   const rangeBox = $<HTMLInputElement>('[name="range"]')
-  const weatherForm = $<HTMLFormElement>('form')
   let latest = 0
 
   function show() {
     const data = getData()
     const { shoot, conditions, settings } = data
+    const p = currentProfile(data)
     if (document.activeElement !== rangeBox) rangeBox.value = String(shoot.rangeYd)
+    $('[data-rifle-name]').textContent = p?.name ?? ''
     // The note belongs to whichever rifle is picked now, not the one the screen opened on.
-    $('[data-mv-note]').hidden = !currentProfile(data)?.factory?.mvEstimated
-    $('[data-wind-speed]').textContent = String(shoot.windSpeedMph)
-    $('[data-wind-clock]').textContent = String(shoot.windClock)
+    $('[data-mv-note]').hidden = !p?.factory?.mvEstimated
+    $('[data-stepper-value="wind"]').textContent = String(shoot.windSpeedMph)
+    $('[data-stepper-value="clock"]').textContent = String(shoot.windClock)
     $('[data-wind-arrow]').innerHTML = windArrow(shoot.windClock)
-    root.querySelectorAll('[data-unit]').forEach((el) => (el.textContent = settings.angleUnit === 'mil' ? 'MIL' : 'MOA'))
-    root.querySelectorAll<HTMLButtonElement>('[data-unit-set]').forEach((b) => {
-      b.toggleAttribute('aria-pressed', b.dataset.unitSet === settings.angleUnit)
-    })
+    const unit = settings.angleUnit === 'mil' ? 'MIL' : 'MOA'
+    setReadout(root, 'elev', { unit })
+    setReadout(root, 'wind', { unit })
+    setSelected(root, 'data-segment', 'unit', settings.angleUnit)
+    setSelected(root, 'data-chip', 'step', String(shoot.rangeStepYd))
     $('[data-conditions]').textContent = conditionsSummary(conditions)
-    root.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) => {
-      b.toggleAttribute('aria-pressed', Number(b.dataset.step) === shoot.rangeStepYd)
-    })
     void recalc()
   }
 
@@ -154,17 +151,13 @@ export function renderShootPage(root: HTMLElement): void {
       const unit = d.settings.angleUnit
       const elev = holdParts(s.elevation, unit, 'elevation')
       const wind = holdParts(s.windage, unit, 'windage')
-      $('[data-elev-dir]').textContent = elev.dir
-      $('[data-elev]').textContent = elev.value
-      $('[data-wind-dir]').textContent = wind.dir
-      $('[data-wind]').textContent = wind.value
-      // Shrink both numbers together when either has 3+ digits before the point (e.g. 143.1 MOA).
-      const long = Math.max(elev.value.length, wind.value.length) > 4
-      root.querySelectorAll('.hold-num').forEach((el) => el.toggleAttribute('data-long', long))
+      setReadout(root, 'elev', { dir: elev.dir, value: elev.value })
+      setReadout(root, 'wind', { dir: wind.dir, value: wind.value })
       $('[data-sub]').textContent = `${velocityText(s.velocity)} · ${timeText(s.timeOfFlight)} · ${d.shoot.rangeYd} yd`
     } catch (e) {
       if (run !== latest) return
-      for (const sel of ['[data-elev-dir]', '[data-elev]', '[data-wind-dir]', '[data-wind]']) $(sel).textContent = '–'
+      setReadout(root, 'elev', { dir: '', value: '–' })
+      setReadout(root, 'wind', { dir: '', value: '–' })
       $('[data-sub]').textContent = e instanceof BallisticsError ? e.message : 'Could not calculate this shot.'
       if (!(e instanceof BallisticsError)) console.error(e)
     }
@@ -175,28 +168,77 @@ export function renderShootPage(root: HTMLElement): void {
     show()
   }
 
-  const actions: Record<string, () => void> = {
-    'range-down': () => change((d) => void (d.shoot.rangeYd = stepRange(d.shoot.rangeYd, d.shoot.rangeStepYd, -1))),
-    'range-up': () => change((d) => void (d.shoot.rangeYd = stepRange(d.shoot.rangeYd, d.shoot.rangeStepYd, 1))),
-    'wind-down': () => change((d) => void (d.shoot.windSpeedMph = stepWindSpeed(d.shoot.windSpeedMph, -1))),
-    'wind-up': () => change((d) => void (d.shoot.windSpeedMph = stepWindSpeed(d.shoot.windSpeedMph, 1))),
-    'clock-back': () => change((d) => void (d.shoot.windClock = rotateClock(d.shoot.windClock, -1))),
-    'clock-fwd': () => change((d) => void (d.shoot.windClock = rotateClock(d.shoot.windClock, 1))),
-  }
-
   root.addEventListener('click', (e) => {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
     if (!btn) return
-    if (btn.dataset.action) actions[btn.dataset.action]?.()
-    if (btn.dataset.step) change((d) => void (d.shoot.rangeStepYd = Number(btn.dataset.step)))
+    const dir = Number(btn.dataset.dir) as 1 | -1
+    switch (btn.dataset.stepper) {
+      case 'range':
+        return change((d) => void (d.shoot.rangeYd = stepRange(d.shoot.rangeYd, d.shoot.rangeStepYd, dir)))
+      case 'wind':
+        return change((d) => void (d.shoot.windSpeedMph = stepWindSpeed(d.shoot.windSpeedMph, dir)))
+      case 'clock':
+        return change((d) => void (d.shoot.windClock = rotateClock(d.shoot.windClock, dir)))
+    }
+    if (btn.dataset.chip === 'step') return change((d) => void (d.shoot.rangeStepYd = Number(btn.dataset.value)))
     // Units change only from the explicit MIL / MOA switch, never from tapping the holds.
-    const unit = btn.dataset.unitSet
-    if (unit === 'mil' || unit === 'moa') change((d) => void (d.settings.angleUnit = unit))
+    const unit = btn.dataset.segment === 'unit' ? btn.dataset.value : undefined
+    if (unit === 'mil' || unit === 'moa') return change((d) => void (d.settings.angleUnit = unit))
+    if (btn.dataset.action === 'pick-rifle') return pickRifle()
+    if (btn.dataset.action === 'conditions') return editConditions()
   })
 
-  $<HTMLSelectElement>('[name="rifle"]').addEventListener('change', (e) => {
-    change((d) => void (d.shoot.profileId = (e.target as HTMLSelectElement).value))
-  })
+  function pickRifle() {
+    const data = getData()
+    const current = currentProfile(data)?.id
+    const sheet = openSheet({
+      title: 'Rifle',
+      content: `<div class="sheet-list">${data.profiles
+        .map((p) => `<button class="btn" type="button" data-rifle="${p.id}" aria-pressed="${p.id === current}">${escapeHtml(p.name)}</button>`)
+        .join('')}</div>
+        <a class="btn" href="#/rifles" data-sheet-close>Manage rifles</a>`,
+    })
+    sheet.body.addEventListener('click', (e) => {
+      const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-rifle]')
+      if (!b) return
+      change((d) => void (d.shoot.profileId = b.dataset.rifle))
+      sheet.close()
+    })
+    sheet.body.querySelector('a[href="#/rifles"]')!.addEventListener('click', (e) => {
+      e.preventDefault()
+      sheet.closeAndGo('#/rifles')
+    })
+  }
+
+  function editConditions() {
+    const data = getData()
+    const p = currentProfile(data)!
+    const sheet = openSheet({
+      title: 'Conditions',
+      content: `<form class="shot-form" novalidate>${renderShotFields(toFormValues(combine(p.rifle, data.conditions, data.shoot)), false, ['weather'])}</form>
+        <ul class="errors" data-errors></ul>
+        <button class="btn btn-primary" type="button" data-sheet-close>Done</button>`,
+    })
+    const form = sheet.body.querySelector<HTMLFormElement>('form')!
+    const save = () => {
+      const values = readFormValues(form, ['weather'])
+      updateVisibility(form, values, ['weather'])
+      const { inputs, errors } = parseFormValues(values, ['weather'])
+      sheet.body.querySelector('[data-errors]')!.innerHTML = errors.map((er) => `<li>${escapeHtml(er)}</li>`).join('')
+      if (!inputs) return
+      change((d) => {
+        d.conditions = {
+          temperatureF: inputs.temperatureF,
+          atmosphereMode: inputs.atmosphereMode,
+          stationPressureInHg: inputs.stationPressureInHg,
+          altitudeFt: inputs.altitudeFt,
+          humidityPct: inputs.humidityPct,
+        }
+      })
+    }
+    form.addEventListener('input', save)
+    form.addEventListener('change', save)
+  }
 
   rangeBox.addEventListener('focus', () => rangeBox.select())
   const rangeError = $('[data-range-error]')
@@ -215,25 +257,6 @@ export function renderShootPage(root: HTMLElement): void {
     rangeBox.removeAttribute('aria-invalid')
     show()
   })
-
-  weatherForm.addEventListener('input', saveWeather)
-  weatherForm.addEventListener('change', saveWeather)
-  function saveWeather() {
-    const values = readFormValues(weatherForm, ['weather'])
-    updateVisibility(weatherForm, values, ['weather'])
-    const { inputs, errors } = parseFormValues(values, ['weather'])
-    $('[data-errors]').innerHTML = errors.map((er) => `<li>${escapeHtml(er)}</li>`).join('')
-    if (!inputs) return
-    change((d) => {
-      d.conditions = {
-        temperatureF: inputs.temperatureF,
-        atmosphereMode: inputs.atmosphereMode,
-        stationPressureInHg: inputs.stationPressureInHg,
-        altitudeFt: inputs.altitudeFt,
-        humidityPct: inputs.humidityPct,
-      }
-    })
-  }
 
   show()
 }

@@ -1,57 +1,59 @@
 import './design/tokens.css'
 import './design/components.css'
 import './style.css'
+import { tabBar } from './design/components.ts'
 import { getData, SAVE_STATUS_EVENT, updateData } from './data/store.ts'
 import { renderAccuracyPage } from './ui/accuracyPage.ts'
 import { renderDataPage } from './ui/dataPage.ts'
 import { renderLogPage } from './ui/logPage.ts'
-import { applyTheme, followPhoneTheme } from './ui/theme.ts'
+import { renderMatchPage } from './ui/matchPage.ts'
 import { renderRiflesPage } from './ui/riflesPage.ts'
 import { backupOverdue, isInstalled, requestPersistentStorage } from './ui/safety.ts'
+import { openSettings } from './ui/settingsSheet.ts'
 import { renderShootPage } from './ui/shootPage.ts'
 import { renderStyleguidePage } from './ui/styleguidePage.ts'
+import { TABS } from './ui/tabs.ts'
+import { applyTheme, followPhoneTheme } from './ui/theme.ts'
 
-const PAGES: Record<string, { title: string; render: (root: HTMLElement, param?: string) => void; hidden?: boolean }> = {
-  shoot: { title: 'Shoot', render: renderShootPage },
+interface Page {
+  title: string
+  render: (root: HTMLElement, param?: string) => void
+  /** Field screens (used on the line) get 18px text instead of 16px. */
+  field?: boolean
+}
+
+// Shoot, Match, Log and Rifles are the tabs. Check and Data open from Settings;
+// the style guide is only reachable by typing #/styleguide.
+const PAGES: Record<string, Page> = {
+  shoot: { title: 'Shoot', render: renderShootPage, field: true },
+  match: { title: 'Match', render: renderMatchPage, field: true },
+  log: { title: 'Log', render: renderLogPage, field: true },
   rifles: { title: 'Rifles', render: renderRiflesPage },
-  log: { title: 'Log', render: renderLogPage },
-  check: { title: 'Check', render: renderAccuracyPage },
-  data: { title: 'Data', render: renderDataPage },
-  styleguide: { title: 'Style guide', render: renderStyleguidePage, hidden: true },
+  check: { title: 'Check accuracy', render: renderAccuracyPage },
+  data: { title: 'Data & backup', render: renderDataPage },
+  styleguide: { title: 'Style guide', render: renderStyleguidePage },
 }
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
-<header>
-  <div class="title-row">
-    <h1>Spin Drift</h1>
-    <button class="night-toggle" data-action="night" aria-label="Night mode">☾</button>
-  </div>
-  <nav class="tabs">
-    ${Object.entries(PAGES)
-      .filter(([, p]) => !p.hidden)
-      .map(([id, p]) => `<a href="#/${id}" data-page="${id}">${p.title}</a>`)
-      .join('')}
-  </nav>
-  <div data-banners></div>
+<header class="appbar">
+  <h1 class="appbar-title" data-page-title>Spin Drift</h1>
+  <button class="btn appbar-btn" type="button" data-action="settings" aria-label="Settings">⚙</button>
 </header>
+<div data-banners></div>
 <main id="page"></main>
-<footer>
+<footer class="appfoot">
   <p>Results are estimates. Always confirm your data on paper and steel.</p>
-  <a href="${import.meta.env.BASE_URL}licenses/">Licenses &amp; disclaimer</a>
-  <span class="version">v${__APP_VERSION__}</span>
+  <p><a href="${import.meta.env.BASE_URL}licenses/">Licenses &amp; disclaimer</a> · v${__APP_VERSION__}</p>
 </footer>
+<div class="tabbar-dock" data-tabbar></div>
 `
 
-document.querySelector('[data-action="night"]')!.addEventListener('click', () => {
-  // Temporary until the Settings sheet: the moon button switches Night on/off.
-  updateData((d) => void (d.settings.theme = d.settings.theme === 'night' ? 'auto' : 'night'))
-  applyTheme()
-})
+document.querySelector('[data-action="settings"]')!.addEventListener('click', () => openSettings(showPage))
 
-/** Tips that protect your data: install the app, and a dot on Data when a backup is due. */
+/** Tips that protect your data: install the app, and a dot on ⚙ when a backup is due. */
 function showSafetyHints() {
   const d = getData()
-  document.querySelector('.tabs a[data-page="data"]')?.toggleAttribute('data-due', backupOverdue(d))
+  document.querySelector('[data-action="settings"]')?.toggleAttribute('data-due', backupOverdue(d))
   const box = document.querySelector<HTMLElement>('[data-banners]')!
   if (isInstalled() || d.settings.installTipDismissed) {
     box.querySelector('[data-install-tip]')?.remove()
@@ -63,8 +65,8 @@ function showSafetyHints() {
     `<div class="banner" data-install-tip>
       <p><strong>Add Spin Drift to your Home Screen.</strong> In a browser tab (especially Safari on iPhone),
         your saved rifles and logbook can be erased after about a week without use. From the Home Screen they're kept.<br />
-        <small>iPhone: Share ⎋ → Add to Home Screen. Android: ⋮ menu → Install app.</small></p>
-      <button data-action="dismiss-install">Got it</button>
+        iPhone: Share ⎋ → Add to Home Screen. Android: ⋮ menu → Install app.</p>
+      <button class="btn" type="button" data-action="dismiss-install">Got it</button>
     </div>`,
   )
   box.querySelector('[data-action="dismiss-install"]')!.addEventListener('click', () => {
@@ -109,13 +111,14 @@ window.addEventListener(SAVE_STATUS_EVENT, (e) => {
 function showPage() {
   const [id, param] = location.hash.replace('#/', '').split('/')
   const pageId = id in PAGES ? id : 'shoot'
-  document.querySelectorAll<HTMLAnchorElement>('.tabs a').forEach((a) => {
-    a.toggleAttribute('aria-current', a.dataset.page === pageId)
-  })
+  const page = PAGES[pageId]
+  document.querySelector('[data-page-title]')!.textContent = pageId === 'shoot' ? 'Spin Drift' : page.title
+  document.querySelector('[data-tabbar]')!.innerHTML = tabBar(TABS, pageId)
   const root = document.querySelector<HTMLElement>('#page')!
   const fresh = root.cloneNode(false) as HTMLElement // drops old page's listeners
+  fresh.classList.toggle('field-screen', page.field === true)
   root.replaceWith(fresh)
-  PAGES[pageId].render(fresh, param)
+  page.render(fresh, param)
   showSafetyHints()
   window.scrollTo(0, 0)
 }

@@ -85,7 +85,7 @@ export function renderDataPage(root: HTMLElement): void {
     const note = root.querySelector('[data-last-backup]')!
     note.textContent = lastBackupText()
     note.classList.remove('backup-due')
-    document.querySelector('.tabs a[data-page="data"]')?.removeAttribute('data-due')
+    document.querySelector('[data-action="settings"]')?.removeAttribute('data-due')
   })
 
   root.querySelectorAll<HTMLButtonElement>('[data-rescue-download]').forEach((b) =>
