@@ -19,8 +19,8 @@ export default defineConfig({
         preset: 'minimal-2023',
       },
       manifest: {
-        name: 'PRS Ballistics',
-        short_name: 'Ballistics',
+        name: 'Spin Drift',
+        short_name: 'Spin Drift',
         description: 'Offline ballistic calculator for PRS, NRL and rimfire shooters.',
         theme_color: '#1b2a1f',
         background_color: '#1b2a1f',

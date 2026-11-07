@@ -43,7 +43,7 @@ describe('JSON backup', () => {
 
   it('rejects files that are not a backup', () => {
     expect(() => parseBackupJson('not json')).toThrow(ImportError)
-    expect(() => parseBackupJson('{"hello":1}')).toThrow(/isn't a PRS Ballistics backup/)
+    expect(() => parseBackupJson('{"hello":1}')).toThrow(/isn't a Spin Drift backup/)
     expect(() => parseBackupJson('{"app":"prs-ballistics","format":99,"data":{}}')).toThrow(/newer version/)
   })
 

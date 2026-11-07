@@ -51,13 +51,13 @@ export function renderDataPage(root: HTMLElement): void {
     </section>`
 
   root.querySelector('[data-action="export-json"]')!.addEventListener('click', () => {
-    downloadFile(`prs-ballistics-backup-${today()}.json`, toBackupJson(getData()), 'application/json')
+    downloadFile(`spin-drift-backup-${today()}.json`, toBackupJson(getData()), 'application/json')
     updateData((data) => void (data.settings.lastBackupAt = new Date().toISOString()))
     root.querySelector('[data-last-backup]')!.textContent = lastBackupText()
   })
 
   root.querySelector('[data-action="export-csv"]')!.addEventListener('click', () => {
-    downloadFile(`prs-ballistics-rifles-${today()}.csv`, toRiflesCsv(getData().profiles), 'text/csv')
+    downloadFile(`spin-drift-rifles-${today()}.csv`, toRiflesCsv(getData().profiles), 'text/csv')
   })
 
   const resultBox = root.querySelector<HTMLElement>('[data-import-result]')!

@@ -45,7 +45,7 @@ export function parseBackupJson(text: string): ImportBundle {
     throw new ImportError("This file isn't valid JSON.")
   }
   if (parsed?.app !== APP_ID || !parsed.data) {
-    throw new ImportError("This file isn't a PRS Ballistics backup.")
+    throw new ImportError("This file isn't a Spin Drift backup.")
   }
   if (typeof parsed.format !== 'number' || parsed.format > DATA_VERSION) {
     throw new ImportError('This backup is from a newer version of the app. Update the app first.')

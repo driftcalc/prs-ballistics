@@ -16,7 +16,7 @@ const PAGES: Record<string, { title: string; render: (root: HTMLElement, param?:
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 <header>
   <div class="title-row">
-    <h1>PRS Ballistics</h1>
+    <h1>Spin Drift</h1>
     <button class="night-toggle" data-action="night" aria-label="Night mode">☾</button>
   </div>
   <nav class="tabs">

@@ -1,4 +1,7 @@
-# PRS Ballistics — rules for Claude
+# Spin Drift — rules for Claude
+
+(Display name "Spin Drift"; the repo, web address and backup format id stay `prs-ballistics`
+so installed copies and saved data keep working.)
 
 Ballistic calculator web app for PRS/NRL and rimfire competitors.
 Live site: https://driftcalc.github.io/prs-ballistics/ (GitHub Pages), deployed by
