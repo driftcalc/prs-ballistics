@@ -1,4 +1,5 @@
 import './design/tokens.css'
+import './design/components.css'
 import './style.css'
 import { getData, SAVE_STATUS_EVENT, updateData } from './data/store.ts'
 import { renderAccuracyPage } from './ui/accuracyPage.ts'
@@ -8,13 +9,15 @@ import { applyTheme, followPhoneTheme } from './ui/theme.ts'
 import { renderRiflesPage } from './ui/riflesPage.ts'
 import { backupOverdue, isInstalled, requestPersistentStorage } from './ui/safety.ts'
 import { renderShootPage } from './ui/shootPage.ts'
+import { renderStyleguidePage } from './ui/styleguidePage.ts'
 
-const PAGES: Record<string, { title: string; render: (root: HTMLElement, param?: string) => void }> = {
+const PAGES: Record<string, { title: string; render: (root: HTMLElement, param?: string) => void; hidden?: boolean }> = {
   shoot: { title: 'Shoot', render: renderShootPage },
   rifles: { title: 'Rifles', render: renderRiflesPage },
   log: { title: 'Log', render: renderLogPage },
   check: { title: 'Check', render: renderAccuracyPage },
   data: { title: 'Data', render: renderDataPage },
+  styleguide: { title: 'Style guide', render: renderStyleguidePage, hidden: true },
 }
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -25,6 +28,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   </div>
   <nav class="tabs">
     ${Object.entries(PAGES)
+      .filter(([, p]) => !p.hidden)
       .map(([id, p]) => `<a href="#/${id}" data-page="${id}">${p.title}</a>`)
       .join('')}
   </nav>

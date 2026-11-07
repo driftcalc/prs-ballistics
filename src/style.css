@@ -729,3 +729,44 @@ footer p {
 a {
   color: var(--accent);
 }
+
+/* ---------- Style guide (#/styleguide) ---------- */
+.sg-panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--bg);
+  color: var(--text);
+}
+
+.sg-panel h3 {
+  margin: var(--s3) 0 0;
+  font-size: var(--fs-body);
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.sg-theme {
+  margin: 0;
+  font-size: var(--fs-h1);
+}
+
+.sg-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--gap);
+}
+
+.sg-p,
+.sg-note {
+  margin: 0;
+}
+
+.readout-pair {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}

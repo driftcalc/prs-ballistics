@@ -1,0 +1,319 @@
+/* Components. Every colour, size and timing comes from tokens.css. */
+
+/* ---------- Button (base for every tappable thing) ---------- */
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-width: var(--touch);
+  min-height: var(--touch);
+  padding: 0 var(--s4);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font: inherit;
+  font-weight: 700;
+  text-decoration: none;
+  cursor: pointer;
+  touch-action: manipulation; /* no double-tap zoom on fast taps */
+  user-select: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn-primary,
+.btn[aria-pressed='true'],
+.btn[aria-current] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: var(--on-accent);
+}
+
+.btn-danger {
+  color: var(--danger);
+  border-color: var(--danger);
+}
+
+/* Instant pressed state: colours invert the moment your finger lands. */
+.btn:active,
+.tab:active {
+  background: var(--text);
+  border-color: var(--text);
+  color: var(--bg);
+  transition: none;
+}
+
+.btn:focus-visible,
+.tab:focus-visible,
+input:focus-visible,
+select:focus-visible {
+  outline: var(--line-w) solid var(--accent);
+  outline-offset: 2px;
+}
+
+.btn:disabled {
+  border-style: dashed;
+  cursor: not-allowed;
+}
+
+/* ---------- Read-out (label · direction · huge number · unit) ---------- */
+.readout {
+  /* Direction and unit stack in a narrow left column so the number gets the width. */
+  display: grid;
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'label label'
+    'dir   num'
+    'unit  num';
+  align-items: center;
+  column-gap: var(--s3);
+  padding: var(--s2) var(--s4);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  container-type: inline-size; /* number size follows the box, not the screen */
+}
+
+.readout-label {
+  grid-area: label;
+  font-weight: 700;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+.readout-dir {
+  grid-area: dir;
+  align-self: end;
+  min-width: 2.2ch;
+  font-size: var(--fs-value);
+  font-weight: 800;
+}
+
+.readout-num {
+  grid-area: num;
+  justify-self: end;
+  /* Hold numbers: never below 72px. */
+  font-size: clamp(var(--fs-readout-min), 30cqi, 112px);
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+/* Long values (e.g. 143.1) use the 72px minimum so they still fit on a phone. */
+.readout[data-long] .readout-num {
+  font-size: var(--fs-readout-min);
+}
+
+.readout-unit {
+  grid-area: unit;
+  align-self: start;
+  font-size: var(--fs-title);
+  font-weight: 800;
+  letter-spacing: 0.08em;
+}
+
+/* ---------- Big stepper (− value +) ---------- */
+.stepper {
+  display: grid;
+  grid-template-columns: var(--control-primary) 1fr var(--control-primary);
+  gap: var(--gap);
+}
+
+/* Left-handed: + moves under the left thumb. */
+[data-lefthand] .stepper {
+  direction: rtl;
+}
+
+[data-lefthand] .stepper > * {
+  direction: ltr;
+}
+
+.stepper-btn {
+  min-height: var(--control-primary);
+  font-size: var(--fs-value);
+  padding: 0;
+}
+
+.stepper-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: var(--s2);
+  min-height: var(--control-primary);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.stepper-text,
+.stepper-input {
+  font-size: var(--fs-value);
+  font-weight: 800;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+.stepper-input {
+  width: 5ch;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  color: var(--text);
+  font-family: inherit;
+  text-align: right;
+}
+
+.stepper-unit {
+  font-weight: 700;
+}
+
+/* ---------- Chip row ---------- */
+.chip-row {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: var(--gap);
+}
+
+[data-lefthand] .chip-row {
+  direction: rtl;
+}
+
+.chip {
+  padding: 0 var(--s2);
+}
+
+/* ---------- Segmented toggle ---------- */
+.segmented {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: var(--gap);
+}
+
+.segment {
+  min-height: var(--control-primary);
+  font-size: var(--fs-title);
+  letter-spacing: 0.08em;
+}
+
+/* ---------- Card ---------- */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding: var(--s4);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.card-title {
+  margin: 0;
+  font-size: var(--fs-title);
+}
+
+/* ---------- Bottom tab bar ---------- */
+.tabbar {
+  display: grid;
+  grid-auto-columns: 1fr;
+  grid-auto-flow: column;
+  gap: var(--gap);
+  padding: var(--s2);
+  border-top: var(--line-w) solid var(--line);
+  background: var(--bg);
+}
+
+[data-lefthand] .tabbar {
+  direction: rtl;
+}
+
+.tab {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--control-primary);
+  border: var(--line-w) solid transparent;
+  border-radius: var(--radius);
+  color: var(--text);
+  text-decoration: none;
+  font-weight: 700;
+  direction: ltr;
+}
+
+.tab[aria-current] {
+  background: var(--accent);
+  color: var(--on-accent);
+}
+
+.tab-icon {
+  font-size: var(--fs-title);
+  line-height: 1;
+}
+
+/* ---------- Bottom sheet ---------- */
+.sheet-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 10;
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  background: var(--bg);
+  background: color-mix(in srgb, var(--bg) 80%, transparent);
+}
+
+.sheet {
+  width: 100%;
+  max-width: 640px;
+  max-height: 88dvh;
+  overflow-y: auto;
+  border-top: var(--line-w) solid var(--line);
+  border-radius: var(--radius) var(--radius) 0 0;
+  background: var(--bg);
+  color: var(--text);
+  padding: 0 var(--s4) max(var(--s4), env(safe-area-inset-bottom));
+  animation: sheet-up var(--motion) ease-out;
+}
+
+@keyframes sheet-up {
+  from {
+    transform: translateY(24px);
+  }
+}
+
+.sheet-head {
+  position: sticky;
+  top: 0;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s2);
+  padding: var(--s3) 0;
+  background: var(--bg);
+}
+
+.sheet-title {
+  margin: 0;
+  font-size: var(--fs-title);
+}
+
+.sheet-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+  padding-bottom: var(--s4);
+}
+
+body.sheet-open {
+  overflow: hidden;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .sheet {
+    animation: none;
+  }
+}
