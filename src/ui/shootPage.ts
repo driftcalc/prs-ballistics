@@ -1,11 +1,11 @@
 // Shoot screen: the one you use on the line. Opens on the last-used rifle,
 // shows huge holds, and has glove-sized buttons for range and wind.
 import { BallisticsError, getEngine } from '../ballistics/index.ts'
-import { combine, type Conditions } from '../data/profiles.ts'
+import { combine, type Conditions, type RifleData } from '../data/profiles.ts'
 import { RANGE_STEPS_YD, MAX_RANGE_YD, MIN_RANGE_YD, rotateClock, stepRange, stepWindSpeed } from '../data/shootControls.ts'
 import { currentProfile, getData, updateData } from '../data/store.ts'
 import { toShotInput } from '../shotInputs.ts'
-import { yardsToMeters } from '../units/index.ts'
+import { radiansToMil, radiansToMoa, yardsToMeters } from '../units/index.ts'
 import { escapeHtml, holdParts, timeText, velocityText } from './format.ts'
 import { parseFormValues, readFormValues, renderShotFields, toFormValues, updateVisibility } from './shotForm.ts'
 
@@ -23,6 +23,26 @@ function windArrow(clock: number): string {
       <line x1="0" y1="34" x2="0" y2="-24" stroke="currentColor" stroke-width="8" stroke-linecap="round" />
       <path d="M -16 -16 L 0 -38 L 16 -16 Z" fill="currentColor" />
     </g></svg>`
+}
+
+/**
+ * Splits the WIND hold into its parts, e.g. "Hold = wind R 1.0 + spin drift L 0.1"
+ * (both are holds: a right-twist barrel drifts right, so its part is held LEFT),
+ * so windage at 0 mph (spin drift) doesn't look like a mistake.
+ */
+function breakdownText(totalRad: number, spinRad: number, rifle: RifleData, unit: 'mil' | 'moa'): string {
+  const hasTwist = rifle.twistIn !== undefined
+  const spinOn = hasTwist && rifle.bulletLengthIn !== undefined && rifle.bulletDiameterIn !== undefined
+  if (!spinOn) return hasTwist ? 'Spin drift off — add bullet diameter and length on the rifle to include it.' : ''
+  // Round the total and the spin part the same way the big number is rounded,
+  // then take the wind part as the difference, so the parts always add up to
+  // exactly what WIND shows.
+  const toUnit = (rad: number) => (unit === 'mil' ? radiansToMil(rad) : radiansToMoa(rad))
+  const r1 = (n: number) => Math.round(n * 10) / 10
+  const total = r1(toUnit(totalRad))
+  const spin = r1(toUnit(spinRad))
+  const part = (n: number) => (Math.abs(n) < 0.05 ? '0.0' : `${n > 0 ? 'R' : 'L'} ${Math.abs(n).toFixed(1)}`)
+  return `Hold = wind ${part(total - spin)} + spin drift ${part(spin)}`
 }
 
 export function renderShootPage(root: HTMLElement): void {
@@ -52,6 +72,7 @@ export function renderShootPage(root: HTMLElement): void {
       <button data-unit-set="mil">MIL</button><button data-unit-set="moa">MOA</button>
     </div>
     <p class="hold-sub" data-sub aria-live="polite"></p>
+    <p class="hold-breakdown" data-breakdown></p>
     ${
       profile.factory?.mvEstimated
         ? '<p class="mv-estimate"><a href="#/log">MV estimated from factory data — log confirmed hits to true it</a></p>'
@@ -124,8 +145,12 @@ export function renderShootPage(root: HTMLElement): void {
     if (!p) return
     try {
       const engine = await getEngine()
-      const [s] = await engine.solve(toShotInput(combine(p.rifle, d.conditions, d.shoot)), [yardsToMeters(d.shoot.rangeYd)])
+      const range = [yardsToMeters(d.shoot.rangeYd)]
+      const [s] = await engine.solve(toShotInput(combine(p.rifle, d.conditions, d.shoot)), range)
+      // Same shot with no wind: whatever windage is left is spin drift.
+      const [calm] = await engine.solve(toShotInput(combine(p.rifle, d.conditions, { ...d.shoot, windSpeedMph: 0 })), range)
       if (run !== latest) return
+      $('[data-breakdown]').textContent = breakdownText(s.windage, calm.windage, p.rifle, d.settings.angleUnit)
       const unit = d.settings.angleUnit
       const elev = holdParts(s.elevation, unit, 'elevation')
       const wind = holdParts(s.windage, unit, 'windage')
