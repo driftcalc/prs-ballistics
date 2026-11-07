@@ -5,10 +5,24 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Licenses &amp; disclaimer · Spin Drift</title>
     <style>
-      body { font-family: system-ui, sans-serif; line-height: 1.5; max-width: 640px; margin: 0 auto; padding: 16px; }
-      @media (prefers-color-scheme: dark) { body { background: #121814; color: #e8e4d8; } a { color: #e0632b; } }
+      /* Same colours as the app's design tokens (src/design/tokens.css). */
+      :root, [data-theme='dark'] { --bg: #000000; --text: #ffffff; --link: #ffb000; color-scheme: dark; }
+      [data-theme='sun'] { --bg: #ffffff; --text: #000000; --link: #000000; color-scheme: light; }
+      [data-theme='night'] { --bg: #000000; --text: #ff0000; --link: #ff0000; color-scheme: dark; }
+      body { font-family: system-ui, sans-serif; font-size: 16px; line-height: 1.5; max-width: 640px; margin: 0 auto;
+        padding: 16px; background: var(--bg); color: var(--text); }
+      a { color: var(--link); display: inline-block; min-height: 48px; line-height: 48px; }
       h2 { margin-top: 2rem; }
     </style>
+    <script>
+      // Follow the theme chosen in the app (Auto = phone light/dark).
+      try {
+        var t = (JSON.parse(localStorage.getItem('prs.data')) || {}).settings || {}
+        var theme = t.theme === 'sun' || t.theme === 'dark' || t.theme === 'night' ? t.theme
+          : matchMedia('(prefers-color-scheme: light)').matches ? 'sun' : 'dark'
+        document.documentElement.dataset.theme = theme
+      } catch (e) {}
+    </script>
   </head>
   <body>
     <p><a href="../">&larr; Back to app</a></p>
@@ -19,6 +33,13 @@
       This app gives estimates only. It is provided "as is", without warranty of any kind.
       Always verify your data by shooting. Do not rely on it where an error could cause injury,
       damage or loss.
+    </p>
+
+    <h2>Font</h2>
+    <p>
+      Text is set in <a href="https://github.com/rsms/inter">Inter</a>, Copyright 2016 The Inter Project Authors,
+      used under the SIL Open Font License 1.1: <a href="Inter-OFL-1.1.txt">license text</a>.
+      The font is bundled unmodified (Latin subset, via the Fontsource package).
     </p>
 
     <h2>Factory ammo library</h2>

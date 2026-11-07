@@ -156,7 +156,7 @@ select:focus-visible {
 
 .stepper-input {
   width: 5ch;
-  min-height: 0;
+  min-height: var(--touch);
   padding: 0;
   border: 0;
   background: transparent;

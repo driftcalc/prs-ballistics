@@ -31,9 +31,10 @@ body {
   color: var(--text);
 }
 
-/* Browsers shrink <small> to ~13px; nothing in this app goes under 16px. */
+/* Browsers shrink <small> to ~13px. Here it stays the size of the text around
+   it: 16px on most screens, 18px on field screens. */
 small {
-  font-size: var(--fs-body);
+  font-size: inherit;
 }
 
 h1,

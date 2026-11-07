@@ -17,6 +17,14 @@ The same information is shown in the app at `/licenses/` (source: `public/licens
 - This app's complete source and build scripts are public in this repository, so anyone can
   rebuild it against a modified bclibc (LGPL-3.0 section 4).
 
+## Inter font (bundled for offline use)
+
+- Source: https://github.com/rsms/inter, via the `@fontsource-variable/inter` npm package
+- License: SIL Open Font License 1.1 — Copyright 2016 The Inter Project Authors
+- Full text: [public/licenses/Inter-OFL-1.1.txt](public/licenses/Inter-OFL-1.1.txt)
+- Bundled unmodified (Latin variable font). The OFL allows bundling with software
+  as long as the license and copyright notice travel with it and the font isn't sold on its own.
+
 ## Factory ammo library (`src/library/ammo.ts`)
 
 - Contains only facts (velocity, test barrel length, BC, weight, bullet length) copied by hand
