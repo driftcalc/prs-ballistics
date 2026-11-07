@@ -258,6 +258,27 @@ button.danger,
   font-weight: 700;
 }
 
+/* Truing assistant */
+.truing-headline {
+  margin: 0;
+  font-size: 1.1rem;
+}
+
+.verdict-matches strong {
+  color: var(--good);
+}
+
+.verdict-mv strong,
+.verdict-bc strong,
+.verdict-zero strong {
+  color: var(--accent);
+}
+
+.truing-warning {
+  color: var(--bad);
+  font-weight: 600;
+}
+
 /* Logbook */
 .log-button {
   min-height: 64px;
