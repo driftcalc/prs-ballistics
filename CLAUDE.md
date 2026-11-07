@@ -27,7 +27,8 @@ The owner is not a programmer and relies on Claude for all code.
 
 ## Design system (every screen, every session)
 
-Look: a calm precision instrument (aviation display / Kestrel screen). Clean,
+Look: a calm precision instrument with the original Spin Drift colours; holds are
+extra-bold (900) and side by side (readoutPair), stacking when a value is 4+ characters. Clean,
 flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decoration.**
 
 - **Tokens only.** Every colour, size, space and timing comes from
@@ -38,8 +39,10 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
 - **Themes:** Sun (black on white), Dark (default; white on black, amber accent),
   Night (pure red on pure black). Set by `data-theme` on `<html>`; setting
   `auto` follows the phone. **Night has no green or blue in any colour.**
-- **Contrast ≥ 7:1** for all text in Sun and Dark. Night is the one approved
-  exception: pure #FF0000 on black is 5.25:1 (the maximum possible), so all Night
+- **Contrast ≥ 4.5:1** for all text in Sun and Dark (owner changed this from 7:1 on
+  2026-11-07 to allow the original orange-on-green-gray look; only the owner changes it).
+  Dark = green-gray #121814 with orange #E0632B (black text on orange). Night:
+  pure #FF0000 on black is 5.25:1 (the maximum possible), so all Night
   text uses full #FF0000 — hierarchy by size/weight, never dimmer text.
 - **Type:** Inter (bundled, OFL), tabular digits + slashed zero everywhere.
   Minimum **16px** anywhere, **18px on field screens** (Shoot, Match, Log →

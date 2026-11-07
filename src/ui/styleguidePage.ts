@@ -1,7 +1,7 @@
 // Hidden style guide (#/styleguide): every component in Sun, Dark and Night,
 // so the design can be reviewed on a real phone. Not linked from the tab bar.
 // The controls work, but nothing here is saved.
-import { card, chipRow, openSheet, readout, segmented, setSelected, stepper, tabBar } from '../design/components.ts'
+import { card, chipRow, openSheet, readout, readoutPair, segmented, setSelected, stepper, tabBar } from '../design/components.ts'
 import { TABS } from './tabs.ts'
 
 const THEMES = [
@@ -14,11 +14,16 @@ function panel(theme: string, title: string): string {
   return `<section class="sg-panel" data-theme="${theme}">
     <h2 class="sg-theme">${title}</h2>
 
-    <h3>Read-out</h3>
-    <div class="readout-pair">
-      ${readout({ id: `${theme}-elev`, label: 'Elev', dir: 'UP', value: '4.6', unit: 'MIL' })}
-      ${readout({ id: `${theme}-wind`, label: 'Wind', dir: 'L', value: '143.1', unit: 'MOA' })}
-    </div>
+    <h3>Read-out pair</h3>
+    ${readoutPair(
+      readout({ id: `${theme}-elev`, label: 'Elev', dir: 'UP', value: '4.6', unit: 'MIL' }),
+      readout({ id: `${theme}-wind`, label: 'Wind', dir: 'L', value: '1.1', unit: 'MIL' }),
+    )}
+    <h3>Read-out pair, long value (stacks)</h3>
+    ${readoutPair(
+      readout({ id: `${theme}-elev2`, label: 'Elev', dir: 'UP', value: '143.1', unit: 'MOA' }),
+      readout({ id: `${theme}-wind2`, label: 'Wind', dir: 'R', value: '24.3', unit: 'MOA' }),
+    )}
 
     <h3>Big stepper</h3>
     ${stepper({ name: `${theme}-range`, label: 'Range', value: '600', unit: 'yd' })}

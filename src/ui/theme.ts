@@ -4,7 +4,7 @@ import { getData, type ThemeSetting } from '../data/store.ts'
 
 export type Theme = 'sun' | 'dark' | 'night'
 
-const STATUS_BAR: Record<Theme, string> = { sun: '#ffffff', dark: '#000000', night: '#000000' }
+const STATUS_BAR: Record<Theme, string> = { sun: '#ffffff', dark: '#121814', night: '#000000' }
 
 const prefersLight = () => window.matchMedia?.('(prefers-color-scheme: light)').matches === true
 

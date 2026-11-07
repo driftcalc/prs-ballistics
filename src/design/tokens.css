@@ -37,8 +37,8 @@
   --s5: 24px;
   --s6: 32px;
 
-  /* Shape: flat, thin lines, small corners */
-  --radius: 4px;
+  /* Shape: flat, thin lines, softly rounded corners */
+  --radius: 8px;
   --line-w: 2px;
 
   /* Touch */
@@ -66,41 +66,41 @@
 
 /* ---------- Themes ---------- */
 
-/* Sun: pure black on white, maximum contrast for bright daylight. */
+/* Sun: pure black on white, maximum contrast for bright daylight; dark orange accent. */
 [data-theme='sun'] {
   --bg: #ffffff;
   --surface: #ffffff;
   --text: #000000;
   --text-2: #333333;
   --line: #000000;
-  --accent: #000000;
+  --accent: #b8481a;
   --on-accent: #ffffff;
   --danger: #b00000;
   --good: #005a00;
   color-scheme: light;
 }
 
-/* Dark (default): white on black, amber accent like an instrument panel.
+/* Dark (default): the original Spin Drift look - green-gray with the orange accent.
+   Black text on orange (white on this orange is only 3.5:1).
    ":root:not([data-theme])" = before the app has picked a theme. */
 :root:not([data-theme]),
 [data-theme='dark'] {
-  --bg: #000000;
-  --surface: #111111;
-  --text: #ffffff;
-  --text-2: #c8c8c8;
-  --line: #767676;
-  --accent: #ffb000;
+  --bg: #121814;
+  --surface: #1b231d;
+  --text: #e8e4d8;
+  --text-2: #a3aba5;
+  --line: #4a5850;
+  --accent: #e0632b;
   --on-accent: #000000;
-  --danger: #ff8c8c;
-  --good: #6be38a;
+  --danger: #ef6b5f;
+  --good: #5cb86a;
   color-scheme: dark;
 }
 
 /*
  * Night: pure red on pure black. No green or blue in ANY colour, to keep night
- * vision. #FF0000 on black is 5.25:1 - the brightest pure red possible, so this
- * theme is the one approved exception to the 7:1 rule. Hierarchy comes from
- * size and weight, never from dimmer text.
+ * vision. #FF0000 on black is 5.25:1 - the brightest pure red possible.
+ * Hierarchy comes from size and weight, never from dimmer text.
  */
 [data-theme='night'] {
   --bg: #000000;

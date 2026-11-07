@@ -374,11 +374,6 @@ button:not(.btn):not(.tab):active,
   white-space: nowrap;
 }
 
-.readout-pair {
-  display: flex;
-  flex-direction: column;
-  gap: var(--gap);
-}
 
 .shot-notes {
   display: flex;

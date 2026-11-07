@@ -15,13 +15,23 @@ export interface Option {
 
 /** Big read-out: label, direction, huge number, unit. E.g. ELEV · UP · 4.6 · MIL. */
 export function readout(o: { id: string; label: string; dir?: string; value?: string; unit?: string }): string {
-  const long = (o.value ?? '').length > 4 ? ' data-long' : ''
-  return `<div class="readout" data-readout="${esc(o.id)}"${long}>
+  const len = (o.value ?? '').length
+  const long = len > 4 ? ' data-long' : ''
+  return `<div class="readout" data-readout="${esc(o.id)}" data-len="${len}"${long}>
     <span class="readout-label">${esc(o.label)}</span>
     <span class="readout-dir" data-part="dir">${esc(o.dir ?? '')}</span>
     <span class="readout-num" data-part="num">${esc(o.value ?? '…')}</span>
     <span class="readout-unit" data-part="unit">${esc(o.unit ?? '')}</span>
   </div>`
+}
+
+/**
+ * Two read-outs side by side in one card (e.g. ELEV and WIND). If either value
+ * is too long to fit side by side at the 72px minimum (4+ characters, like
+ * 12.4 or 143.1), the pair stacks automatically instead of shrinking.
+ */
+export function readoutPair(a: string, b: string): string {
+  return `<div class="readout-pair side" aria-live="polite">${a}${b}</div>`
 }
 
 /** Updates a readout made by readout() in place (no re-render, so no flicker). */
@@ -32,7 +42,10 @@ export function setReadout(root: ParentNode, id: string, v: { dir?: string; valu
     const key = part === 'value' ? 'num' : part
     if (v[part] !== undefined) el.querySelector(`[data-part="${key}"]`)!.textContent = v[part]!
   }
-  if (v.value !== undefined) el.toggleAttribute('data-long', v.value.length > 4)
+  if (v.value !== undefined) {
+    el.toggleAttribute('data-long', v.value.length > 4)
+    el.setAttribute('data-len', String(v.value.length)) // a side-by-side pair stacks when a value is 4+ characters
+  }
 }
 
 /**

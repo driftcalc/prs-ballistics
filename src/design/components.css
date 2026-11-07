@@ -95,7 +95,7 @@ select:focus-visible {
   justify-self: end;
   /* Hold numbers: never below 72px. */
   font-size: clamp(var(--fs-readout-min), 30cqi, 112px);
-  font-weight: 800;
+  font-weight: 900;
   line-height: 1;
   letter-spacing: -0.02em;
   font-variant-numeric: tabular-nums slashed-zero;
@@ -112,6 +112,78 @@ select:focus-visible {
   font-size: var(--fs-title);
   font-weight: 800;
   letter-spacing: 0.08em;
+}
+
+/* ---------- Read-out pair, side by side (ELEV | WIND) ---------- */
+.readout-pair {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.readout-pair.side {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0;
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+/* Inside the pair: one shared card, each half a centred column. */
+.readout-pair.side .readout {
+  grid-template-columns: 1fr;
+  grid-template-areas: 'label' 'dir' 'num' 'unit';
+  justify-items: center;
+  row-gap: 2px;
+  padding: var(--s3) var(--s1);
+  border: 0;
+  border-radius: 0;
+  background: transparent;
+  text-align: center;
+}
+
+.readout-pair.side .readout + .readout {
+  border-left: var(--line-w) solid var(--line);
+}
+
+.readout-pair.side .readout-num {
+  justify-self: center;
+  font-size: clamp(var(--fs-readout-min), 42cqi, 112px);
+}
+
+.readout-pair.side .readout-dir,
+.readout-pair.side .readout-unit {
+  align-self: center;
+  min-height: 1.2em;
+}
+
+/* Too long to sit side by side at 72px (e.g. 12.4, 143.1): stack instead. */
+.readout-pair.side:has(.readout:is([data-len='4'], [data-len='5'], [data-len='6'], [data-len='7'])) {
+  grid-template-columns: 1fr;
+}
+
+.readout-pair.side:has(.readout:is([data-len='4'], [data-len='5'], [data-len='6'], [data-len='7'])) .readout + .readout {
+  border-left: 0;
+  border-top: var(--line-w) solid var(--line);
+}
+
+/* Stacked: each hold goes back to a compact row (direction + unit left, number right)
+   so the controls below stay on screen. */
+.readout-pair.side:has(.readout:is([data-len='4'], [data-len='5'], [data-len='6'], [data-len='7'])) .readout {
+  grid-template-columns: auto 1fr;
+  grid-template-areas:
+    'label label'
+    'dir   num'
+    'unit  num';
+  justify-items: start;
+  padding: var(--s2) var(--s4);
+  text-align: left;
+}
+
+.readout-pair.side:has(.readout:is([data-len='4'], [data-len='5'], [data-len='6'], [data-len='7'])) .readout-num {
+  justify-self: end;
+  font-size: clamp(var(--fs-readout-min), 26cqi, 96px);
 }
 
 /* ---------- Big stepper (− value +) ---------- */

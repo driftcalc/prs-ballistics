@@ -2,7 +2,7 @@
 // shows huge holds at the top and keeps the glove-sized controls lower down,
 // where the thumb reaches. Built from the design components.
 import { BallisticsError, getEngine } from '../ballistics/index.ts'
-import { chipRow, openSheet, readout, segmented, setReadout, setSelected, stepper } from '../design/components.ts'
+import { chipRow, openSheet, readout, readoutPair, segmented, setReadout, setSelected, stepper } from '../design/components.ts'
 import { combine, type Conditions, type RifleData } from '../data/profiles.ts'
 import { RANGE_STEPS_YD, MAX_RANGE_YD, MIN_RANGE_YD, rotateClock, stepRange, stepWindSpeed } from '../data/shootControls.ts'
 import { currentProfile, getData, updateData } from '../data/store.ts'
@@ -67,10 +67,7 @@ export function renderShootPage(root: HTMLElement): void {
       <span data-rifle-name>${escapeHtml(profile.name)}</span><span aria-hidden="true">▾</span>
     </button>
 
-    <div class="readout-pair" aria-live="polite">
-      ${readout({ id: 'elev', label: 'Elevation', unit: unitLabel })}
-      ${readout({ id: 'wind', label: 'Wind', unit: unitLabel })}
-    </div>
+    ${readoutPair(readout({ id: 'elev', label: 'Elev', unit: unitLabel }), readout({ id: 'wind', label: 'Wind', unit: unitLabel }))}
     <div class="shot-notes">
       <p data-sub>Loading the ballistics engine…</p>
       <p data-breakdown></p>

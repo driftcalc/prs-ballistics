@@ -52,12 +52,17 @@ const TEXT_PAIRS: [text: string, background: string][] = [
   ['bg', 'text'], // pressed state inverts: background colour on text colour
 ]
 
+// Minimum contrast for all text in Sun and Dark. Set by the owner: 7:1 in the
+// original design brief, changed to 4.5:1 on 2026-11-07 to allow the original
+// orange-on-green-gray look. Only the owner changes this number.
+const MIN_CONTRAST = 4.5
+
 describe('contrast (WCAG)', () => {
   for (const theme of ['sun', 'dark']) {
     const c = themeColors(theme)
     for (const [fg, bg] of TEXT_PAIRS) {
-      it(`${theme}: ${fg} on ${bg} is at least 7:1`, () => {
-        expect(contrast(c[fg], c[bg])).toBeGreaterThanOrEqual(7)
+      it(`${theme}: ${fg} on ${bg} is at least ${MIN_CONTRAST}:1`, () => {
+        expect(contrast(c[fg], c[bg])).toBeGreaterThanOrEqual(MIN_CONTRAST)
       })
     }
   }
