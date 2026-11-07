@@ -1,8 +1,10 @@
 import './style.css'
+import { renderAccuracyPage } from './ui/accuracyPage.ts'
 import { renderCalculatorPage } from './ui/calculatorPage.ts'
 
-const PAGES: Record<string, { title: string; render: (root: HTMLElement) => void }> = {
+const PAGES: Record<string, { title: string; render: (root: HTMLElement, param?: string) => void }> = {
   calculator: { title: 'Calculator', render: renderCalculatorPage },
+  check: { title: 'Check accuracy', render: renderAccuracyPage },
 }
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -24,7 +26,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 
 // Simple page switching using the part of the address after '#'.
 function showPage() {
-  const id = location.hash.replace('#/', '')
+  const [id, param] = location.hash.replace('#/', '').split('/')
   const pageId = id in PAGES ? id : 'calculator'
   document.querySelectorAll<HTMLAnchorElement>('.tabs a').forEach((a) => {
     a.toggleAttribute('aria-current', a.dataset.page === pageId)
@@ -32,7 +34,8 @@ function showPage() {
   const root = document.querySelector<HTMLElement>('#page')!
   const fresh = root.cloneNode(false) as HTMLElement // drops old page's listeners
   root.replaceWith(fresh)
-  PAGES[pageId].render(fresh)
+  PAGES[pageId].render(fresh, param)
+  window.scrollTo(0, 0)
 }
 
 window.addEventListener('hashchange', showPage)

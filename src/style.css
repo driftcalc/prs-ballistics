@@ -290,6 +290,7 @@ button.danger {
   padding: 4px;
   text-align: right;
   border-bottom: 1px solid var(--border);
+  white-space: nowrap;
 }
 
 .compare th:first-child,

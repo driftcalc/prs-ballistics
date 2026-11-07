@@ -1,6 +1,10 @@
 // Adapter: connects js-ballistics to the BallisticsEngine interface.
 // This is the ONLY file in the app allowed to import 'js-ballistics'.
 // It only translates units and conventions; all the physics is the library's.
+//
+// WARNING: the library's Unit.MIL is the NATO mil (1/6400 of a circle), NOT the
+// milliradian used by scopes, Hornady and AB (that is Unit.MRad). We always read
+// angles in Unit.Radian and convert in src/units/ to avoid mixing them up.
 
 import {
   Ammo,
