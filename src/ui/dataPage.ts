@@ -14,12 +14,17 @@ import { getData, replaceData, updateData } from '../data/store.ts'
 import { downloadFile } from './download.ts'
 import { escapeHtml } from './format.ts'
 import { applyNightMode } from './nightMode.ts'
+import { backupOverdue, daysSinceBackup } from './safety.ts'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
 function lastBackupText(): string {
-  const at = getData().settings.lastBackupAt
-  return at ? `Last full backup: ${new Date(at).toLocaleString()}` : 'No full backup exported yet.'
+  const d = getData()
+  const at = d.settings.lastBackupAt
+  const base = at ? `Last full backup: ${new Date(at).toLocaleString()}.` : 'No full backup exported yet.'
+  if (!backupOverdue(d)) return base
+  const days = daysSinceBackup(d)
+  return `${base} ⚠ ${days === undefined ? 'Export one now' : `That was ${days} days ago — export a fresh one`} so a lost or reset phone doesn't take your data with it.`
 }
 
 export function renderDataPage(root: HTMLElement): void {
@@ -28,9 +33,10 @@ export function renderDataPage(root: HTMLElement): void {
     <section class="card">
       <h2>Your data</h2>
       <p>Everything is stored only on this phone: ${d.profiles.length} rifle${d.profiles.length === 1 ? '' : 's'},
+        ${d.log.length} logged shot${d.log.length === 1 ? '' : 's'},
         ${Object.keys(d.comparisons).length} comparison${Object.keys(d.comparisons).length === 1 ? '' : 's'}, weather and settings.
         Export a backup after changes — clearing browser data or removing the app deletes it.</p>
-      <p><small data-last-backup>${escapeHtml(lastBackupText())}</small></p>
+      <p class="${backupOverdue(d) ? 'backup-due' : ''}" data-last-backup>${escapeHtml(lastBackupText())}</p>
     </section>
 
     <section class="card stack">
@@ -53,7 +59,10 @@ export function renderDataPage(root: HTMLElement): void {
   root.querySelector('[data-action="export-json"]')!.addEventListener('click', () => {
     downloadFile(`spin-drift-backup-${today()}.json`, toBackupJson(getData()), 'application/json')
     updateData((data) => void (data.settings.lastBackupAt = new Date().toISOString()))
-    root.querySelector('[data-last-backup]')!.textContent = lastBackupText()
+    const note = root.querySelector('[data-last-backup]')!
+    note.textContent = lastBackupText()
+    note.classList.remove('backup-due')
+    document.querySelector('.tabs a[data-page="data"]')?.removeAttribute('data-due')
   })
 
   root.querySelector('[data-action="export-csv"]')!.addEventListener('click', () => {

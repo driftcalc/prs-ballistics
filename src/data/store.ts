@@ -33,6 +33,8 @@ export interface Settings {
   night: boolean
   /** When the last full backup was exported, to remind the user. */
   lastBackupAt?: string
+  /** User closed the "add to Home Screen" tip. */
+  installTipDismissed?: boolean
 }
 
 export interface AppData {

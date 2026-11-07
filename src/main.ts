@@ -1,10 +1,11 @@
 import './style.css'
-import { updateData } from './data/store.ts'
+import { getData, updateData } from './data/store.ts'
 import { renderAccuracyPage } from './ui/accuracyPage.ts'
 import { renderDataPage } from './ui/dataPage.ts'
 import { renderLogPage } from './ui/logPage.ts'
 import { applyNightMode } from './ui/nightMode.ts'
 import { renderRiflesPage } from './ui/riflesPage.ts'
+import { backupOverdue, isInstalled, requestPersistentStorage } from './ui/safety.ts'
 import { renderShootPage } from './ui/shootPage.ts'
 
 const PAGES: Record<string, { title: string; render: (root: HTMLElement, param?: string) => void }> = {
@@ -26,6 +27,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
       .map(([id, p]) => `<a href="#/${id}" data-page="${id}">${p.title}</a>`)
       .join('')}
   </nav>
+  <div data-banners></div>
 </header>
 <main id="page"></main>
 <footer>
@@ -40,6 +42,31 @@ document.querySelector('[data-action="night"]')!.addEventListener('click', () =>
   applyNightMode()
 })
 
+/** Tips that protect your data: install the app, and a dot on Data when a backup is due. */
+function showSafetyHints() {
+  const d = getData()
+  document.querySelector('.tabs a[data-page="data"]')?.toggleAttribute('data-due', backupOverdue(d))
+  const box = document.querySelector<HTMLElement>('[data-banners]')!
+  if (isInstalled() || d.settings.installTipDismissed) {
+    box.querySelector('[data-install-tip]')?.remove()
+    return
+  }
+  if (box.querySelector('[data-install-tip]')) return
+  box.insertAdjacentHTML(
+    'beforeend',
+    `<div class="banner" data-install-tip>
+      <p><strong>Add Spin Drift to your Home Screen.</strong> In a browser tab (especially Safari on iPhone),
+        your saved rifles and logbook can be erased after about a week without use. From the Home Screen they're kept.<br />
+        <small>iPhone: Share ⎋ → Add to Home Screen. Android: ⋮ menu → Install app.</small></p>
+      <button data-action="dismiss-install">Got it</button>
+    </div>`,
+  )
+  box.querySelector('[data-action="dismiss-install"]')!.addEventListener('click', () => {
+    updateData((data) => void (data.settings.installTipDismissed = true))
+    showSafetyHints()
+  })
+}
+
 // Simple page switching using the part of the address after '#'.
 function showPage() {
   const [id, param] = location.hash.replace('#/', '').split('/')
@@ -51,9 +78,11 @@ function showPage() {
   const fresh = root.cloneNode(false) as HTMLElement // drops old page's listeners
   root.replaceWith(fresh)
   PAGES[pageId].render(fresh, param)
+  showSafetyHints()
   window.scrollTo(0, 0)
 }
 
+requestPersistentStorage()
 applyNightMode()
 window.addEventListener('hashchange', showPage)
 showPage()
