@@ -51,6 +51,22 @@ The owner is not a programmer and relies on Claude for all code.
   Known-answer tests in `truing.test.ts` generate holds from a hidden true MV/BC;
   don't loosen their limits to make them pass.
 
+## Factory ammo library
+
+- `src/library/ammo.ts`: manufacturers' published figures only, typed by hand from
+  the maker's OWN product page, with `source` URL and `checked` date per entry.
+  Never scrape, never copy another app's/site's database, no descriptions/photos/
+  logos, no Applied Ballistics custom drag models. Leave a load out rather than
+  guess a figure the maker doesn't publish; mark assumptions (e.g. `testBarrelAssumed`).
+- Hornady publishes BC per speed band; use the Mach 1.75 value (their advice beyond 600 yd).
+- Show the owner new library data as a table for review before adding it.
+- **The one allowed exception to "no hand-written ballistics formulas"** is the
+  barrel-length velocity estimate in `src/library/barrelEstimate.ts` (owner approved).
+  It must always be shown as an estimate with ± and a source for each per-inch figure.
+  No other hand-made formulas.
+- Filling a rifle from the library sets `profile.factory.mvEstimated`; typing your
+  own MV or applying a trued MV clears it.
+
 ## Ballistics rules (most important)
 
 - **Never write ballistics formulas by hand.** All trajectory math comes from

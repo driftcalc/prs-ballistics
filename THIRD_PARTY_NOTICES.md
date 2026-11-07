@@ -17,6 +17,17 @@ The same information is shown in the app at `/licenses/` (source: `public/licens
 - This app's complete source and build scripts are public in this repository, so anyone can
   rebuild it against a modified bclibc (LGPL-3.0 section 4).
 
+## Factory ammo library (`src/library/ammo.ts`)
+
+- Contains only facts (velocity, test barrel length, BC, weight, bullet length) copied by hand
+  from each manufacturer's own product page, with the source URL and date on every entry.
+- No scraping, no copying of other apps' or websites' databases, no product descriptions,
+  photos or logos, and no Applied Ballistics custom drag models.
+- Brand and product names are trademarks of their owners, used only to identify products
+  ("no endorsement implied" is shown in the app and on the licenses page).
+- Barrel-length velocity figures cite the published cut-down tests they come from
+  (`src/library/barrelEstimate.ts`).
+
 ## How to stay compliant
 
 1. Keep the files in `public/licenses/` and the in-app "Licenses & disclaimer" link.
