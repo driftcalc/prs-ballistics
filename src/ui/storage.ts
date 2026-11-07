@@ -1,6 +1,6 @@
 // Saves small amounts of data on this device only (browser localStorage).
-// Storage can be unavailable (private mode, full disk), so failures are ignored
-// and the app falls back to defaults.
+// Storage can be unavailable (private mode, full disk). Reads fall back to
+// defaults; writes report whether they worked so the app can warn you.
 
 export function load<T>(key: string, fallback: T): T {
   try {
@@ -11,10 +11,12 @@ export function load<T>(key: string, fallback: T): T {
   }
 }
 
-export function save(key: string, value: unknown): void {
+/** Returns false if the data could NOT be saved. */
+export function save(key: string, value: unknown): boolean {
   try {
     localStorage.setItem(key, JSON.stringify(value))
+    return true
   } catch {
-    // Not saved; the app still works for this visit.
+    return false
   }
 }

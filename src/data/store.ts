@@ -99,6 +99,19 @@ export function migrateLegacy(calcValues?: FormValues, targetYd?: string, cases?
 
 let cache: AppData | undefined
 
+/** Event fired on `window` when saving starts failing or works again (detail: { ok }). */
+export const SAVE_STATUS_EVENT = 'spin-drift:save-status'
+let lastSaveOk = true
+
+/** Writes the bundle and tells the app if saving failed (e.g. storage full, private browsing). */
+function persist(d: AppData): void {
+  const ok = save(STORE_KEY, d)
+  if (ok !== lastSaveOk) {
+    lastSaveOk = ok
+    if (typeof window !== 'undefined') window.dispatchEvent(new CustomEvent(SAVE_STATUS_EVENT, { detail: { ok } }))
+  }
+}
+
 export function getData(): AppData {
   if (!cache) {
     const saved = load<AppData | null>(STORE_KEY, null)
@@ -110,7 +123,7 @@ export function getData(): AppData {
             load<string | undefined>('calc.targetYd', undefined),
             load<Record<string, ReferenceCase> | undefined>('accuracy.cases', undefined),
           )
-    save(STORE_KEY, cache)
+    persist(cache)
   }
   return cache
 }
@@ -119,14 +132,14 @@ export function getData(): AppData {
 export function updateData(change: (d: AppData) => void): AppData {
   const d = getData()
   change(d)
-  save(STORE_KEY, d)
+  persist(d)
   return d
 }
 
 /** Swaps in a whole new bundle (used by Import). */
 export function replaceData(next: AppData): void {
   cache = next
-  save(STORE_KEY, next)
+  persist(next)
 }
 
 /** The rifle the Shoot screen should open on (last used, else the first). */

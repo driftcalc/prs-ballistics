@@ -1,5 +1,5 @@
 import './style.css'
-import { getData, updateData } from './data/store.ts'
+import { getData, SAVE_STATUS_EVENT, updateData } from './data/store.ts'
 import { renderAccuracyPage } from './ui/accuracyPage.ts'
 import { renderDataPage } from './ui/dataPage.ts'
 import { renderLogPage } from './ui/logPage.ts'
@@ -66,6 +66,21 @@ function showSafetyHints() {
     showSafetyHints()
   })
 }
+
+// If the phone refuses to save (storage full, private browsing), say so loudly.
+window.addEventListener(SAVE_STATUS_EVENT, (e) => {
+  const ok = (e as CustomEvent<{ ok: boolean }>).detail.ok
+  const box = document.querySelector<HTMLElement>('[data-banners]')!
+  box.querySelector('[data-save-error]')?.remove()
+  if (ok) return
+  box.insertAdjacentHTML(
+    'afterbegin',
+    `<div class="banner error" data-save-error role="alert">
+      <p><strong>Couldn't save your changes on this phone.</strong> Storage may be full or you're in a private
+        browsing window. Your last changes will be lost when the app closes. <a href="#/data">Export a backup now</a>.</p>
+    </div>`,
+  )
+})
 
 // Simple page switching using the part of the address after '#'.
 function showPage() {
