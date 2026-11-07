@@ -1,47 +1,20 @@
+/* Colours, sizes and timing all come from src/design/tokens.css. */
 :root {
-  --bg: #f4f2ec;
-  --surface: #ffffff;
-  --text: #1c1f1d;
-  --muted: #5d625e;
-  --border: #d6d3c9;
-  --accent: #e0632b;
-  --on-accent: #ffffff;
-  --good: #2f7d3b;
-  --bad: #c0362c;
-  color-scheme: light dark;
-  font-family: system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
-  line-height: 1.5;
+  font-family: var(--font);
+  font-size: var(--fs-body);
+  line-height: var(--lh);
+  /* Fixed-width digits everywhere, slashed zero so 0 and O can't be confused. */
+  font-variant-numeric: tabular-nums slashed-zero;
   -webkit-text-size-adjust: 100%;
-}
-
-@media (prefers-color-scheme: dark) {
-  :root {
-    --bg: #121814;
-    --surface: #1b231d;
-    --text: #e8e4d8;
-    --muted: #9aa29c;
-    --border: #34403a;
-    --good: #5cb86a;
-    --bad: #ef6b5f;
-  }
-}
-
-/* Red night mode: overrides day and dark colours. Pure black and dim red only. */
-:root[data-night] {
-  --bg: #000000;
-  --surface: #0d0000;
-  --text: #d81e1e;
-  --muted: #8f1414;
-  --border: #3d0606;
-  --accent: #6e0b0b;
-  --good: #b31515;
-  --bad: #ff4a3d;
-  --on-accent: #ff5a4a;
-  color-scheme: dark;
 }
 
 * {
   box-sizing: border-box;
+}
+
+/* Browsers shrink <small> to ~13px; nothing in this app goes under 16px. */
+small {
+  font-size: var(--fs-body);
 }
 
 .title-row {
@@ -158,7 +131,7 @@ h2 {
   display: flex;
   flex-direction: column;
   gap: 2px;
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
   color: var(--muted);
   min-width: 0;
 }
@@ -263,7 +236,7 @@ button.danger,
   border: 1px solid var(--accent);
   border-radius: 12px;
   background: var(--surface);
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
 }
 
 .banner p {
@@ -333,7 +306,7 @@ button.danger,
   margin: 0;
   padding: 8px 10px;
   border-left: 4px solid var(--accent);
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
 }
 
 .estimate {
@@ -356,7 +329,7 @@ button.danger,
 .hold-breakdown {
   margin: -12px 0 0;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
   color: var(--muted);
 }
 
@@ -367,7 +340,7 @@ button.danger,
 .mv-estimate {
   margin: -8px 0 0;
   text-align: center;
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
 }
 
 /* Truing assistant */
@@ -488,7 +461,7 @@ button.danger,
 }
 
 .hold-label {
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   letter-spacing: 0.1em;
   color: var(--muted);
@@ -679,7 +652,7 @@ button.danger,
 
 .badge {
   display: inline-block;
-  font-size: 0.75rem;
+  font-size: var(--fs-body);
   font-weight: 700;
   padding: 1px 8px;
   border-radius: 99px;
@@ -699,7 +672,7 @@ button.danger,
 .compare {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
 }
 
 .compare th,
@@ -731,7 +704,7 @@ button.danger,
 }
 
 .tips {
-  font-size: 0.9rem;
+  font-size: var(--fs-body);
 }
 
 .tips ul {
@@ -740,7 +713,7 @@ button.danger,
 }
 
 footer {
-  font-size: 0.85rem;
+  font-size: var(--fs-body);
   color: var(--muted);
   display: flex;
   flex-wrap: wrap;

@@ -1,0 +1,124 @@
+/*
+ * Design tokens: the single source of every colour, size and timing in the app.
+ * Look: a calm precision instrument (aviation display / Kestrel). Flat, high
+ * contrast, no gradients, no shadows, no decoration.
+ *
+ * Themes are chosen with data-theme="sun|dark|night" on <html> (or on any
+ * panel, as the style guide does). Rules are in CLAUDE.md -> "Design system".
+ * src/design/design.test.ts checks contrast and the bans automatically.
+ */
+
+/* Inter (SIL Open Font License 1.1), Latin variable font, bundled for offline use. */
+@font-face {
+  font-family: 'Inter Variable';
+  font-style: normal;
+  font-display: swap;
+  font-weight: 100 900;
+  src: url('@fontsource-variable/inter/files/inter-latin-wght-normal.woff2') format('woff2-variations');
+}
+
+:root {
+  /* Type */
+  --font: 'Inter Variable', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --fs-body: 16px; /* minimum anywhere */
+  --fs-field: 18px; /* minimum on field screens: Shoot, Match, Log */
+  --fs-title: 20px;
+  --fs-h1: 24px;
+  --fs-value: 32px; /* stepper values */
+  --fs-readout: 80px; /* hold numbers; never below 72px */
+  --fs-readout-min: 72px;
+  --lh: 1.4;
+
+  /* Space (8px grid) */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 12px;
+  --s4: 16px;
+  --s5: 24px;
+  --s6: 32px;
+
+  /* Shape: flat, thin lines, small corners */
+  --radius: 4px;
+  --line-w: 2px;
+
+  /* Touch */
+  --touch: 48px; /* minimum target */
+  --gap: 8px; /* minimum gap between targets */
+  --control-primary: 64px; /* steppers, tab bar, unit switch */
+  --tabbar-h: var(--control-primary);
+
+  /* Motion: nothing slower than 150ms */
+  --motion: 100ms;
+}
+
+/* Glove mode: primary controls at least 96px. */
+:root[data-glove] {
+  --control-primary: 96px;
+  --fs-value: 40px;
+}
+
+/* Respect "reduce motion" on the phone. */
+@media (prefers-reduced-motion: reduce) {
+  :root {
+    --motion: 0ms;
+  }
+}
+
+/* ---------- Themes ---------- */
+
+/* Sun: pure black on white, maximum contrast for bright daylight. */
+[data-theme='sun'] {
+  --bg: #ffffff;
+  --surface: #ffffff;
+  --text: #000000;
+  --text-2: #333333;
+  --line: #000000;
+  --accent: #000000;
+  --on-accent: #ffffff;
+  --danger: #b00000;
+  --good: #005a00;
+  color-scheme: light;
+}
+
+/* Dark (default): white on black, amber accent like an instrument panel.
+   ":root:not([data-theme])" = before the app has picked a theme. */
+:root:not([data-theme]),
+[data-theme='dark'] {
+  --bg: #000000;
+  --surface: #111111;
+  --text: #ffffff;
+  --text-2: #c8c8c8;
+  --line: #767676;
+  --accent: #ffb000;
+  --on-accent: #000000;
+  --danger: #ff8c8c;
+  --good: #6be38a;
+  color-scheme: dark;
+}
+
+/*
+ * Night: pure red on pure black. No green or blue in ANY colour, to keep night
+ * vision. #FF0000 on black is 5.25:1 - the brightest pure red possible, so this
+ * theme is the one approved exception to the 7:1 rule. Hierarchy comes from
+ * size and weight, never from dimmer text.
+ */
+[data-theme='night'] {
+  --bg: #000000;
+  --surface: #000000;
+  --text: #ff0000;
+  --text-2: #ff0000;
+  --line: #990000;
+  --accent: #ff0000;
+  --on-accent: #000000;
+  --danger: #ff0000;
+  --good: #ff0000;
+  color-scheme: dark;
+}
+
+/* ---------- Old names, kept while screens move over ---------- */
+:root,
+[data-theme] {
+  --muted: var(--text-2);
+  --border: var(--line);
+  --bad: var(--danger);
+}

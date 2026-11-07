@@ -64,10 +64,10 @@ describe('two copies of the app open at once', () => {
     tabB.updateData((d) => void d.profiles.push(rifle('b', 'Added in tab B')))
 
     // Tab A now changes something else; tab B's rifle must survive.
-    tabA.updateData((d) => void (d.settings.night = true))
+    tabA.updateData((d) => void (d.settings.theme = 'night'))
     const saved = JSON.parse(storage.map.get('prs.data')!)
     expect(saved.profiles.map((p: { name: string }) => p.name)).toEqual(['Added in tab B'])
-    expect(saved.settings.night).toBe(true)
+    expect(saved.settings.theme).toBe('night')
   })
 
   it('when saving is failing, keeps the in-memory changes instead of re-reading older storage', async () => {
@@ -78,7 +78,7 @@ describe('two copies of the app open at once', () => {
     tab.updateData((d) => void d.profiles.push(rifle('a', 'Saved')))
     failing = true
     tab.updateData((d) => void d.profiles.push(rifle('b', 'Only in memory')))
-    tab.updateData((d) => void (d.settings.night = true))
+    tab.updateData((d) => void (d.settings.theme = 'night'))
     expect(tab.getData().profiles.map((p) => p.name)).toEqual(['Saved', 'Only in memory'])
   })
 })

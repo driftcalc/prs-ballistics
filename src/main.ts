@@ -1,9 +1,10 @@
+import './design/tokens.css'
 import './style.css'
 import { getData, SAVE_STATUS_EVENT, updateData } from './data/store.ts'
 import { renderAccuracyPage } from './ui/accuracyPage.ts'
 import { renderDataPage } from './ui/dataPage.ts'
 import { renderLogPage } from './ui/logPage.ts'
-import { applyNightMode } from './ui/nightMode.ts'
+import { applyTheme, followPhoneTheme } from './ui/theme.ts'
 import { renderRiflesPage } from './ui/riflesPage.ts'
 import { backupOverdue, isInstalled, requestPersistentStorage } from './ui/safety.ts'
 import { renderShootPage } from './ui/shootPage.ts'
@@ -38,8 +39,9 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 `
 
 document.querySelector('[data-action="night"]')!.addEventListener('click', () => {
-  updateData((d) => void (d.settings.night = !d.settings.night))
-  applyNightMode()
+  // Temporary until the Settings sheet: the moon button switches Night on/off.
+  updateData((d) => void (d.settings.theme = d.settings.theme === 'night' ? 'auto' : 'night'))
+  applyTheme()
 })
 
 /** Tips that protect your data: install the app, and a dot on Data when a backup is due. */
@@ -115,6 +117,7 @@ function showPage() {
 }
 
 requestPersistentStorage()
-applyNightMode()
+applyTheme()
+followPhoneTheme()
 window.addEventListener('hashchange', showPage)
 showPage()

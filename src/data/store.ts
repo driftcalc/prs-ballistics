@@ -17,7 +17,8 @@ import {
 
 // 1 = v0.2 (rifles, conditions, shoot, settings, comparisons). 2 = adds the dope log.
 // 3 = rifles may have `factory` (filled from the ammo library; optional, nothing to convert).
-export const DATA_VERSION = 3
+// 4 = settings.night (on/off) becomes settings.theme; adds glove and leftHanded.
+export const DATA_VERSION = 4
 const STORE_KEY = 'prs.data'
 
 export interface ShootState extends WindInputs {
@@ -28,9 +29,17 @@ export interface ShootState extends WindInputs {
   rangeStepYd: number
 }
 
+export const THEMES = ['auto', 'sun', 'dark', 'night'] as const
+/** auto = follow the phone's light/dark setting (Sun or Dark). */
+export type ThemeSetting = (typeof THEMES)[number]
+
 export interface Settings {
   angleUnit: 'mil' | 'moa'
-  night: boolean
+  theme: ThemeSetting
+  /** Primary controls at least 96px, for gloves. */
+  glove: boolean
+  /** Mirror bottom control rows for the left thumb. */
+  leftHanded: boolean
   /** When the last full backup was exported, to remind the user. */
   lastBackupAt?: string
   /** User closed the "add to Home Screen" tip. */
@@ -55,9 +64,27 @@ export function emptyData(): AppData {
     profiles: [],
     conditions: { ...DEFAULT_CONDITIONS },
     shoot: { rangeYd: 600, rangeStepYd: 25, windSpeedMph: DEFAULT_INPUTS.windSpeedMph, windClock: DEFAULT_INPUTS.windClock },
-    settings: { angleUnit: 'mil', night: false },
+    settings: { angleUnit: 'mil', theme: 'auto', glove: false, leftHanded: false },
     comparisons: {},
     log: [],
+  }
+}
+
+/**
+ * Settings from any version (or a backup file) with defaults filled in.
+ * Before version 4 there was only night on/off: on -> Night theme, off -> Auto.
+ */
+export function normalizeSettings(raw: (Partial<Settings> & { night?: unknown }) | undefined): Settings {
+  const { night, ...rest } = raw ?? {}
+  const base = emptyData().settings
+  const theme = THEMES.includes(rest.theme as ThemeSetting) ? (rest.theme as ThemeSetting) : night === true ? 'night' : 'auto'
+  return {
+    ...base,
+    ...rest,
+    angleUnit: rest.angleUnit === 'moa' ? 'moa' : 'mil',
+    theme,
+    glove: rest.glove === true,
+    leftHanded: rest.leftHanded === true,
   }
 }
 
@@ -71,7 +98,7 @@ export function upgradeSaved(saved: { version?: number } & Partial<AppData>): Ap
     ...base,
     ...saved,
     shoot: { ...base.shoot, ...saved.shoot },
-    settings: { ...base.settings, ...saved.settings },
+    settings: normalizeSettings(saved.settings),
     conditions: { ...base.conditions, ...saved.conditions },
     log: Array.isArray(saved.log) ? saved.log : [], // added in version 2
     version: DATA_VERSION,

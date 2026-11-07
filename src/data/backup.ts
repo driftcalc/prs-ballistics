@@ -4,7 +4,7 @@ import { validateCase, type ReferenceCase } from '../accuracy/compare.ts'
 import { parseFormValues, type FormValues } from '../ui/shotForm.ts'
 import { logEntryProblem, type DopeEntry } from './log.ts'
 import { newId, RIFLE_KEYS, rifleOf, type RifleData, type RifleProfile } from './profiles.ts'
-import { DATA_VERSION, emptyData, type AppData } from './store.ts'
+import { DATA_VERSION, emptyData, normalizeSettings, type AppData } from './store.ts'
 
 const APP_ID = 'prs-ballistics'
 
@@ -107,7 +107,7 @@ export function parseBackupJson(text: string): ImportBundle {
     log,
     conditions: { ...base.conditions, ...src.conditions },
     shoot: { ...base.shoot, ...src.shoot },
-    settings: { ...base.settings, ...src.settings },
+    settings: normalizeSettings(src.settings),
   }
   return { kind: 'json', profiles, comparisons, log, full, warnings }
 }

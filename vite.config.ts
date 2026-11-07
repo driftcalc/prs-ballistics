@@ -29,7 +29,7 @@ export default defineConfig({
       },
       workbox: {
         // Everything the app needs is saved on the phone so it works with no signal.
-        globPatterns: ['**/*.{js,css,html,svg,png,ico,txt,wasm}'],
+        globPatterns: ['**/*.{js,css,html,svg,png,ico,txt,wasm,woff2}'],
       },
     }),
   ],

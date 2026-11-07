@@ -14,7 +14,7 @@ import { getData, replaceData, RESCUE_PREFIX, updateData } from '../data/store.t
 import { keysStartingWith, loadRaw, remove } from './storage.ts'
 import { downloadFile } from './download.ts'
 import { escapeHtml } from './format.ts'
-import { applyNightMode } from './nightMode.ts'
+import { applyTheme } from './theme.ts'
 import { backupOverdue, daysSinceBackup } from './safety.ts'
 
 const today = () => new Date().toISOString().slice(0, 10)
@@ -148,7 +148,7 @@ export function renderDataPage(root: HTMLElement): void {
       const what = bundle.kind === 'json' ? 'ALL your current rifles, comparisons, weather and settings' : 'ALL your current rifles'
       if (!confirm(`This deletes ${what} on this phone and uses the file instead. Continue?`)) return
       replaceData(replaceImport(getData(), bundle))
-      applyNightMode()
+      applyTheme()
       done(`Replaced with ${describeImport(bundle)}.`)
     })
     resultBox.querySelector('[data-import="cancel"]')!.addEventListener('click', () => {
