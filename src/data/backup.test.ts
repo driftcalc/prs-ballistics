@@ -30,6 +30,23 @@ function sampleData(): AppData {
   d.shoot = { ...d.shoot, profileId: 'b', rangeYd: 450, windClock: 10 }
   d.settings = { angleUnit: 'moa', night: true }
   d.comparisons = { c1: { name: 'Test', source: 'Hornady', createdAt: '', inputs: DEFAULT_INPUTS, rows: emptyRows() } }
+  d.log = [
+    {
+      id: 'l1',
+      profileId: 'a',
+      profileName: d.profiles[0].name,
+      rifle: d.profiles[0].rifle,
+      createdAt: '2026-11-07T10:00:00.000Z',
+      rangeYd: 700,
+      conditions: d.conditions,
+      wind: { windSpeedMph: 6, windClock: 2 },
+      actualElevationMil: 5.3,
+      actualWindageMil: -0.4,
+      confirmed: true,
+      notes: 'first round hit, "steel" plate',
+      predicted: { elevationMil: 5.1, windageMil: -0.45, velocityFps: 1700, timeOfFlightS: 1.0 },
+    },
+  ]
   return d
 }
 
@@ -39,6 +56,22 @@ describe('JSON backup', () => {
     const back = parseBackupJson(toBackupJson(d))
     expect(back.warnings).toEqual([])
     expect(replaceImport(emptyData(), back)).toEqual(d)
+  })
+
+  it('still imports a backup made by version 0.2 (no logbook yet)', () => {
+    const old = JSON.parse(toBackupJson(sampleData()))
+    old.format = 1
+    delete old.data.log
+    const back = parseBackupJson(JSON.stringify(old))
+    expect(back.warnings).toEqual([])
+    expect(back.profiles).toHaveLength(2)
+    expect(back.full?.log).toEqual([])
+  })
+
+  it('"Add" with a backup adds new log entries without duplicating existing ones', () => {
+    const current = sampleData()
+    const next = mergeImport(current, parseBackupJson(toBackupJson(sampleData())))
+    expect(next.log.map((e) => e.id)).toEqual(['l1'])
   })
 
   it('rejects files that are not a backup', () => {

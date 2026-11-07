@@ -3,7 +3,7 @@ import type { ReferenceCase } from '../accuracy/compare.ts'
 import { DEFAULT_INPUTS } from '../shotInputs.ts'
 import { toFormValues } from '../ui/shotForm.ts'
 import { combine, conditionsOf, rifleOf, windOf } from './profiles.ts'
-import { emptyData, migrateLegacy } from './store.ts'
+import { emptyData, migrateLegacy, upgradeSaved, type AppData } from './store.ts'
 
 describe('profiles', () => {
   it('splitting inputs and combining them again gives the same inputs', () => {
@@ -32,5 +32,18 @@ describe('moving data from version 0.1', () => {
 
   it('starts empty when there was nothing saved', () => {
     expect(migrateLegacy()).toEqual({ ...emptyData() })
+  })
+})
+
+describe('upgrading saved data', () => {
+  it('version 1 (app 0.2) gets an empty logbook and keeps everything else', () => {
+    const v1 = { ...emptyData(), version: 1, log: undefined } as unknown as AppData
+    v1.profiles = [{ id: 'x', name: 'Keep me', rifle: rifleOf(DEFAULT_INPUTS), updatedAt: '' }]
+    v1.settings = { angleUnit: 'moa', night: true }
+    const up = upgradeSaved(v1)
+    expect(up.version).toBe(2)
+    expect(up.log).toEqual([])
+    expect(up.profiles[0].name).toBe('Keep me')
+    expect(up.settings).toEqual({ angleUnit: 'moa', night: true })
   })
 })

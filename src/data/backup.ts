@@ -2,6 +2,7 @@
 // JSON = full backup of everything. CSV = rifles only, for spreadsheets.
 import { validateCase, type ReferenceCase } from '../accuracy/compare.ts'
 import { parseFormValues, type FormValues } from '../ui/shotForm.ts'
+import { logEntryProblem, type DopeEntry } from './log.ts'
 import { newId, RIFLE_KEYS, rifleOf, type RifleData, type RifleProfile } from './profiles.ts'
 import { DATA_VERSION, emptyData, type AppData } from './store.ts'
 
@@ -12,6 +13,7 @@ export interface ImportBundle {
   kind: 'json' | 'csv'
   profiles: RifleProfile[]
   comparisons: Record<string, ReferenceCase>
+  log: DopeEntry[]
   /** Only in a full JSON backup. */
   full?: AppData
   /** Rows or items that were skipped, in plain words. */
@@ -79,16 +81,25 @@ export function parseBackupJson(text: string): ImportBundle {
     }
   }
 
+  // Dope log (added in data version 2; older backups simply have none).
+  const log: DopeEntry[] = []
+  for (const e of Array.isArray(src.log) ? src.log : []) {
+    const problem = logEntryProblem(e)
+    if (problem) warnings.push(`Skipped a log entry: ${problem}.`)
+    else log.push(e)
+  }
+
   const base = emptyData()
   const full: AppData = {
     ...base,
     profiles,
     comparisons,
+    log,
     conditions: { ...base.conditions, ...src.conditions },
     shoot: { ...base.shoot, ...src.shoot },
     settings: { ...base.settings, ...src.settings },
   }
-  return { kind: 'json', profiles, comparisons, full, warnings }
+  return { kind: 'json', profiles, comparisons, log, full, warnings }
 }
 
 // ---------- CSV (rifles only) ----------
@@ -189,7 +200,7 @@ export function parseRiflesCsv(text: string): ImportBundle {
     profiles.push({ id: newId(), name, notes: get('notes') || undefined, rifle: rifleOf(inputs), updatedAt: new Date().toISOString() })
   })
   if (profiles.length === 0 && warnings.length === 0) throw new ImportError('No rifles found in this CSV file.')
-  return { kind: 'csv', profiles, comparisons: {}, warnings }
+  return { kind: 'csv', profiles, comparisons: {}, log: [], warnings }
 }
 
 // ---------- Applying an import ----------
@@ -205,6 +216,9 @@ export function mergeImport(current: AppData, incoming: ImportBundle): AppData {
     else next.profiles.push({ ...p, id: next.profiles.some((x) => x.id === p.id) ? newId() : p.id })
   }
   Object.assign(next.comparisons, incoming.comparisons)
+  // Log entries are added unless the same entry is already here.
+  const have = new Set(next.log.map((e) => e.id))
+  next.log.push(...incoming.log.filter((e) => !have.has(e.id)))
   return next
 }
 
@@ -225,7 +239,8 @@ export function describeImport(b: ImportBundle): string {
   const parts = [`${b.profiles.length} rifle${b.profiles.length === 1 ? '' : 's'}`]
   if (b.kind === 'json') {
     const n = Object.keys(b.comparisons).length
-    parts.push(`${n} comparison${n === 1 ? '' : 's'}`, 'weather and settings')
+    const l = b.log.length
+    parts.push(`${n} comparison${n === 1 ? '' : 's'}`, `${l} logged shot${l === 1 ? '' : 's'}`, 'weather and settings')
   }
   return parts.join(', ')
 }

@@ -50,6 +50,7 @@ export function renderShootPage(root: HTMLElement): void {
       <span class="hold-unit" data-unit></span>
     </button>
     <p class="hold-sub" data-sub aria-live="polite"></p>
+    <a class="button big-button log-button" href="#/log/new">✎ Log this shot</a>
 
     <section class="control">
       <span class="control-label">Range</span>

@@ -4,6 +4,7 @@ import type { ReferenceCase } from '../accuracy/compare.ts'
 import { DEFAULT_INPUTS } from '../shotInputs.ts'
 import { parseFormValues, type FormValues } from '../ui/shotForm.ts'
 import { load, save } from '../ui/storage.ts'
+import type { DopeEntry } from './log.ts'
 import {
   conditionsOf,
   DEFAULT_CONDITIONS,
@@ -14,7 +15,8 @@ import {
   type WindInputs,
 } from './profiles.ts'
 
-export const DATA_VERSION = 1
+// 1 = v0.2 (rifles, conditions, shoot, settings, comparisons). 2 = adds the dope log.
+export const DATA_VERSION = 2
 const STORE_KEY = 'prs.data'
 
 export interface ShootState extends WindInputs {
@@ -40,6 +42,8 @@ export interface AppData {
   settings: Settings
   /** Check accuracy comparisons, keyed by id. */
   comparisons: Record<string, ReferenceCase>
+  /** Dope logbook, oldest first. */
+  log: DopeEntry[]
 }
 
 export function emptyData(): AppData {
@@ -50,6 +54,24 @@ export function emptyData(): AppData {
     shoot: { rangeYd: 600, rangeStepYd: 25, windSpeedMph: DEFAULT_INPUTS.windSpeedMph, windClock: DEFAULT_INPUTS.windClock },
     settings: { angleUnit: 'mil', night: false },
     comparisons: {},
+    log: [],
+  }
+}
+
+/**
+ * Brings a saved bundle from any earlier version up to date. Missing pieces
+ * get defaults; nothing that was saved is dropped.
+ */
+export function upgradeSaved(saved: { version?: number } & Partial<AppData>): AppData {
+  const base = emptyData()
+  return {
+    ...base,
+    ...saved,
+    shoot: { ...base.shoot, ...saved.shoot },
+    settings: { ...base.settings, ...saved.settings },
+    conditions: { ...base.conditions, ...saved.conditions },
+    log: Array.isArray(saved.log) ? saved.log : [], // added in version 2
+    version: DATA_VERSION,
   }
 }
 
@@ -78,8 +100,8 @@ export function getData(): AppData {
   if (!cache) {
     const saved = load<AppData | null>(STORE_KEY, null)
     cache =
-      saved?.version === DATA_VERSION
-        ? { ...emptyData(), ...saved }
+      saved && typeof saved.version === 'number'
+        ? upgradeSaved(saved)
         : migrateLegacy(
             load<FormValues | undefined>('calc.inputs', undefined),
             load<string | undefined>('calc.targetYd', undefined),

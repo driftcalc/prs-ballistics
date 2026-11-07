@@ -39,6 +39,7 @@ export const paToInHg = (pa: number) => pa / PA_PER_INHG
 export const radiansToMil = (rad: number) => rad / RAD_PER_MIL
 export const milToRadians = (mil: number) => mil * RAD_PER_MIL
 export const radiansToMoa = (rad: number) => rad / RAD_PER_MOA
+export const moaToRadians = (moa: number) => moa * RAD_PER_MOA
 
 /** Clock position the wind comes from (12 = straight ahead, 3 = from the right) to radians. */
 export const clockToRadians = (hours: number) => ((hours % 12) * Math.PI) / 6

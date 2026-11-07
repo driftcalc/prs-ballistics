@@ -258,6 +258,70 @@ button.danger,
   font-weight: 700;
 }
 
+/* Logbook */
+.log-button {
+  min-height: 64px;
+  font-size: 1.2rem;
+  font-weight: 700;
+}
+
+.log-list {
+  list-style: none;
+  margin: 8px 0 0;
+  padding: 0;
+}
+
+.log-list li + li {
+  border-top: 1px solid var(--border);
+}
+
+.log-list a {
+  display: grid;
+  grid-template-columns: 4rem 1fr auto;
+  gap: 8px;
+  align-items: center;
+  padding: 10px 0;
+  color: var(--text);
+  text-decoration: none;
+}
+
+.log-range {
+  font-weight: 800;
+  font-size: 1.1rem;
+}
+
+.log-meta {
+  text-align: right;
+}
+
+.log-list small,
+.predicted {
+  color: var(--muted);
+}
+
+.check-big {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  min-height: 64px;
+  padding: 8px 12px;
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  font-weight: 700;
+}
+
+.check-big input {
+  width: 32px;
+  height: 32px;
+  min-height: 0;
+  accent-color: var(--accent);
+}
+
+.check-big small {
+  font-weight: 400;
+  color: var(--muted);
+}
+
 .big-button {
   min-height: 56px;
   font-size: 1.1rem;

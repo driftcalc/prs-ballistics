@@ -2,6 +2,7 @@ import './style.css'
 import { updateData } from './data/store.ts'
 import { renderAccuracyPage } from './ui/accuracyPage.ts'
 import { renderDataPage } from './ui/dataPage.ts'
+import { renderLogPage } from './ui/logPage.ts'
 import { applyNightMode } from './ui/nightMode.ts'
 import { renderRiflesPage } from './ui/riflesPage.ts'
 import { renderShootPage } from './ui/shootPage.ts'
@@ -9,6 +10,7 @@ import { renderShootPage } from './ui/shootPage.ts'
 const PAGES: Record<string, { title: string; render: (root: HTMLElement, param?: string) => void }> = {
   shoot: { title: 'Shoot', render: renderShootPage },
   rifles: { title: 'Rifles', render: renderRiflesPage },
+  log: { title: 'Log', render: renderLogPage },
   check: { title: 'Check', render: renderAccuracyPage },
   data: { title: 'Data', render: renderDataPage },
 }
