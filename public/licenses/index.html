@@ -1,0 +1,42 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Licenses &amp; disclaimer · PRS Ballistics</title>
+    <style>
+      body { font-family: system-ui, sans-serif; line-height: 1.5; max-width: 640px; margin: 0 auto; padding: 16px; }
+      @media (prefers-color-scheme: dark) { body { background: #121814; color: #e8e4d8; } a { color: #e0632b; } }
+      h2 { margin-top: 2rem; }
+    </style>
+  </head>
+  <body>
+    <p><a href="../">&larr; Back to app</a></p>
+    <h1>Licenses &amp; disclaimer</h1>
+
+    <h2>Disclaimer</h2>
+    <p>
+      This app gives estimates only. It is provided "as is", without warranty of any kind.
+      Always verify your data by shooting. Do not rely on it where an error could cause injury,
+      damage or loss.
+    </p>
+
+    <h2>Ballistics engine</h2>
+    <p>
+      Trajectory calculations use <a href="https://github.com/o-murphy/js-ballistics">js-ballistics</a>
+      (Copyright 2023 o-murphy), used under the ISC License:
+      <a href="js-ballistics-ISC.txt">license text</a>.
+    </p>
+    <p>
+      js-ballistics includes <a href="https://github.com/ballistics-lab/bclibc">bclibc</a>, compiled to
+      WebAssembly. bclibc is licensed under the GNU Lesser General Public License version 3 (LGPL-3.0),
+      which builds on the GNU General Public License version 3:
+      <a href="LGPL-3.0.txt">LGPL-3.0 text</a> · <a href="GPL-3.0.txt">GPL-3.0 text</a>.
+      This app uses bclibc unmodified. Its source code is available at
+      <a href="https://github.com/ballistics-lab/bclibc">github.com/ballistics-lab/bclibc</a>.
+      The full source code of this app, including everything needed to rebuild it with a
+      different version of bclibc, is available at
+      <a href="https://github.com/driftcalc/prs-ballistics">its GitHub repository</a>.
+    </p>
+  </body>
+</html>
