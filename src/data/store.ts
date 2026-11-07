@@ -1,0 +1,108 @@
+// Everything the app saves, kept together in one bundle on this device.
+// Version number lets future updates convert old saved data safely.
+import type { ReferenceCase } from '../accuracy/compare.ts'
+import { DEFAULT_INPUTS } from '../shotInputs.ts'
+import { parseFormValues, type FormValues } from '../ui/shotForm.ts'
+import { load, save } from '../ui/storage.ts'
+import {
+  conditionsOf,
+  DEFAULT_CONDITIONS,
+  newId,
+  rifleOf,
+  type Conditions,
+  type RifleProfile,
+  type WindInputs,
+} from './profiles.ts'
+
+export const DATA_VERSION = 1
+const STORE_KEY = 'prs.data'
+
+export interface ShootState extends WindInputs {
+  /** Last-used rifle. */
+  profileId?: string
+  rangeYd: number
+  /** How far one tap of +/- moves the range. */
+  rangeStepYd: number
+}
+
+export interface Settings {
+  angleUnit: 'mil' | 'moa'
+  night: boolean
+}
+
+export interface AppData {
+  version: typeof DATA_VERSION
+  profiles: RifleProfile[]
+  conditions: Conditions
+  shoot: ShootState
+  settings: Settings
+  /** Check accuracy comparisons, keyed by id. */
+  comparisons: Record<string, ReferenceCase>
+}
+
+export function emptyData(): AppData {
+  return {
+    version: DATA_VERSION,
+    profiles: [],
+    conditions: { ...DEFAULT_CONDITIONS },
+    shoot: { rangeYd: 600, rangeStepYd: 25, windSpeedMph: DEFAULT_INPUTS.windSpeedMph, windClock: DEFAULT_INPUTS.windClock },
+    settings: { angleUnit: 'mil', night: false },
+    comparisons: {},
+  }
+}
+
+/**
+ * Builds the bundle from what version 0.1 saved (Calculator inputs and
+ * comparisons), so nobody loses data when they update.
+ */
+export function migrateLegacy(calcValues?: FormValues, targetYd?: string, cases?: Record<string, ReferenceCase>): AppData {
+  const data = emptyData()
+  const parsed = calcValues ? parseFormValues(calcValues).inputs : undefined
+  if (parsed) {
+    const id = newId()
+    data.profiles.push({ id, name: 'My rifle', rifle: rifleOf(parsed), updatedAt: new Date().toISOString() })
+    data.conditions = conditionsOf(parsed)
+    data.shoot = { ...data.shoot, profileId: id, windSpeedMph: parsed.windSpeedMph, windClock: parsed.windClock }
+  }
+  const range = Number(targetYd)
+  if (range > 0) data.shoot.rangeYd = range
+  if (cases) data.comparisons = { ...cases }
+  return data
+}
+
+let cache: AppData | undefined
+
+export function getData(): AppData {
+  if (!cache) {
+    const saved = load<AppData | null>(STORE_KEY, null)
+    cache =
+      saved?.version === DATA_VERSION
+        ? { ...emptyData(), ...saved }
+        : migrateLegacy(
+            load<FormValues | undefined>('calc.inputs', undefined),
+            load<string | undefined>('calc.targetYd', undefined),
+            load<Record<string, ReferenceCase> | undefined>('accuracy.cases', undefined),
+          )
+    save(STORE_KEY, cache)
+  }
+  return cache
+}
+
+/** Changes the data and saves it straight away. */
+export function updateData(change: (d: AppData) => void): AppData {
+  const d = getData()
+  change(d)
+  save(STORE_KEY, d)
+  return d
+}
+
+/** Swaps in a whole new bundle (used by Import). */
+export function replaceData(next: AppData): void {
+  cache = next
+  save(STORE_KEY, next)
+}
+
+/** The rifle the Shoot screen should open on (last used, else the first). */
+export function currentProfile(d: AppData = getData()): RifleProfile | undefined {
+  return d.profiles.find((p) => p.id === d.shoot.profileId) ?? d.profiles[0]
+}

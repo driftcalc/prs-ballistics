@@ -36,8 +36,11 @@ const clockOptions: [string, string][] = Array.from({ length: 12 }, (_, i) => {
   return [h, `${h} o'clock${note}`]
 })
 
-export const SECTIONS: { title: string; fields: Field[] }[] = [
+export type SectionId = 'rifle' | 'weather' | 'wind'
+
+export const SECTIONS: { id: SectionId; title: string; fields: Field[] }[] = [
   {
+    id: 'rifle',
     title: 'Rifle & bullet',
     fields: [
       { kind: 'number', key: 'muzzleVelocityFps', label: 'Muzzle velocity', unit: 'fps', min: 300, max: 5000 },
@@ -62,6 +65,7 @@ export const SECTIONS: { title: string; fields: Field[] }[] = [
     ],
   },
   {
+    id: 'weather',
     title: 'Weather',
     fields: [
       { kind: 'number', key: 'temperatureF', label: 'Temperature', unit: '°F', min: -60, max: 140 },
@@ -94,6 +98,7 @@ export const SECTIONS: { title: string; fields: Field[] }[] = [
     ],
   },
   {
+    id: 'wind',
     title: 'Wind',
     fields: [
       { kind: 'number', key: 'windSpeedMph', label: 'Wind speed', unit: 'mph', min: 0, max: 60 },
@@ -102,11 +107,12 @@ export const SECTIONS: { title: string; fields: Field[] }[] = [
   },
 ]
 
-const ALL_FIELDS = SECTIONS.flatMap((s) => s.fields)
+const ALL: SectionId[] = ['rifle', 'weather', 'wind']
+const fieldsIn = (ids: SectionId[]) => SECTIONS.filter((s) => ids.includes(s.id)).flatMap((s) => s.fields)
 
 export function toFormValues(inputs: UsShotInputs): FormValues {
   const values: FormValues = {}
-  for (const f of ALL_FIELDS) {
+  for (const f of fieldsIn(ALL)) {
     const v = inputs[f.key]
     values[f.key] = v === undefined ? '' : String(v)
   }
@@ -114,8 +120,8 @@ export function toFormValues(inputs: UsShotInputs): FormValues {
 }
 
 /** Draws the input sections. `disabled` is for read-only examples. */
-export function renderShotFields(values: FormValues, disabled = false): string {
-  return SECTIONS.map(
+export function renderShotFields(values: FormValues, disabled = false, ids: SectionId[] = ALL): string {
+  return SECTIONS.filter((s) => ids.includes(s.id)).map(
     (section) => `
     <fieldset class="group">
       <legend>${section.title}</legend>
@@ -144,9 +150,9 @@ function renderField(f: Field, values: FormValues, disabled: boolean): string {
 }
 
 /** Reads the current text of every shot box inside `root`. */
-export function readFormValues(root: HTMLElement): FormValues {
+export function readFormValues(root: HTMLElement, ids: SectionId[] = ALL): FormValues {
   const values: FormValues = {}
-  for (const f of ALL_FIELDS) {
+  for (const f of fieldsIn(ids)) {
     const el = root.querySelector<HTMLInputElement | HTMLSelectElement>(`[name="${f.key}"]`)
     if (el) values[f.key] = el.value.trim()
   }
@@ -154,8 +160,8 @@ export function readFormValues(root: HTMLElement): FormValues {
 }
 
 /** Shows/hides boxes that depend on other choices (pressure vs altitude). */
-export function updateVisibility(root: HTMLElement, values: FormValues): void {
-  for (const f of ALL_FIELDS) {
+export function updateVisibility(root: HTMLElement, values: FormValues, ids: SectionId[] = ALL): void {
+  for (const f of fieldsIn(ids)) {
     if (!f.showIf) continue
     root.querySelector<HTMLElement>(`[data-field="${f.key}"]`)?.toggleAttribute('hidden', !f.showIf(values))
   }
@@ -167,10 +173,10 @@ export interface ParseResult {
 }
 
 /** Checks every box and turns the text into numbers. */
-export function parseFormValues(values: FormValues): ParseResult {
+export function parseFormValues(values: FormValues, ids: SectionId[] = ALL): ParseResult {
   const errors: string[] = []
   const out: Record<string, unknown> = { ...DEFAULT_INPUTS }
-  for (const f of ALL_FIELDS) {
+  for (const f of fieldsIn(ids)) {
     if (f.showIf && !f.showIf(values)) {
       continue
     }

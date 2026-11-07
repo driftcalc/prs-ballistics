@@ -13,12 +13,12 @@ import {
   type ReferenceRow,
 } from '../accuracy/compare.ts'
 import { getEngine } from '../ballistics/index.ts'
-import { DEFAULT_INPUTS } from '../shotInputs.ts'
+import { combine, DEFAULT_RIFLE, newId } from '../data/profiles.ts'
+import { currentProfile, getData, updateData } from '../data/store.ts'
+import { downloadFile } from './download.ts'
 import { escapeHtml, signed } from './format.ts'
-import { parseFormValues, readFormValues, renderShotFields, toFormValues, updateVisibility, type FormValues } from './shotForm.ts'
-import { load, save } from './storage.ts'
+import { parseFormValues, readFormValues, renderShotFields, toFormValues, updateVisibility } from './shotForm.ts'
 
-const STORE_CASES = 'accuracy.cases'
 const BUILTIN_PREFIX = 'builtin-'
 
 // Test cases saved in the project (src/accuracy/cases) are shown as read-only examples.
@@ -30,8 +30,7 @@ const builtins: Record<string, ReferenceCase> = Object.fromEntries(
   }),
 )
 
-const loadMine = () => load<Record<string, ReferenceCase>>(STORE_CASES, {})
-const allCases = () => ({ ...builtins, ...loadMine() })
+const allCases = () => ({ ...builtins, ...getData().comparisons })
 
 const TIPS = `
   <details class="card tips">
@@ -78,17 +77,18 @@ function renderList(root: HTMLElement): void {
     </ul>`
 
   root.querySelector('[data-action="new"]')!.addEventListener('click', () => {
-    const id = Date.now().toString(36)
-    const calc = parseFormValues(load<FormValues>('calc.inputs', {}))
-    const mine = loadMine()
-    mine[id] = {
-      name: 'New comparison',
-      source: 'Hornady',
-      createdAt: new Date().toISOString(),
-      inputs: calc.inputs ?? DEFAULT_INPUTS, // start from the calculator's current load
-      rows: emptyRows(),
-    }
-    save(STORE_CASES, mine)
+    const id = newId()
+    updateData((d) => {
+      const rifle = currentProfile(d)
+      d.comparisons[id] = {
+        name: rifle ? `${rifle.name} comparison` : 'New comparison',
+        source: 'Hornady',
+        createdAt: new Date().toISOString(),
+        // Start from the Shoot screen's current rifle, weather and wind.
+        inputs: combine(rifle?.rifle ?? DEFAULT_RIFLE, d.conditions, d.shoot),
+        rows: emptyRows(),
+      }
+    })
     location.hash = `#/check/${id}`
   })
 
@@ -240,9 +240,10 @@ function renderEditor(root: HTMLElement, id: string): void {
     if (!next) return
     current = next
     if (!readOnly) {
-      const mine = loadMine()
-      mine[id] = current
-      save(STORE_CASES, mine)
+      const saved = current
+      updateData((d) => {
+        d.comparisons[id] = saved
+      })
     }
     try {
       const rows = await compareCase(current, await getEngine())
@@ -275,12 +276,7 @@ function renderEditor(root: HTMLElement, id: string): void {
   root.addEventListener('change', refresh)
 
   root.querySelector('[data-action="export"]')!.addEventListener('click', () => {
-    const blob = new Blob([caseJson(current)], { type: 'application/json' })
-    const a = document.createElement('a')
-    a.href = URL.createObjectURL(blob)
-    a.download = `${slug(current.source)}-${slug(current.name)}.json`
-    a.click()
-    URL.revokeObjectURL(a.href)
+    downloadFile(`${slug(current.source)}-${slug(current.name)}.json`, caseJson(current), 'application/json')
   })
   root.querySelector<HTMLButtonElement>('[data-action="copy"]')!.addEventListener('click', async (e) => {
     const btn = e.currentTarget as HTMLButtonElement
@@ -292,17 +288,17 @@ function renderEditor(root: HTMLElement, id: string): void {
     }
   })
   root.querySelector('[data-action="duplicate"]')!.addEventListener('click', () => {
-    const newId = Date.now().toString(36)
-    const mine = loadMine()
-    mine[newId] = { ...current, name: `${current.name} (copy)`, createdAt: new Date().toISOString() }
-    save(STORE_CASES, mine)
-    location.hash = `#/check/${newId}`
+    const copyId = newId()
+    updateData((d) => {
+      d.comparisons[copyId] = { ...current, name: `${current.name} (copy)`, createdAt: new Date().toISOString() }
+    })
+    location.hash = `#/check/${copyId}`
   })
   root.querySelector('[data-action="delete"]')?.addEventListener('click', () => {
     if (!confirm(`Delete "${current.name}"? This can't be undone.`)) return
-    const mine = loadMine()
-    delete mine[id]
-    save(STORE_CASES, mine)
+    updateData((d) => {
+      delete d.comparisons[id]
+    })
     location.hash = '#/check'
   })
 

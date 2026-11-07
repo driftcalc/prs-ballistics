@@ -1,9 +1,11 @@
 import './style.css'
 import { renderAccuracyPage } from './ui/accuracyPage.ts'
 import { renderCalculatorPage } from './ui/calculatorPage.ts'
+import { renderRiflesPage } from './ui/riflesPage.ts'
 
 const PAGES: Record<string, { title: string; render: (root: HTMLElement, param?: string) => void }> = {
   calculator: { title: 'Calculator', render: renderCalculatorPage },
+  rifles: { title: 'Rifles', render: renderRiflesPage },
   check: { title: 'Check accuracy', render: renderAccuracyPage },
 }
 
