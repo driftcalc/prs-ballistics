@@ -27,6 +27,25 @@ The owner is not a programmer and relies on Claude for all code.
   swapped later. Only `src/ballistics/jsBallisticsEngine.ts` may import `js-ballistics`.
 - All math is done internally in metric/SI units. Convert to yards, fps, mil, MOA,
   etc. only for display, using helpers in `src/units/`.
+- "Mil" in this app always means milliradian (what scopes, Hornady and AB use).
+  The library's `Unit.MIL` is the NATO mil (1/6400 circle) — never use it; read
+  angles as `Unit.Radian` and convert with `src/units/`.
+- Conventions in `ShotInput`/`RangeSolution`: wind direction is where the wind
+  comes FROM, clockwise from 12 o'clock (3 o'clock = from the right); elevation
+  positive = dial up; windage positive = dial right. Spin drift needs twist,
+  bullet diameter AND bullet length.
+- US-unit inputs (`src/shotInputs.ts`) are converted to SI in `toShotInput` only.
+
+## Accuracy reference tests
+
+- `src/accuracy/cases/*.json` are comparisons exported from the Check accuracy
+  page (Hornady / Applied Ballistics answers). `src/accuracy/reference.test.ts`
+  runs them all; any elevation/windage row more than `TOLERANCE_MIL` (0.1 mil)
+  away fails, which blocks publishing (the owner chose this).
+- Never edit the numbers in a case file or `TOLERANCE_MIL` to make it pass.
+  Stop, show the owner which rows differ, and investigate inputs first
+  (G1/G7 vs custom drag curves, Coriolis, zero conditions, station vs sea-level
+  pressure, spin drift settings).
 
 ## Licensing
 
@@ -48,5 +67,7 @@ The owner is not a programmer and relies on Claude for all code.
 - `npm run dev` — local dev server
 - `npm test` — run tests (Vitest)
 - `npm run build` — type-check and build to `dist/`
+- Publishing: `gh` CLI is not signed in. Commit locally, then the owner clicks
+  **Push origin** in GitHub Desktop (account `driftcalc`).
 - Node, Git and GitHub CLI were installed with winget. If a command isn't found in a
   shell, refresh PATH: `$env:Path = [Environment]::GetEnvironmentVariable('Path','Machine') + ';' + [Environment]::GetEnvironmentVariable('Path','User')`
