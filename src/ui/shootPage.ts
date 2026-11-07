@@ -44,11 +44,13 @@ export function renderShootPage(root: HTMLElement): void {
       ${d.profiles.map((p) => `<option value="${p.id}"${p.id === profile.id ? ' selected' : ''}>${escapeHtml(p.name)}</option>`).join('')}
     </select>
 
-    <button class="holds" data-action="unit" aria-label="Tap to switch mil / MOA">
-      <span class="hold"><span class="hold-label">ELEV</span><span class="hold-dir" data-elev-dir></span><span class="hold-num" data-elev></span></span>
-      <span class="hold"><span class="hold-label">WIND</span><span class="hold-dir" data-wind-dir></span><span class="hold-num" data-wind></span></span>
-      <span class="hold-unit" data-unit></span>
-    </button>
+    <div class="holds" aria-live="polite">
+      <span class="hold"><span class="hold-label">ELEV</span><span class="hold-dir" data-elev-dir></span><span class="hold-num" data-elev>…</span><span class="hold-u" data-unit></span></span>
+      <span class="hold"><span class="hold-label">WIND</span><span class="hold-dir" data-wind-dir></span><span class="hold-num" data-wind>…</span><span class="hold-u" data-unit></span></span>
+    </div>
+    <div class="unit-switch" role="group" aria-label="Units">
+      <button data-unit-set="mil">MIL</button><button data-unit-set="moa">MOA</button>
+    </div>
     <p class="hold-sub" data-sub aria-live="polite"></p>
     ${
       profile.factory?.mvEstimated
@@ -104,7 +106,10 @@ export function renderShootPage(root: HTMLElement): void {
     $('[data-wind-speed]').textContent = String(shoot.windSpeedMph)
     $('[data-wind-clock]').textContent = String(shoot.windClock)
     $('[data-wind-arrow]').innerHTML = windArrow(shoot.windClock)
-    $('[data-unit]').textContent = settings.angleUnit === 'mil' ? 'MIL' : 'MOA'
+    root.querySelectorAll('[data-unit]').forEach((el) => (el.textContent = settings.angleUnit === 'mil' ? 'MIL' : 'MOA'))
+    root.querySelectorAll<HTMLButtonElement>('[data-unit-set]').forEach((b) => {
+      b.toggleAttribute('aria-pressed', b.dataset.unitSet === settings.angleUnit)
+    })
     $('[data-conditions]').textContent = conditionsSummary(conditions)
     root.querySelectorAll<HTMLButtonElement>('[data-step]').forEach((b) => {
       b.toggleAttribute('aria-pressed', Number(b.dataset.step) === shoot.rangeStepYd)
@@ -146,7 +151,6 @@ export function renderShootPage(root: HTMLElement): void {
   }
 
   const actions: Record<string, () => void> = {
-    unit: () => change((d) => void (d.settings.angleUnit = d.settings.angleUnit === 'mil' ? 'moa' : 'mil')),
     'range-down': () => change((d) => void (d.shoot.rangeYd = stepRange(d.shoot.rangeYd, d.shoot.rangeStepYd, -1))),
     'range-up': () => change((d) => void (d.shoot.rangeYd = stepRange(d.shoot.rangeYd, d.shoot.rangeStepYd, 1))),
     'wind-down': () => change((d) => void (d.shoot.windSpeedMph = stepWindSpeed(d.shoot.windSpeedMph, -1))),
@@ -160,6 +164,9 @@ export function renderShootPage(root: HTMLElement): void {
     if (!btn) return
     if (btn.dataset.action) actions[btn.dataset.action]?.()
     if (btn.dataset.step) change((d) => void (d.shoot.rangeStepYd = Number(btn.dataset.step)))
+    // Units change only from the explicit MIL / MOA switch, never from tapping the holds.
+    const unit = btn.dataset.unitSet
+    if (unit === 'mil' || unit === 'moa') change((d) => void (d.settings.angleUnit = unit))
   })
 
   $<HTMLSelectElement>('[name="rifle"]').addEventListener('change', (e) => {
