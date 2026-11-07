@@ -20,7 +20,7 @@ The owner is not a programmer and relies on Claude for all code.
 - Vite + TypeScript, no UI framework unless agreed. Keep it simple.
 - No backend, no accounts. All user data is saved on the device only.
 - Hosted free on GitHub Pages. Vite `base` is `/prs-ballistics/`.
-- Pages (hash routes): Shoot (home), Rifles, Check (accuracy), Data.
+- Pages (hash routes): Shoot (home), Rifles, Log, Check (accuracy), Data.
 - Shoot screen is used with gloves: tap targets at least 64 px, holds in huge text.
   Every colour must come from CSS variables so red night mode (`:root[data-night]`)
   covers it — no hard-coded colours.
@@ -35,6 +35,21 @@ The owner is not a programmer and relies on Claude for all code.
   JSON backup (`src/data/backup.ts`) and covered by the round-trip test.
 - Rifles CSV columns are listed in `CSV_COLUMNS`; keep import tolerant of
   missing optional columns.
+
+## Logbook and truing
+
+- Each log entry (`src/data/log.ts`) stores a snapshot of the rifle, the
+  conditions, wind, the actual hold and the prediction at the time. Never
+  rewrite old entries when a rifle changes.
+- The truing assistant (`src/truing/truing.ts`) only re-runs the engine with
+  trial MV/BC values (golden-section search) — no ballistics formulas. It uses
+  confirmed elevation holds only, never windage.
+- **It must never change a rifle by itself.** Changes happen only from the
+  "Apply" button after the owner confirms, and the old value goes in the notes.
+- Its "clear vs can't tell" decision accounts for the click size of the holds
+  (`holdResolutionMil`). Prefer "can't tell yet" over a confident wrong answer.
+  Known-answer tests in `truing.test.ts` generate holds from a hidden true MV/BC;
+  don't loosen their limits to make them pass.
 
 ## Ballistics rules (most important)
 
