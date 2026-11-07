@@ -178,6 +178,11 @@ export function parseFormValues(values: FormValues, ids: SectionId[] = ALL): Par
   const out: Record<string, unknown> = { ...DEFAULT_INPUTS }
   for (const f of fieldsIn(ids)) {
     if (f.showIf && !f.showIf(values)) {
+      // Hidden box (e.g. pressure while "Altitude" is chosen): keep whatever valid
+      // number is in it so switching back shows your value, not a default.
+      // It isn't checked or used while hidden.
+      const n = Number((values[f.key] ?? '').replace(',', '.'))
+      if (f.kind === 'number' && values[f.key] && Number.isFinite(n)) out[f.key] = n
       continue
     }
     const raw = (values[f.key] ?? '').replace(',', '.')
