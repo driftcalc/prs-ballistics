@@ -71,13 +71,9 @@ export function renderShootPage(root: HTMLElement): void {
     <div class="unit-switch" role="group" aria-label="Units">
       <button data-unit-set="mil">MIL</button><button data-unit-set="moa">MOA</button>
     </div>
-    <p class="hold-sub" data-sub aria-live="polite"></p>
+    <p class="hold-sub" data-sub aria-live="polite">Loading the ballistics engine…</p>
     <p class="hold-breakdown" data-breakdown></p>
-    ${
-      profile.factory?.mvEstimated
-        ? '<p class="mv-estimate"><a href="#/log">MV estimated from factory data — log confirmed hits to true it</a></p>'
-        : ''
-    }
+    <p class="mv-estimate" data-mv-note hidden><a href="#/log">MV estimated from factory data — log confirmed hits to true it</a></p>
     <a class="button big-button log-button" href="#/log/new">✎ Log this shot</a>
 
     <section class="control">
@@ -87,6 +83,7 @@ export function renderShootPage(root: HTMLElement): void {
         <label class="step-value"><input name="range" type="text" inputmode="numeric" autocomplete="off" aria-label="Range in yards" /><small>yd</small></label>
         <button class="step" data-action="range-up" aria-label="Range up">+</button>
       </div>
+      <p class="range-error" data-range-error hidden>Range must be ${MIN_RANGE_YD}–${MAX_RANGE_YD} yd — still showing ${'<span data-range-shown></span>'} yd.</p>
       <div class="chips" role="group" aria-label="Range step">
         ${RANGE_STEPS_YD.map((s) => `<button class="chip" data-step="${s}">±${s}</button>`).join('')}
       </div>
@@ -122,8 +119,11 @@ export function renderShootPage(root: HTMLElement): void {
   let latest = 0
 
   function show() {
-    const { shoot, conditions, settings } = getData()
+    const data = getData()
+    const { shoot, conditions, settings } = data
     if (document.activeElement !== rangeBox) rangeBox.value = String(shoot.rangeYd)
+    // The note belongs to whichever rifle is picked now, not the one the screen opened on.
+    $('[data-mv-note]').hidden = !currentProfile(data)?.factory?.mvEstimated
     $('[data-wind-speed]').textContent = String(shoot.windSpeedMph)
     $('[data-wind-clock]').textContent = String(shoot.windClock)
     $('[data-wind-arrow]').innerHTML = windArrow(shoot.windClock)
@@ -199,11 +199,22 @@ export function renderShootPage(root: HTMLElement): void {
   })
 
   rangeBox.addEventListener('focus', () => rangeBox.select())
+  const rangeError = $('[data-range-error]')
   rangeBox.addEventListener('input', () => {
-    const yd = Number(rangeBox.value)
-    if (Number.isFinite(yd) && yd >= MIN_RANGE_YD && yd <= MAX_RANGE_YD) change((d) => void (d.shoot.rangeYd = Math.round(yd)))
+    const text = rangeBox.value.trim()
+    const yd = Number(text)
+    const ok = text !== '' && Number.isFinite(yd) && yd >= MIN_RANGE_YD && yd <= MAX_RANGE_YD
+    // Say why the holds didn't change, instead of silently ignoring the number.
+    rangeError.hidden = ok || text === ''
+    rangeBox.toggleAttribute('aria-invalid', !rangeError.hidden)
+    $('[data-range-shown]').textContent = String(getData().shoot.rangeYd)
+    if (ok) change((d) => void (d.shoot.rangeYd = Math.round(yd)))
   })
-  rangeBox.addEventListener('blur', show)
+  rangeBox.addEventListener('blur', () => {
+    rangeError.hidden = true
+    rangeBox.removeAttribute('aria-invalid')
+    show()
+  })
 
   weatherForm.addEventListener('input', saveWeather)
   weatherForm.addEventListener('change', saveWeather)

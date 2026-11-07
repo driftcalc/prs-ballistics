@@ -341,6 +341,18 @@ button.danger,
   font-size: 1.15rem;
 }
 
+.range-error {
+  margin: 0;
+  color: var(--bad);
+  font-weight: 600;
+  text-align: center;
+}
+
+.step-value:has(input[aria-invalid]) {
+  border-color: var(--bad);
+  border-width: 2px;
+}
+
 .hold-breakdown {
   margin: -12px 0 0;
   text-align: center;
