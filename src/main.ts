@@ -67,6 +67,23 @@ function showSafetyHints() {
   })
 }
 
+// Right after an app update, a copy that was already open may ask for a file
+// from the previous version that no longer exists (e.g. the ballistics engine).
+// Reload once to pick up the new version. Saved data is untouched (everything is
+// saved as you go). The time check stops a reload loop if the problem is something else.
+const RELOAD_KEY = 'spin-drift:reloaded-for-update'
+window.addEventListener('vite:preloadError', (e) => {
+  try {
+    const last = Number(sessionStorage.getItem(RELOAD_KEY) ?? 0)
+    if (Date.now() - last < 60_000) return
+    sessionStorage.setItem(RELOAD_KEY, String(Date.now()))
+  } catch {
+    return
+  }
+  e.preventDefault()
+  location.reload()
+})
+
 // If the phone refuses to save (storage full, private browsing), say so loudly.
 window.addEventListener(SAVE_STATUS_EVENT, (e) => {
   const ok = (e as CustomEvent<{ ok: boolean }>).detail.ok

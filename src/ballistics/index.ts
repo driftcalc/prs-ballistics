@@ -10,6 +10,11 @@ export { BallisticsError } from './engine.ts'
 let engine: Promise<BallisticsEngine> | undefined
 
 export function getEngine(): Promise<BallisticsEngine> {
-  engine ??= import('./jsBallisticsEngine.ts').then((m) => m.createJsBallisticsEngine())
+  engine ??= import('./jsBallisticsEngine.ts')
+    .then((m) => m.createJsBallisticsEngine())
+    .catch((e) => {
+      engine = undefined // allow a retry next time instead of staying broken
+      throw e
+    })
   return engine
 }
