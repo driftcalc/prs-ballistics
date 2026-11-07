@@ -67,6 +67,8 @@ export function renderTruingCard(box: HTMLElement, profileId: string, onApplied:
         const p = data.profiles.find((x) => x.id === profileId)
         if (!p) return
         p.rifle = { ...p.rifle, [s.field]: s.suggested }
+        // A trued velocity replaces the factory-library estimate.
+        if (s.field === 'muzzleVelocityFps' && p.factory) p.factory.mvEstimated = false
         const note = `Trued ${label(s)} ${value(s, s.current)} → ${value(s, s.suggested)} on ${new Date().toLocaleDateString()}.`
         p.notes = p.notes ? `${p.notes} ${note}` : note
         p.updatedAt = new Date().toISOString()

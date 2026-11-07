@@ -37,6 +37,16 @@ export interface RifleProfile {
   notes?: string
   rifle: RifleData
   updatedAt: string
+  /** Set when the values were filled from the factory ammo library. */
+  factory?: FactorySource
+}
+
+export interface FactorySource {
+  loadId: string
+  /** Barrel length the velocity was estimated for (inches); missing = published value used. */
+  barrelIn?: number
+  /** True while the MV is still the library estimate (cleared by truing or typing your own MV). */
+  mvEstimated: boolean
 }
 
 function pick<K extends keyof UsShotInputs>(us: UsShotInputs, keys: readonly K[]): Pick<UsShotInputs, K> {

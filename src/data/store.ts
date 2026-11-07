@@ -16,7 +16,8 @@ import {
 } from './profiles.ts'
 
 // 1 = v0.2 (rifles, conditions, shoot, settings, comparisons). 2 = adds the dope log.
-export const DATA_VERSION = 2
+// 3 = rifles may have `factory` (filled from the ammo library; optional, nothing to convert).
+export const DATA_VERSION = 3
 const STORE_KEY = 'prs.data'
 
 export interface ShootState extends WindInputs {

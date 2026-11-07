@@ -1,6 +1,8 @@
 // Rifles page: saved rifle/load profiles. Edits save as you type.
 import { combine, DEFAULT_RIFLE, newId, rifleOf, rifleSummary, type RifleProfile } from '../data/profiles.ts'
 import { getData, updateData } from '../data/store.ts'
+import { FACTORY_LOADS, loadName } from '../library/ammo.ts'
+import { renderFactoryPicker } from './factoryPicker.ts'
 import { escapeHtml } from './format.ts'
 import { parseFormValues, readFormValues, renderShotFields, toFormValues, updateVisibility } from './shotForm.ts'
 
@@ -18,6 +20,7 @@ function addRifle(from?: RifleProfile): string {
       name: from ? `${from.name} (copy)` : `Rifle ${d.profiles.length + 1}`,
       notes: from?.notes,
       rifle: { ...(from?.rifle ?? DEFAULT_RIFLE) },
+      factory: from?.factory ? { ...from.factory } : undefined,
       updatedAt: new Date().toISOString(),
     })
   })
@@ -50,6 +53,15 @@ function renderList(root: HTMLElement): void {
   })
 }
 
+/** Note at the top of a rifle filled from the library. */
+function factoryBanner(p: RifleProfile): string {
+  const load = p.factory && FACTORY_LOADS.find((l) => l.id === p.factory!.loadId)
+  if (!p.factory || !load) return ''
+  const barrel = p.factory.barrelIn ? ` for a ${p.factory.barrelIn}″ barrel` : ''
+  return `<p class="card factory-banner"><small>Filled from <strong>${escapeHtml(loadName(load))}</strong>${barrel}.
+    ${p.factory.mvEstimated ? 'Muzzle velocity is an <strong>estimate</strong> — log confirmed hits to true it.' : 'Muzzle velocity has since been trued or entered by you.'}</small></p>`
+}
+
 function renderEditor(root: HTMLElement, p: RifleProfile): void {
   const d = getData()
   root.innerHTML = `
@@ -58,6 +70,9 @@ function renderEditor(root: HTMLElement, p: RifleProfile): void {
       <label class="field"><span>Name</span><input name="profileName" type="text" value="${escapeHtml(p.name)}" /></label>
       <label class="field"><span>Notes</span><input name="profileNotes" type="text" value="${escapeHtml(p.notes ?? '')}" placeholder="optional" /></label>
     </section>
+    ${factoryBanner(p)}
+    <button class="big-button" data-action="factory">⇩ Fill from factory ammo</button>
+    <div data-factory></div>
     <form class="shot-form" novalidate>${renderShotFields(toFormValues(combine(p.rifle, d.conditions, d.shoot)), false, ['rifle'])}</form>
     <ul class="errors" data-errors></ul>
     <p class="saved-note"><small>Changes save automatically.</small></p>
@@ -71,24 +86,39 @@ function renderEditor(root: HTMLElement, p: RifleProfile): void {
   const errorsBox = root.querySelector<HTMLUListElement>('[data-errors]')!
   const text = (name: string) => root.querySelector<HTMLInputElement>(`[name="${name}"]`)!.value.trim()
 
-  function saveEdits() {
+  function saveEdits(e: Event) {
+    // The factory ammo picker has its own boxes; they don't edit the rifle directly.
+    if ((e.target as HTMLElement).closest('[data-factory]')) return
     const values = readFormValues(form, ['rifle'])
     updateVisibility(form, values, ['rifle'])
     const { inputs, errors } = parseFormValues(values, ['rifle'])
-    errorsBox.innerHTML = errors.map((e) => `<li>${escapeHtml(e)}</li>`).join('')
+    errorsBox.innerHTML = errors.map((er) => `<li>${escapeHtml(er)}</li>`).join('')
     updateData((data) => {
       const target = data.profiles.find((x) => x.id === p.id)
       if (!target) return
       target.name = text('profileName') || 'Unnamed rifle'
       target.notes = text('profileNotes') || undefined
       // Only store the rifle numbers once they are all valid.
-      if (inputs) target.rifle = rifleOf(inputs)
+      if (inputs) {
+        // Typing your own velocity means it's no longer the library estimate.
+        if (target.factory?.mvEstimated && inputs.muzzleVelocityFps !== target.rifle.muzzleVelocityFps) {
+          target.factory.mvEstimated = false
+        }
+        target.rifle = rifleOf(inputs)
+      }
       target.updatedAt = new Date().toISOString()
     })
   }
 
   root.addEventListener('input', saveEdits)
   root.addEventListener('change', saveEdits)
+
+  root.querySelector('[data-action="factory"]')!.addEventListener('click', () => {
+    const current = getData().profiles.find((x) => x.id === p.id) ?? p
+    renderFactoryPicker(root.querySelector<HTMLElement>('[data-factory]')!, p.id, current.factory?.barrelIn, () => {
+      renderEditor(root, getData().profiles.find((x) => x.id === p.id) ?? p)
+    })
+  })
 
   root.querySelector('[data-action="use"]')!.addEventListener('click', () => {
     updateData((data) => {

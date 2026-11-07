@@ -258,6 +258,51 @@ button.danger,
   font-weight: 700;
 }
 
+/* Factory ammo */
+.factory-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  max-height: 50vh;
+  overflow-y: auto;
+}
+
+.factory-item {
+  width: 100%;
+  justify-content: flex-start;
+  text-align: left;
+  display: block;
+  min-height: 56px;
+}
+
+.factory-item small,
+.factory-banner small {
+  color: var(--muted);
+}
+
+.factory-item.chosen {
+  border-color: var(--accent);
+  border-width: 2px;
+}
+
+.factory-preview h3 {
+  margin: 8px 0 0;
+}
+
+.estimate {
+  margin: 0;
+  font-size: 1.15rem;
+}
+
+.mv-estimate {
+  margin: -8px 0 0;
+  text-align: center;
+  font-size: 0.9rem;
+}
+
 /* Truing assistant */
 .truing-headline {
   margin: 0;

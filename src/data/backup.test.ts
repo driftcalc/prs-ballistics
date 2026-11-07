@@ -26,6 +26,7 @@ function sampleData(): AppData {
   d.profiles = [rifle('6.5 CM, "match"', 2710, 'a'), rifle('22 LR', 1070, 'b')]
   d.profiles[1].rifle = { ...d.profiles[1].rifle, dragModel: 'G1', bc: 0.13, bulletLengthIn: 0.6, twistIn: undefined }
   d.profiles[0].notes = 'Barrel #2, new brass'
+  d.profiles[0].factory = { loadId: 'hornady-65cm-140-eldm', barrelIn: 22, mvEstimated: true }
   d.conditions.temperatureF = 33
   d.shoot = { ...d.shoot, profileId: 'b', rangeYd: 450, windClock: 10 }
   d.settings = { angleUnit: 'moa', night: true }

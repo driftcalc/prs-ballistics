@@ -69,6 +69,16 @@ export function parseBackupJson(text: string): ImportBundle {
       notes: typeof p.notes === 'string' ? p.notes : undefined,
       rifle,
       updatedAt: typeof p.updatedAt === 'string' ? p.updatedAt : new Date().toISOString(),
+      // Library link (data version 3); kept only if it looks right.
+      ...(p.factory && typeof p.factory.loadId === 'string'
+        ? {
+            factory: {
+              loadId: p.factory.loadId,
+              barrelIn: typeof p.factory.barrelIn === 'number' ? p.factory.barrelIn : undefined,
+              mvEstimated: p.factory.mvEstimated === true,
+            },
+          }
+        : {}),
     })
   }
 
