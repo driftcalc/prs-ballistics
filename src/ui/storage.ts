@@ -20,3 +20,43 @@ export function save(key: string, value: unknown): boolean {
     return false
   }
 }
+
+/** The saved text exactly as stored (null if none or storage unavailable). */
+export function loadRaw(key: string): string | null {
+  try {
+    return localStorage.getItem(key)
+  } catch {
+    return null
+  }
+}
+
+export function saveRaw(key: string, text: string): boolean {
+  try {
+    localStorage.setItem(key, text)
+    return true
+  } catch {
+    return false
+  }
+}
+
+/** All saved keys starting with `prefix`. */
+export function keysStartingWith(prefix: string): string[] {
+  try {
+    const keys: string[] = []
+    for (let i = 0; i < localStorage.length; i++) {
+      const k = localStorage.key(i)
+      if (k?.startsWith(prefix)) keys.push(k)
+    }
+    return keys
+  } catch {
+    return []
+  }
+}
+
+export function remove(key: string): void {
+  try {
+    localStorage.removeItem(key)
+  } catch {
+    // Nothing else to do.
+  }
+}

@@ -3,7 +3,7 @@
 import type { ReferenceCase } from '../accuracy/compare.ts'
 import { DEFAULT_INPUTS } from '../shotInputs.ts'
 import { parseFormValues, type FormValues } from '../ui/shotForm.ts'
-import { load, save } from '../ui/storage.ts'
+import { load, loadRaw, save, saveRaw } from '../ui/storage.ts'
 import type { DopeEntry } from './log.ts'
 import {
   conditionsOf,
@@ -112,9 +112,31 @@ function persist(d: AppData): void {
   }
 }
 
+/** Saved copies of data the app couldn't read, kept so nothing is lost. */
+export const RESCUE_PREFIX = `${STORE_KEY}.unreadable-`
+
+/**
+ * If saved data exists but can't be read (damaged, or written by something
+ * else), keep an exact copy under a separate name BEFORE starting fresh, so it
+ * can be downloaded from the Data tab and rescued.
+ */
+function keepUnreadableCopy(): void {
+  const raw = loadRaw(STORE_KEY)
+  if (raw === null) return
+  let readable = false
+  try {
+    const parsed = JSON.parse(raw)
+    readable = !!parsed && typeof parsed.version === 'number'
+  } catch {
+    readable = false
+  }
+  if (!readable) saveRaw(`${RESCUE_PREFIX}${Date.now()}`, raw)
+}
+
 export function getData(): AppData {
   if (!cache) {
     const saved = load<AppData | null>(STORE_KEY, null)
+    if (!(saved && typeof saved.version === 'number')) keepUnreadableCopy()
     cache =
       saved && typeof saved.version === 'number'
         ? upgradeSaved(saved)

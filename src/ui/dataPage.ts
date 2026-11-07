@@ -10,7 +10,8 @@ import {
   toRiflesCsv,
   type ImportBundle,
 } from '../data/backup.ts'
-import { getData, replaceData, updateData } from '../data/store.ts'
+import { getData, replaceData, RESCUE_PREFIX, updateData } from '../data/store.ts'
+import { keysStartingWith, loadRaw, remove } from './storage.ts'
 import { downloadFile } from './download.ts'
 import { escapeHtml } from './format.ts'
 import { applyNightMode } from './nightMode.ts'
@@ -27,6 +28,26 @@ function lastBackupText(): string {
   return `${base} ⚠ ${days === undefined ? 'Export one now' : `That was ${days} days ago — export a fresh one`} so a lost or reset phone doesn't take your data with it.`
 }
 
+/** Copies of saved data the app couldn't read (kept instead of being thrown away). */
+function rescueSection(): string {
+  const keys = keysStartingWith(RESCUE_PREFIX)
+  if (!keys.length) return ''
+  return `
+    <section class="card stack banner error">
+      <h2>Damaged data kept for rescue</h2>
+      <p>This phone had saved data the app couldn't read, so a copy was kept instead of being thrown away.
+        Download it and send it to whoever helps you with the app; it may be repairable.</p>
+      ${keys
+        .map((k) => {
+          const when = new Date(Number(k.slice(RESCUE_PREFIX.length)))
+          return `<div class="actions">
+            <button class="big-button" data-rescue-download="${escapeHtml(k)}">Download copy from ${escapeHtml(when.toLocaleString())}</button>
+            <button class="danger" data-rescue-delete="${escapeHtml(k)}">Delete copy</button></div>`
+        })
+        .join('')}
+    </section>`
+}
+
 export function renderDataPage(root: HTMLElement): void {
   const d = getData()
   root.innerHTML = `
@@ -38,6 +59,8 @@ export function renderDataPage(root: HTMLElement): void {
         Export a backup after changes — clearing browser data or removing the app deletes it.</p>
       <p class="${backupOverdue(d) ? 'backup-due' : ''}" data-last-backup>${escapeHtml(lastBackupText())}</p>
     </section>
+
+    ${rescueSection()}
 
     <section class="card stack">
       <h2>Export</h2>
@@ -64,6 +87,20 @@ export function renderDataPage(root: HTMLElement): void {
     note.classList.remove('backup-due')
     document.querySelector('.tabs a[data-page="data"]')?.removeAttribute('data-due')
   })
+
+  root.querySelectorAll<HTMLButtonElement>('[data-rescue-download]').forEach((b) =>
+    b.addEventListener('click', () => {
+      const key = b.dataset.rescueDownload!
+      downloadFile(`spin-drift-damaged-data-${key.slice(RESCUE_PREFIX.length)}.txt`, loadRaw(key) ?? '', 'text/plain')
+    }),
+  )
+  root.querySelectorAll<HTMLButtonElement>('[data-rescue-delete]').forEach((b) =>
+    b.addEventListener('click', () => {
+      if (!confirm("Delete this damaged copy? Download it first if you might want it — this can't be undone.")) return
+      remove(b.dataset.rescueDelete!)
+      renderDataPage(root)
+    }),
+  )
 
   root.querySelector('[data-action="export-csv"]')!.addEventListener('click', () => {
     downloadFile(`spin-drift-rifles-${today()}.csv`, toRiflesCsv(getData().profiles), 'text/csv')

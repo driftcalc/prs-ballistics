@@ -29,6 +29,27 @@ const rifle = (id: string, name: string) => ({
   updatedAt: '',
 })
 
+describe('saved data the app cannot read', () => {
+  it('keeps an exact rescue copy before starting fresh', async () => {
+    const storage = fakeStorage()
+    vi.stubGlobal('localStorage', storage)
+    storage.map.set('prs.data', '{"version":3, "profiles": [ broken')
+    const tab = await openTab()
+    expect(tab.getData().profiles).toEqual([])
+    const rescue = [...storage.map.keys()].filter((k) => k.startsWith(tab.RESCUE_PREFIX))
+    expect(rescue).toHaveLength(1)
+    expect(storage.map.get(rescue[0])).toBe('{"version":3, "profiles": [ broken')
+  })
+
+  it('makes no rescue copy when there was simply nothing saved', async () => {
+    const storage = fakeStorage()
+    vi.stubGlobal('localStorage', storage)
+    const tab = await openTab()
+    tab.getData()
+    expect([...storage.map.keys()].filter((k) => k.startsWith(tab.RESCUE_PREFIX))).toEqual([])
+  })
+})
+
 describe('two copies of the app open at once', () => {
   let storage: ReturnType<typeof fakeStorage>
   beforeEach(() => {
