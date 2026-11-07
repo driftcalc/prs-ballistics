@@ -1,4 +1,4 @@
-// The shot input boxes, shared by the Calculator and Check accuracy pages.
+// The shot input boxes, shared by the Rifles, Shoot (weather) and Check accuracy pages.
 // One list of fields drives drawing the form, reading it back and checking it.
 import { DEFAULT_INPUTS, type UsShotInputs } from '../shotInputs.ts'
 import { escapeHtml } from './format.ts'
