@@ -20,10 +20,45 @@ The owner is not a programmer and relies on Claude for all code.
 - Vite + TypeScript, no UI framework unless agreed. Keep it simple.
 - No backend, no accounts. All user data is saved on the device only.
 - Hosted free on GitHub Pages. Vite `base` is `/prs-ballistics/`.
-- Pages (hash routes): Shoot (home), Rifles, Log, Check (accuracy), Data.
-- Shoot screen is used with gloves: tap targets at least 64 px, holds in huge text.
-  Every colour must come from CSS variables so red night mode (`:root[data-night]`)
-  covers it — no hard-coded colours.
+- Pages (hash routes): bottom tabs Shoot (home), Match (placeholder), Log, Rifles;
+  Check accuracy and Data & backup open from the ⚙ Settings sheet; hidden
+  `#/styleguide` shows every component in all three themes.
+- No ballistics logic changes during UI work.
+
+## Design system (every screen, every session)
+
+Look: a calm precision instrument (aviation display / Kestrel screen). Clean,
+flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decoration.**
+
+- **Tokens only.** Every colour, size, space and timing comes from
+  `src/design/tokens.css` (`--bg`, `--surface`, `--text`, `--text-2`, `--line`,
+  `--accent`, `--on-accent`, `--danger`, `--good`, `--s1..--s6`, `--touch`, `--gap`,
+  `--control-primary`, `--fs-*`, `--motion`). Never hard-code a colour or px size
+  in a screen.
+- **Themes:** Sun (black on white), Dark (default; white on black, amber accent),
+  Night (pure red on pure black). Set by `data-theme` on `<html>`; setting
+  `auto` follows the phone. **Night has no green or blue in any colour.**
+- **Contrast ≥ 7:1** for all text in Sun and Dark. Night is the one approved
+  exception: pure #FF0000 on black is 5.25:1 (the maximum possible), so all Night
+  text uses full #FF0000 — hierarchy by size/weight, never dimmer text.
+- **Type:** Inter (bundled, OFL), tabular digits + slashed zero everywhere.
+  Minimum **16px** anywhere, **18px on field screens** (Shoot, Match, Log →
+  `field: true` in `src/main.ts`), hold numbers **≥ 72px** bold.
+- **Touch:** every target ≥ 48×48px with ≥ 8px gaps. Primary controls
+  (steppers, tab bar, segmented toggles, pickers) use `--control-primary`:
+  64px, **96px in Glove mode** (`data-glove`). **Left-handed** (`data-lefthand`)
+  mirrors bottom control rows (stepper +/−, chip row, tab bar).
+- **Motion:** every button has an instant pressed state (colours invert, no
+  transition). No animation over 150ms; `prefers-reduced-motion` → none.
+- **Components** (`src/design/components.ts` + `components.css`): readout,
+  stepper, chipRow, segmented, card, tabBar (max 4 tabs), openSheet (bottom
+  sheet). Use these instead of one-off markup; new buttons use `.btn`,
+  `.btn-primary`, `.btn-danger`. Add any new component to the style guide.
+- **Checks:** `src/design/design.test.ts` fails the build on contrast below the
+  rules, green/blue in Night, any font size under 16px, shadows, gradients, or
+  transitions over 150ms. Never weaken these checks to make them pass.
+  After UI changes, audit every screen in all three themes (text size, contrast,
+  48px targets) at phone width before publishing.
 
 ## Saved data
 
