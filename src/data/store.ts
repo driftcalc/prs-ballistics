@@ -128,12 +128,31 @@ export function getData(): AppData {
   return cache
 }
 
+/**
+ * The newest saved bundle. Another copy of the app (a second tab) may have
+ * saved since we last read, so read storage again rather than trusting memory.
+ * If saving has been failing, storage is OLDER than memory, so keep memory.
+ */
+function latest(): AppData {
+  if (!cache || !lastSaveOk) return getData()
+  const saved = load<AppData | null>(STORE_KEY, null)
+  if (saved && typeof saved.version === 'number') cache = upgradeSaved(saved)
+  return cache
+}
+
 /** Changes the data and saves it straight away. */
 export function updateData(change: (d: AppData) => void): AppData {
-  const d = getData()
+  const d = latest()
   change(d)
   persist(d)
   return d
+}
+
+// Another tab saved: forget our copy so the next read picks up its changes.
+if (typeof window !== 'undefined') {
+  window.addEventListener('storage', (e) => {
+    if (e.key === STORE_KEY && lastSaveOk) cache = undefined
+  })
 }
 
 /** Swaps in a whole new bundle (used by Import). */
