@@ -177,14 +177,16 @@ button,
   justify-content: center;
 }
 
-button.primary {
+button.primary,
+.button.primary {
   background: var(--accent);
   border-color: var(--accent);
   color: #fff;
   font-weight: 600;
 }
 
-button.danger {
+button.danger,
+.button.danger {
   color: var(--bad);
 }
 
@@ -194,44 +196,173 @@ button.danger {
   gap: 8px;
 }
 
-/* Calculator result */
-.target {
+.big-button {
+  min-height: 56px;
+  font-size: 1.1rem;
+}
+
+/* Shoot screen: everything big enough to use with gloves */
+.rifle-picker {
+  min-height: 60px;
+  font-size: 1.25rem;
+  font-weight: 700;
+  background: var(--surface);
+}
+
+.holds {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+  padding: 12px 8px 6px;
+  border-radius: 14px;
+  background: var(--surface);
+  text-align: center;
+  position: relative;
+}
+
+.hold {
   display: flex;
   flex-direction: column;
+  align-items: center;
+  line-height: 1;
+}
+
+.hold-label {
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0.1em;
+  color: var(--muted);
+}
+
+.hold-dir {
+  font-size: 1.6rem;
+  font-weight: 800;
+  min-height: 1.6rem;
+  margin-top: 6px;
+}
+
+.hold-num {
+  font-size: clamp(3.5rem, 21vw, 6.5rem);
+  font-weight: 900;
+  font-variant-numeric: tabular-nums;
+  letter-spacing: -0.03em;
+}
+
+.hold-num[data-long] {
+  font-size: clamp(2.6rem, 14vw, 4.8rem);
+}
+
+.hold-unit {
+  grid-column: 1 / -1;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.hold-sub {
+  margin: -8px 0 0;
+  text-align: center;
+  color: var(--muted);
+}
+
+.control {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.control-label {
+  font-weight: 700;
+  color: var(--muted);
+}
+
+.stepper {
+  display: grid;
+  grid-template-columns: 80px 1fr 80px;
   gap: 10px;
 }
 
-.field.big input {
-  font-size: 1.4rem;
-  font-weight: 700;
+.step {
+  min-height: 76px;
+  font-size: 2.6rem;
+  font-weight: 800;
+  line-height: 1;
+  border-radius: 14px;
+  background: var(--surface);
+  touch-action: manipulation; /* no double-tap zoom on fast taps */
+  user-select: none;
 }
 
-.result .row {
-  display: grid;
-  grid-template-columns: 4.6rem 1fr auto;
-  white-space: nowrap;
-  align-items: baseline;
-  gap: 8px;
-  padding: 4px 0;
+.step:active {
+  background: var(--accent);
+  color: #fff;
 }
 
-.result .row.small {
-  grid-template-columns: auto auto auto auto;
-  justify-content: space-between;
-  font-size: 0.9rem;
-}
-
-.result .label {
-  color: var(--muted);
-}
-
-.result .value {
-  font-size: 1.45rem;
+.step-value {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 6px;
+  border: 1px solid var(--border);
+  border-radius: 14px;
+  background: var(--surface);
+  font-size: 2.2rem;
   font-weight: 800;
 }
 
-.result .alt {
+.step-value input {
+  width: 4.2ch;
+  min-height: 0;
+  padding: 0;
+  border: 0;
+  background: transparent;
+  font-size: 2.2rem;
+  font-weight: 800;
+  text-align: right;
+}
+
+.step-value small {
+  font-size: 1rem;
   color: var(--muted);
+}
+
+.wind-dir {
+  white-space: nowrap;
+}
+
+.wind-arrow {
+  width: 52px;
+  height: 52px;
+}
+
+.chips {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+}
+
+.chip {
+  min-height: 48px;
+  font-weight: 700;
+}
+
+.chip[aria-pressed] {
+  background: var(--accent);
+  border-color: var(--accent);
+  color: #fff;
+}
+
+.conditions summary {
+  min-height: 44px;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+  cursor: pointer;
+}
+
+.conditions .shot-form {
+  margin-top: 10px;
 }
 
 .errors {

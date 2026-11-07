@@ -1,12 +1,12 @@
 import './style.css'
 import { renderAccuracyPage } from './ui/accuracyPage.ts'
-import { renderCalculatorPage } from './ui/calculatorPage.ts'
 import { renderRiflesPage } from './ui/riflesPage.ts'
+import { renderShootPage } from './ui/shootPage.ts'
 
 const PAGES: Record<string, { title: string; render: (root: HTMLElement, param?: string) => void }> = {
-  calculator: { title: 'Calculator', render: renderCalculatorPage },
+  shoot: { title: 'Shoot', render: renderShootPage },
   rifles: { title: 'Rifles', render: renderRiflesPage },
-  check: { title: 'Check accuracy', render: renderAccuracyPage },
+  check: { title: 'Check', render: renderAccuracyPage },
 }
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
@@ -29,7 +29,7 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 // Simple page switching using the part of the address after '#'.
 function showPage() {
   const [id, param] = location.hash.replace('#/', '').split('/')
-  const pageId = id in PAGES ? id : 'calculator'
+  const pageId = id in PAGES ? id : 'shoot'
   document.querySelectorAll<HTMLAnchorElement>('.tabs a').forEach((a) => {
     a.toggleAttribute('aria-current', a.dataset.page === pageId)
   })
