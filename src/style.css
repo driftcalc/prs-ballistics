@@ -5,6 +5,7 @@
   --muted: #5d625e;
   --border: #d6d3c9;
   --accent: #e0632b;
+  --on-accent: #ffffff;
   --good: #2f7d3b;
   --bad: #c0362c;
   color-scheme: light dark;
@@ -25,8 +26,42 @@
   }
 }
 
+/* Red night mode: overrides day and dark colours. Pure black and dim red only. */
+:root[data-night] {
+  --bg: #000000;
+  --surface: #0d0000;
+  --text: #d81e1e;
+  --muted: #8f1414;
+  --border: #3d0606;
+  --accent: #6e0b0b;
+  --good: #b31515;
+  --bad: #ff4a3d;
+  --on-accent: #ff5a4a;
+  color-scheme: dark;
+}
+
 * {
   box-sizing: border-box;
+}
+
+.title-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.night-toggle {
+  min-width: 52px;
+  min-height: 52px;
+  font-size: 1.6rem;
+  border-radius: 50%;
+  padding: 0;
+}
+
+.night-toggle[aria-pressed] {
+  background: var(--accent);
+  color: var(--on-accent);
 }
 
 [hidden] {
@@ -90,7 +125,7 @@ h2 {
 
 .tabs a[aria-current] {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .card,
@@ -181,7 +216,7 @@ button.primary,
 .button.primary {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
   font-weight: 600;
 }
 
@@ -295,7 +330,7 @@ button.danger,
 
 .step:active {
   background: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .step-value {
@@ -349,7 +384,7 @@ button.danger,
 .chip[aria-pressed] {
   background: var(--accent);
   border-color: var(--accent);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .conditions summary {
@@ -402,12 +437,12 @@ button.danger,
 
 .badge.good {
   background: var(--good);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .badge.bad {
   background: var(--bad);
-  color: #fff;
+  color: var(--on-accent);
 }
 
 .compare {

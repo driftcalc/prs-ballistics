@@ -1,4 +1,5 @@
 import './style.css'
+import { getData, updateData } from './data/store.ts'
 import { renderAccuracyPage } from './ui/accuracyPage.ts'
 import { renderRiflesPage } from './ui/riflesPage.ts'
 import { renderShootPage } from './ui/shootPage.ts'
@@ -11,7 +12,10 @@ const PAGES: Record<string, { title: string; render: (root: HTMLElement, param?:
 
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 <header>
-  <h1>PRS Ballistics</h1>
+  <div class="title-row">
+    <h1>PRS Ballistics</h1>
+    <button class="night-toggle" data-action="night" aria-label="Night mode">☾</button>
+  </div>
   <nav class="tabs">
     ${Object.entries(PAGES)
       .map(([id, p]) => `<a href="#/${id}" data-page="${id}">${p.title}</a>`)
@@ -25,6 +29,20 @@ document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
   <span class="version">v${__APP_VERSION__}</span>
 </footer>
 `
+
+// Red night mode: black screen, dim red everything, so your eyes stay dark-adapted.
+function applyNightMode() {
+  const night = getData().settings.night
+  document.documentElement.toggleAttribute('data-night', night)
+  document.querySelector('.night-toggle')!.toggleAttribute('aria-pressed', night)
+  // Colours the phone's status bar to match.
+  document.querySelectorAll('meta[name="theme-color"]').forEach((m) => m.setAttribute('content', night ? '#000000' : '#1b2a1f'))
+}
+
+document.querySelector('[data-action="night"]')!.addEventListener('click', () => {
+  updateData((d) => void (d.settings.night = !d.settings.night))
+  applyNightMode()
+})
 
 // Simple page switching using the part of the address after '#'.
 function showPage() {
@@ -40,5 +58,6 @@ function showPage() {
   window.scrollTo(0, 0)
 }
 
+applyNightMode()
 window.addEventListener('hashchange', showPage)
 showPage()
