@@ -24,3 +24,9 @@ export const signed = (n: number) => `${n >= 0 ? '+' : '−'}${Math.abs(n).toFix
 export function escapeHtml(s: string): string {
   return s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`)
 }
+
+/** Elevation direction word: Dial shows turret values (UP / DN), Hold shows reticle holds (OVER / UNDER). */
+export function elevWord(dir: string, mode: 'dial' | 'hold'): string {
+  if (mode === 'dial') return dir
+  return dir === 'UP' ? 'OVER' : dir === 'DN' ? 'UNDER' : dir
+}

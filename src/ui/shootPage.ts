@@ -3,19 +3,14 @@
 // where the thumb reaches. Built from the design components.
 import { BallisticsError, getEngine } from '../ballistics/index.ts'
 import { chipRow, clockDial, openSheet, readout, readoutPair, segmented, setClock, setReadout, setSelected, stepper } from '../design/components.ts'
-import { combine, type Conditions, type RifleData } from '../data/profiles.ts'
+import { combine, type RifleData } from '../data/profiles.ts'
 import { RANGE_STEPS_YD, MAX_RANGE_YD, MIN_RANGE_YD, stepRange, stepWindSpeed } from '../data/shootControls.ts'
 import { currentProfile, getData, updateData } from '../data/store.ts'
 import { toShotInput } from '../shotInputs.ts'
 import { radiansToMil, radiansToMoa, yardsToMeters } from '../units/index.ts'
-import { escapeHtml, holdParts, timeText, velocityText } from './format.ts'
-import { parseFormValues, readFormValues, renderShotFields, toFormValues, updateVisibility } from './shotForm.ts'
+import { conditionsSummary, openConditionsSheet } from './conditionsSheet.ts'
+import { escapeHtml, elevWord, holdParts, timeText, velocityText } from './format.ts'
 import { keepScreenAwake } from './wakeLock.ts'
-
-function conditionsSummary(c: Conditions): string {
-  const air = c.atmosphereMode === 'altitude' ? `${c.altitudeFt ?? 0} ft` : `${c.stationPressureInHg ?? '?'} inHg`
-  return `${c.temperatureF}°F · ${air} · ${c.humidityPct}% RH`
-}
 
 /**
  * Splits the WIND hold into its parts, e.g. "Hold = wind R 1.0 + spin drift L 0.1"
@@ -135,7 +130,7 @@ export function renderShootPage(root: HTMLElement): void {
       const elev = holdParts(s.elevation, unit, 'elevation')
       const wind = holdParts(s.windage, unit, 'windage')
       // In Hold mode elevation reads as a reticle hold: OVER / UNDER instead of UP / DN.
-      const elevDir = d.settings.holdMode === 'hold' ? ({ UP: 'OVER', DN: 'UNDER' } as Record<string, string>)[elev.dir] ?? '' : elev.dir
+      const elevDir = elevWord(elev.dir, d.settings.holdMode)
       setReadout(root, 'elev', { dir: elevDir, value: elev.value })
       setReadout(root, 'wind', { dir: wind.dir, value: wind.value })
       $('[data-sub]').textContent = `${velocityText(s.velocity)} · ${timeText(s.timeOfFlight)} · ${d.shoot.rangeYd} yd`
@@ -197,33 +192,7 @@ export function renderShootPage(root: HTMLElement): void {
   }
 
   function editConditions() {
-    const data = getData()
-    const p = currentProfile(data)!
-    const sheet = openSheet({
-      title: 'Conditions',
-      content: `<form class="shot-form" novalidate>${renderShotFields(toFormValues(combine(p.rifle, data.conditions, data.shoot)), false, ['weather'])}</form>
-        <ul class="errors" data-errors></ul>
-        <button class="btn btn-primary" type="button" data-sheet-close>Done</button>`,
-    })
-    const form = sheet.body.querySelector<HTMLFormElement>('form')!
-    const save = () => {
-      const values = readFormValues(form, ['weather'])
-      updateVisibility(form, values, ['weather'])
-      const { inputs, errors } = parseFormValues(values, ['weather'])
-      sheet.body.querySelector('[data-errors]')!.innerHTML = errors.map((er) => `<li>${escapeHtml(er)}</li>`).join('')
-      if (!inputs) return
-      change((d) => {
-        d.conditions = {
-          temperatureF: inputs.temperatureF,
-          atmosphereMode: inputs.atmosphereMode,
-          stationPressureInHg: inputs.stationPressureInHg,
-          altitudeFt: inputs.altitudeFt,
-          humidityPct: inputs.humidityPct,
-        }
-      })
-    }
-    form.addEventListener('input', save)
-    form.addEventListener('change', save)
+    openConditionsSheet(show)
   }
 
   rangeBox.addEventListener('focus', () => rangeBox.select())

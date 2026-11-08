@@ -27,6 +27,7 @@
   --fs-value: 32px; /* stepper values */
   --fs-readout: 80px; /* hold numbers; never below 72px */
   --fs-readout-min: 72px;
+  --fs-card: 48px; /* elevation on a stage card: several targets must fit one screen */
   --lh: 1.4;
 
   /* Space (8px grid) */

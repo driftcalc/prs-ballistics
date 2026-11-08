@@ -1,6 +1,6 @@
-// Settings (the ⚙ button): theme, Glove mode, Left-handed, and the pages that
+// Settings (the ⚙ button): theme, Glove mode, Left-handed, stage card wind speeds, and the pages that
 // don't fit in the four tabs (Check accuracy, Data & backup).
-import { openSheet, segmented, setSelected } from '../design/components.ts'
+import { openSheet, segmented, setSelected, stepper } from '../design/components.ts'
 import { getData, updateData, type ThemeSetting } from '../data/store.ts'
 import { backupOverdue } from './safety.ts'
 import { applyTheme } from './theme.ts'
@@ -40,6 +40,12 @@ export function openSettings(onChange: () => void): void {
         <p class="setting-help">Mirrors the controls: + on the left, tabs right to left.</p>
       </div>
       <div class="setting">
+        <h3 class="setting-title">Stage card wind speeds</h3>
+        ${stepper({ name: 'cardwind0', label: 'First card wind speed', value: String(d.settings.cardWindsMph[0]), unit: 'mph' })}
+        ${stepper({ name: 'cardwind1', label: 'Second card wind speed', value: String(d.settings.cardWindsMph[1]), unit: 'mph' })}
+        <p class="setting-help">Match stage cards show wind holds at these two speeds, from the left and from the right.</p>
+      </div>
+      <div class="setting">
         <h3 class="setting-title">More</h3>
         <button class="btn" type="button" data-go="#/check">Check accuracy vs Hornady / AB</button>
         <button class="btn${due ? ' btn-danger' : ''}" type="button" data-go="#/data">${due ? '⚠ ' : ''}Data &amp; backup${due ? ' — backup due' : ''}</button>
@@ -50,6 +56,17 @@ export function openSettings(onChange: () => void): void {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
     if (!btn) return
     if (btn.dataset.go) return sheet.closeAndGo(btn.dataset.go)
+    const wind = /^cardwind([01])$/.exec(btn.dataset.stepper ?? '')
+    if (wind) {
+      const i = Number(wind[1])
+      const data = updateData((x) => {
+        const next: [number, number] = [...x.settings.cardWindsMph]
+        next[i] = Math.min(60, Math.max(1, next[i] + Number(btn.dataset.dir)))
+        x.settings.cardWindsMph = next
+      })
+      sheet.body.querySelector(`[data-stepper-value="cardwind${i}"]`)!.textContent = String(data.settings.cardWindsMph[i])
+      return onChange()
+    }
     const name = btn.dataset.segment
     const value = btn.dataset.value!
     if (!name) return

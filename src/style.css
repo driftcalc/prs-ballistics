@@ -674,3 +674,256 @@ button:not(.btn):not(.tab):active,
   flex-wrap: wrap;
   gap: var(--gap);
 }
+
+/* ---------- Match ---------- */
+.match-list,
+.stage-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.match-item,
+.stage-open {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s1);
+  width: 100%;
+  min-height: var(--control-primary);
+  padding: var(--s2) var(--s3);
+  text-align: left;
+}
+
+.match-item span,
+.stage-open span {
+  font-weight: 400;
+}
+
+.stage-item {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: var(--gap);
+}
+
+.stage-edit {
+  min-height: var(--control-primary);
+  min-width: var(--control-primary);
+}
+
+.match-head {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.match-actions,
+.card-tools {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+}
+
+.stage-form {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.stage-form-where a {
+  color: var(--text);
+  font-weight: 700;
+}
+
+.target-preview {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s2);
+}
+
+.target-preview:empty {
+  display: none;
+}
+
+.target-preview li {
+  padding: var(--s1) var(--s2);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  font-weight: 700;
+}
+
+/* Full-screen card: swipe sideways between stages; ◀ ▶ in the thumb zone. */
+.card-swipe {
+  touch-action: pan-y;
+}
+
+.card-nav {
+  display: grid;
+  grid-template-columns: var(--control-primary) minmax(0, 1fr) var(--control-primary);
+  gap: var(--gap);
+  /* Always in thumb reach: sits just above the tab bar while the card scrolls. */
+  position: sticky;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 4;
+  padding: var(--s2) 0;
+  background: var(--bg);
+}
+
+.card-nav .btn {
+  min-height: var(--control-primary);
+  font-size: var(--fs-title);
+}
+
+.card-working {
+  padding: var(--s6) 0;
+  text-align: center;
+}
+
+/* ---------- Stage card ---------- */
+.stage-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+  padding: var(--s4);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+}
+
+.stage-card-head {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  gap: var(--s3);
+}
+
+.stage-card-title {
+  font-size: var(--fs-h1);
+  font-weight: 900;
+  overflow-wrap: anywhere;
+}
+
+.stage-card-count {
+  font-weight: 800;
+  white-space: nowrap;
+}
+
+.stage-card-key {
+  font-weight: 800;
+}
+
+.stage-rows {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+.stage-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: baseline;
+  column-gap: var(--s3);
+  padding: var(--s2) 0;
+  border-top: var(--line-w) solid var(--line);
+}
+
+.stage-row-target {
+  font-size: var(--fs-title);
+}
+
+.stage-row-target strong {
+  font-size: var(--fs-h1);
+  font-weight: 900;
+}
+
+.stage-row-elev {
+  font-size: var(--fs-card);
+  font-weight: 900;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+
+.stage-row-wind {
+  grid-column: 1 / -1;
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s3);
+  font-size: var(--fs-title);
+  font-weight: 700;
+}
+
+.stage-row-wind strong {
+  font-weight: 900;
+  white-space: nowrap;
+}
+
+.stage-card-order {
+  padding-top: var(--s2);
+  border-top: var(--line-w) solid var(--line);
+  font-weight: 800;
+}
+
+/* ---------- Printing stage cards on 3x5 index cards ---------- */
+.print-area {
+  display: none;
+}
+
+@media print {
+  @page {
+    size: 5in 3in;
+    margin: 0.15in;
+  }
+
+  body.printing > :not(.print-area) {
+    display: none !important;
+  }
+
+  body.printing .print-area {
+    display: block;
+    color: var(--text); /* the print area is always the Sun theme: black on white */
+    background: var(--bg);
+    font-size: var(--fs-body);
+    line-height: 1.2;
+  }
+
+  .print-card {
+    break-after: page;
+  }
+
+  .print-card:last-child {
+    break-after: auto;
+  }
+
+  .print-head,
+  .print-order {
+    margin: 0 0 var(--s1);
+  }
+
+  .print-order {
+    margin-top: var(--s1);
+    font-weight: 700;
+  }
+
+  .print-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .print-table th,
+  .print-table td {
+    padding: 0 var(--s1);
+    border-bottom: var(--line-w) solid var(--line);
+    text-align: left;
+    white-space: nowrap;
+  }
+
+  .print-table td:nth-child(3) {
+    font-weight: 900;
+  }
+}
