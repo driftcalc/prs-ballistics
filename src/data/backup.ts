@@ -3,6 +3,7 @@
 import { validateCase, type ReferenceCase } from '../accuracy/compare.ts'
 import { parseFormValues, type FormValues } from '../ui/shotForm.ts'
 import { logEntryProblem, type DopeEntry } from './log.ts'
+import { matchProblem, type Match } from './match.ts'
 import { newId, RIFLE_KEYS, rifleOf, type RifleData, type RifleProfile } from './profiles.ts'
 import { DATA_VERSION, emptyData, normalizeSettings, type AppData } from './store.ts'
 
@@ -14,6 +15,7 @@ export interface ImportBundle {
   profiles: RifleProfile[]
   comparisons: Record<string, ReferenceCase>
   log: DopeEntry[]
+  matches: Match[]
   /** Only in a full JSON backup. */
   full?: AppData
   /** Rows or items that were skipped, in plain words. */
@@ -99,17 +101,26 @@ export function parseBackupJson(text: string): ImportBundle {
     else log.push(e)
   }
 
+  // Matches (added in data version 6; older backups simply have none).
+  const matches: Match[] = []
+  for (const m of Array.isArray(src.matches) ? src.matches : []) {
+    const problem = matchProblem(m)
+    if (problem) warnings.push(`Skipped a match: ${problem}.`)
+    else matches.push(m)
+  }
+
   const base = emptyData()
   const full: AppData = {
     ...base,
     profiles,
     comparisons,
     log,
+    matches,
     conditions: { ...base.conditions, ...src.conditions },
     shoot: { ...base.shoot, ...src.shoot },
     settings: normalizeSettings(src.settings),
   }
-  return { kind: 'json', profiles, comparisons, log, full, warnings }
+  return { kind: 'json', profiles, comparisons, log, matches, full, warnings }
 }
 
 // ---------- CSV (rifles only) ----------
@@ -210,7 +221,7 @@ export function parseRiflesCsv(text: string): ImportBundle {
     profiles.push({ id: newId(), name, notes: get('notes') || undefined, rifle: rifleOf(inputs), updatedAt: new Date().toISOString() })
   })
   if (profiles.length === 0 && warnings.length === 0) throw new ImportError('No rifles found in this CSV file.')
-  return { kind: 'csv', profiles, comparisons: {}, log: [], warnings }
+  return { kind: 'csv', profiles, comparisons: {}, log: [], matches: [], warnings }
 }
 
 // ---------- Applying an import ----------
@@ -229,6 +240,9 @@ export function mergeImport(current: AppData, incoming: ImportBundle): AppData {
   // Log entries are added unless the same entry is already here.
   const have = new Set(next.log.map((e) => e.id))
   next.log.push(...incoming.log.filter((e) => !have.has(e.id)))
+  // Matches likewise.
+  const haveMatch = new Set(next.matches.map((m) => m.id))
+  next.matches.push(...incoming.matches.filter((m) => !haveMatch.has(m.id)))
   return next
 }
 
@@ -250,7 +264,8 @@ export function describeImport(b: ImportBundle): string {
   if (b.kind === 'json') {
     const n = Object.keys(b.comparisons).length
     const l = b.log.length
-    parts.push(`${n} comparison${n === 1 ? '' : 's'}`, `${l} logged shot${l === 1 ? '' : 's'}`, 'weather and settings')
+    const m = b.matches.length
+    parts.push(`${n} comparison${n === 1 ? '' : 's'}`, `${l} logged shot${l === 1 ? '' : 's'}`, `${m} match${m === 1 ? '' : 'es'}`, 'weather and settings')
   }
   return parts.join(', ')
 }

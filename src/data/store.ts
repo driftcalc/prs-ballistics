@@ -5,6 +5,7 @@ import { DEFAULT_INPUTS } from '../shotInputs.ts'
 import { parseFormValues, type FormValues } from '../ui/shotForm.ts'
 import { load, loadRaw, save, saveRaw } from '../ui/storage.ts'
 import type { DopeEntry } from './log.ts'
+import type { Match } from './match.ts'
 import {
   conditionsOf,
   DEFAULT_CONDITIONS,
@@ -19,7 +20,8 @@ import {
 // 3 = rifles may have `factory` (filled from the ammo library; optional, nothing to convert).
 // 4 = settings.night (on/off) becomes settings.theme; adds glove and leftHanded.
 // 5 = adds settings.holdMode (Dial or Hold labels on Shoot; default dial).
-export const DATA_VERSION = 5
+// 6 = adds matches (stage cards) and settings.cardWindsMph (default 5 and 10 mph).
+export const DATA_VERSION = 6
 const STORE_KEY = 'prs.data'
 
 export interface ShootState extends WindInputs {
@@ -43,6 +45,8 @@ export interface Settings {
   leftHanded: boolean
   /** Shoot labels: 'dial' = turret values (DIAL UP 4.6), 'hold' = reticle holds (HOLD 4.6 OVER). Same numbers. */
   holdMode: 'dial' | 'hold'
+  /** The two wind speeds stage cards show holds for. */
+  cardWindsMph: [number, number]
   /** When the last full backup was exported, to remind the user. */
   lastBackupAt?: string
   /** User closed the "add to Home Screen" tip. */
@@ -59,6 +63,8 @@ export interface AppData {
   comparisons: Record<string, ReferenceCase>
   /** Dope logbook, oldest first. */
   log: DopeEntry[]
+  /** Matches with their stage cards, newest first. */
+  matches: Match[]
 }
 
 export function emptyData(): AppData {
@@ -67,10 +73,17 @@ export function emptyData(): AppData {
     profiles: [],
     conditions: { ...DEFAULT_CONDITIONS },
     shoot: { rangeYd: 600, rangeStepYd: 25, windSpeedMph: DEFAULT_INPUTS.windSpeedMph, windClock: DEFAULT_INPUTS.windClock },
-    settings: { angleUnit: 'mil', theme: 'auto', glove: false, leftHanded: false, holdMode: 'dial' },
+    settings: { angleUnit: 'mil', theme: 'auto', glove: false, leftHanded: false, holdMode: 'dial', cardWindsMph: [5, 10] },
     comparisons: {},
     log: [],
+    matches: [],
   }
+}
+
+/** Two whole wind speeds 1–60 mph; anything else falls back to 5 and 10. */
+function cardWinds(v: unknown): [number, number] {
+  const ok = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n) && n >= 1 && n <= 60
+  return Array.isArray(v) && v.length === 2 && ok(v[0]) && ok(v[1]) ? [v[0], v[1]] : [5, 10]
 }
 
 /**
@@ -89,6 +102,7 @@ export function normalizeSettings(raw: (Partial<Settings> & { night?: unknown })
     glove: rest.glove === true,
     leftHanded: rest.leftHanded === true,
     holdMode: rest.holdMode === 'hold' ? 'hold' : 'dial',
+    cardWindsMph: cardWinds(rest.cardWindsMph),
   }
 }
 
@@ -105,6 +119,7 @@ export function upgradeSaved(saved: { version?: number } & Partial<AppData>): Ap
     settings: normalizeSettings(saved.settings),
     conditions: { ...base.conditions, ...saved.conditions },
     log: Array.isArray(saved.log) ? saved.log : [], // added in version 2
+    matches: Array.isArray(saved.matches) ? saved.matches : [], // added in version 6
     version: DATA_VERSION,
   }
 }

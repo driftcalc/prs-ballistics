@@ -29,7 +29,36 @@ function sampleData(): AppData {
   d.profiles[0].factory = { loadId: 'hornady-65cm-140-eldm', barrelIn: 22, mvEstimated: true }
   d.conditions.temperatureF = 33
   d.shoot = { ...d.shoot, profileId: 'b', rangeYd: 450, windClock: 10 }
-  d.settings = { angleUnit: 'moa', theme: 'night', glove: true, leftHanded: true, holdMode: 'hold' }
+  d.settings = { angleUnit: 'moa', theme: 'night', glove: true, leftHanded: true, holdMode: 'hold', cardWindsMph: [4, 8] }
+  d.matches = [
+    {
+      id: 'm1',
+      name: 'Club "PRS" match',
+      date: '2026-11-14',
+      profileId: 'a',
+      createdAt: '2026-11-08T10:00:00.000Z',
+      stages: [
+        {
+          id: 's1',
+          name: 'Stage 1',
+          targets: [
+            { name: 'T1', rangeYd: 611 },
+            { name: 'T2', rangeYd: 639 },
+          ],
+          order: ['T1', 'T2', 'T1'],
+          card: {
+            computedAt: '2026-11-08T10:01:00.000Z',
+            profileName: d.profiles[0].name,
+            rifle: d.profiles[0].rifle,
+            conditions: d.conditions,
+            windsMph: [4, 8],
+            rows: [{ name: 'T1', rangeYd: 611, elevationRad: 0.004, wind: [{ mph: 4, fromLeftRad: -0.0005, fromRightRad: 0.0004 }] }],
+          },
+        },
+        { id: 's2', name: 'Stage 2', targets: [{ name: 'T1', rangeYd: 400 }], order: [] },
+      ],
+    },
+  ]
   d.comparisons = { c1: { name: 'Test', source: 'Hornady', createdAt: '', inputs: DEFAULT_INPUTS, rows: emptyRows() } }
   d.log = [
     {
@@ -73,6 +102,33 @@ describe('JSON backup', () => {
     const current = sampleData()
     const next = mergeImport(current, parseBackupJson(toBackupJson(sampleData())))
     expect(next.log.map((e) => e.id)).toEqual(['l1'])
+  })
+
+  it('still imports a backup made before matches existed (data version 5)', () => {
+    const old = JSON.parse(toBackupJson(sampleData()))
+    old.format = 5
+    delete old.data.matches
+    delete old.data.settings.cardWindsMph
+    const back = parseBackupJson(JSON.stringify(old))
+    expect(back.warnings).toEqual([])
+    expect(back.full?.matches).toEqual([])
+    expect(back.full?.settings.cardWindsMph).toEqual([5, 10])
+  })
+
+  it('"Add" with a backup adds new matches without duplicating existing ones', () => {
+    const current = sampleData()
+    current.matches = []
+    const once = mergeImport(current, parseBackupJson(toBackupJson(sampleData())))
+    const twice = mergeImport(once, parseBackupJson(toBackupJson(sampleData())))
+    expect(twice.matches.map((m) => m.id)).toEqual(['m1'])
+  })
+
+  it('skips a damaged match and says so', () => {
+    const file = JSON.parse(toBackupJson(sampleData()))
+    file.data.matches.push({ id: 'bad', name: 'x', stages: [{ id: 's', targets: 'oops', order: [] }] })
+    const back = parseBackupJson(JSON.stringify(file))
+    expect(back.warnings).toEqual(['Skipped a match: a stage is damaged.'])
+    expect(back.matches.map((m) => m.id)).toEqual(['m1'])
   })
 
   it('rejects files that are not a backup', () => {

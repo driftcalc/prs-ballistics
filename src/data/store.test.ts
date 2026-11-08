@@ -60,6 +60,13 @@ describe('upgrading saved data', () => {
     expect(up.version).toBe(DATA_VERSION)
     expect(up.log).toEqual([])
     expect(up.profiles[0].name).toBe('Keep me')
-    expect(up.settings).toEqual({ angleUnit: 'moa', theme: 'night', glove: false, leftHanded: false, holdMode: 'dial' })
+    expect(up.settings).toEqual({ angleUnit: 'moa', theme: 'night', glove: false, leftHanded: false, holdMode: 'dial', cardWindsMph: [5, 10] })
+    expect(up.matches).toEqual([])
+  })
+
+  it('card wind speeds: keeps two whole speeds 1–60 mph, otherwise 5 and 10', () => {
+    expect(normalizeSettings({ cardWindsMph: [4, 8] }).cardWindsMph).toEqual([4, 8])
+    expect(normalizeSettings({ cardWindsMph: [0, 8] as never }).cardWindsMph).toEqual([5, 10])
+    expect(normalizeSettings({ cardWindsMph: [5] as never }).cardWindsMph).toEqual([5, 10])
   })
 })
