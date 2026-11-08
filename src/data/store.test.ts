@@ -60,6 +60,6 @@ describe('upgrading saved data', () => {
     expect(up.version).toBe(DATA_VERSION)
     expect(up.log).toEqual([])
     expect(up.profiles[0].name).toBe('Keep me')
-    expect(up.settings).toEqual({ angleUnit: 'moa', theme: 'night', glove: false, leftHanded: false })
+    expect(up.settings).toEqual({ angleUnit: 'moa', theme: 'night', glove: false, leftHanded: false, holdMode: 'dial' })
   })
 })

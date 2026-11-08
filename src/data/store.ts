@@ -18,7 +18,8 @@ import {
 // 1 = v0.2 (rifles, conditions, shoot, settings, comparisons). 2 = adds the dope log.
 // 3 = rifles may have `factory` (filled from the ammo library; optional, nothing to convert).
 // 4 = settings.night (on/off) becomes settings.theme; adds glove and leftHanded.
-export const DATA_VERSION = 4
+// 5 = adds settings.holdMode (Dial or Hold labels on Shoot; default dial).
+export const DATA_VERSION = 5
 const STORE_KEY = 'prs.data'
 
 export interface ShootState extends WindInputs {
@@ -40,6 +41,8 @@ export interface Settings {
   glove: boolean
   /** Mirror bottom control rows for the left thumb. */
   leftHanded: boolean
+  /** Shoot labels: 'dial' = turret values (DIAL UP 4.6), 'hold' = reticle holds (HOLD 4.6 OVER). Same numbers. */
+  holdMode: 'dial' | 'hold'
   /** When the last full backup was exported, to remind the user. */
   lastBackupAt?: string
   /** User closed the "add to Home Screen" tip. */
@@ -64,7 +67,7 @@ export function emptyData(): AppData {
     profiles: [],
     conditions: { ...DEFAULT_CONDITIONS },
     shoot: { rangeYd: 600, rangeStepYd: 25, windSpeedMph: DEFAULT_INPUTS.windSpeedMph, windClock: DEFAULT_INPUTS.windClock },
-    settings: { angleUnit: 'mil', theme: 'auto', glove: false, leftHanded: false },
+    settings: { angleUnit: 'mil', theme: 'auto', glove: false, leftHanded: false, holdMode: 'dial' },
     comparisons: {},
     log: [],
   }
@@ -85,6 +88,7 @@ export function normalizeSettings(raw: (Partial<Settings> & { night?: unknown })
     theme,
     glove: rest.glove === true,
     leftHanded: rest.leftHanded === true,
+    holdMode: rest.holdMode === 'hold' ? 'hold' : 'dial',
   }
 }
 
