@@ -54,9 +54,19 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
 - **Motion:** every button has an instant pressed state (colours invert, no
   transition). No animation over 150ms; `prefers-reduced-motion` → none.
 - **Components** (`src/design/components.ts` + `components.css`): readout,
-  stepper, chipRow, segmented, card, tabBar (max 4 tabs), openSheet (bottom
-  sheet). Use these instead of one-off markup; new buttons use `.btn`,
-  `.btn-primary`, `.btn-danger`. Add any new component to the style guide.
+  readoutPair, stepper, chipRow, segmented, clockDial (12 hours round a circle;
+  a 4×4 clock-face grid of 96px buttons in Glove mode), card, tabBar (max 4
+  tabs), openSheet (bottom sheet). Use these instead of one-off markup; new
+  buttons use `.btn`, `.btn-primary`, `.btn-danger`. Add any new component to
+  the style guide.
+- **Colour-coded holds:** ELEV uses `--elev` (orange), WIND uses `--wind` (blue);
+  both pure red in Night. Labels always stay, so colour never carries meaning alone.
+- **Shoot screen** (brief prompt 2): top half reads (rifle · conditions line,
+  big range, ELEV/WIND), bottom half is touched (range stepper + step chips,
+  wind speed, clock dial, DIAL|HOLD and MIL|MOA, Log shot). No gray text on
+  Shoot. The Dial/Hold setting (`settings.holdMode`) changes labels only
+  (UP/DOWN vs OVER/UNDER), never the numbers. Shoot keeps the screen awake
+  (`src/ui/wakeLock.ts`), failing quietly where unsupported.
 - **Checks:** `src/design/design.test.ts` fails the build on contrast below the
   rules, green/blue in Night, any font size under 16px, shadows, gradients, or
   transitions over 150ms. Never weaken these checks to make them pass.
