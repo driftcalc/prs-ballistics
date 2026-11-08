@@ -824,9 +824,11 @@ button:not(.btn):not(.tab):active,
   padding: 0;
 }
 
+/* Target and elevation share a line when they fit; a long hold (OVER 149.4)
+   drops onto its own line, right-aligned, instead of covering the name. */
 .stage-row {
-  display: grid;
-  grid-template-columns: minmax(0, 1fr) auto;
+  display: flex;
+  flex-wrap: wrap;
   align-items: baseline;
   column-gap: var(--s3);
   padding: var(--s2) 0;
@@ -834,7 +836,14 @@ button:not(.btn):not(.tab):active,
 }
 
 .stage-row-target {
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: var(--fs-title);
+  overflow-wrap: anywhere; /* a very long name wraps on its own line */
+}
+
+.stage-row-elev {
+  margin-left: auto;
 }
 
 .stage-row-target strong {
@@ -850,7 +859,7 @@ button:not(.btn):not(.tab):active,
 }
 
 .stage-row-wind {
-  grid-column: 1 / -1;
+  flex-basis: 100%;
   display: flex;
   justify-content: space-between;
   gap: var(--s3);

@@ -2,7 +2,24 @@
 // so the design can be reviewed on a real phone. Not linked from the tab bar.
 // The controls work, but nothing here is saved.
 import { card, chipRow, clockDial, openSheet, readout, readoutPair, segmented, setClock, setSelected, stepper, tabBar } from '../design/components.ts'
+import { stageCardHtml, type CardView } from './stageCard.ts'
 import { TABS } from './tabs.ts'
+
+/** Made-up holds, just to show the stage card layout. */
+const SAMPLE_CARD: CardView = {
+  stageName: 'Stage 3 · Barricade',
+  index: 3,
+  total: 12,
+  rifleName: '6.5 CM',
+  conditions: '59°F · 29.92 inHg · 0% RH',
+  unitLabel: 'MIL',
+  modeLabel: 'DIAL',
+  rows: [
+    { name: 'T1', rangeYd: 611, elev: 'UP 4.1', winds: [{ mph: 5, left: 'L 0.7', right: 'R 0.5' }, { mph: 10, left: 'L 1.3', right: 'R 1.0' }] },
+    { name: 'PLATE', rangeYd: 1012, elev: 'UP 10.6', winds: [{ mph: 5, left: 'L 1.4', right: 'R 1.0' }, { mph: 10, left: 'L 2.8', right: 'R 2.3' }] },
+  ],
+  order: ['T1', 'PLATE', 'T1'],
+}
 
 const THEMES = [
   ['sun', 'Sun'],
@@ -36,6 +53,9 @@ function panel(theme: string, title: string): string {
 
     <h3>Clock dial (wind from)</h3>
     <div data-sg-clock>${clockDial({ label: 'Wind from', selected: 3 })}</div>
+
+    <h3>Stage card</h3>
+    ${stageCardHtml(SAMPLE_CARD)}
 
     <h3>Buttons</h3>
     <div class="sg-row">

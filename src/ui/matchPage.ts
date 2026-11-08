@@ -370,7 +370,9 @@ function renderStageEditor(root: HTMLElement, matchId: string, n: string): void 
   form.addEventListener('click', (e) => {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
     if (btn?.dataset.action === 'done') {
-      if (save()) location.hash = `#/match/${matchId}`
+      // A blank new stage (e.g. after the last one) just goes back; nothing to save.
+      const blank = index < 0 && !targetsBox.value.trim() && !orderBox.value.trim()
+      if (blank || save()) location.hash = `#/match/${matchId}`
     }
     if (btn?.dataset.action === 'delete-stage' && index >= 0) {
       updateData((data) => void findMatch(data, matchId)!.stages.splice(index, 1))

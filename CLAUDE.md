@@ -20,7 +20,7 @@ The owner is not a programmer and relies on Claude for all code.
 - Vite + TypeScript, no UI framework unless agreed. Keep it simple.
 - No backend, no accounts. All user data is saved on the device only.
 - Hosted free on GitHub Pages. Vite `base` is `/prs-ballistics/`.
-- Pages (hash routes): bottom tabs Shoot (home), Match (placeholder), Log, Rifles;
+- Pages (hash routes): bottom tabs Shoot (home), Match (stage cards), Log, Rifles;
   Check accuracy and Data & backup open from the ⚙ Settings sheet; hidden
   `#/styleguide` shows every component in all three themes.
 - No ballistics logic changes during UI work.
@@ -67,6 +67,10 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
   Shoot. The Dial/Hold setting (`settings.holdMode`) changes labels only
   (UP/DOWN vs OVER/UNDER), never the numbers. Shoot keeps the screen awake
   (`src/ui/wakeLock.ts`), failing quietly where unsupported.
+- **Stage card** (`src/ui/stageCard.ts`, in the style guide): elevation uses
+  `--fs-card` (48px, not the 72px Shoot readout) so several targets fit one
+  screen; a long hold drops onto its own line rather than covering the name.
+  Print (3×5 in, `@media print`) is always the Sun theme and never under 16px.
 - **Checks:** `src/design/design.test.ts` fails the build on contrast below the
   rules, green/blue in Night, any font size under 16px, shadows, gradients, or
   transitions over 150ms. Never weaken these checks to make them pass.
@@ -83,6 +87,23 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
   JSON backup (`src/data/backup.ts`) and covered by the round-trip test.
 - Rifles CSV columns are listed in `CSV_COLUMNS`; keep import tolerant of
   missing optional columns.
+
+## Match mode and stage cards
+
+- Matches live in the bundle (`matches`, data version 6) with the card wind
+  speeds in `settings.cardWindsMph` (default 5 and 10 mph); both are in backups.
+- Stage targets are typed in one box and parsed by `src/match/parse.ts`
+  (forgiving; plain distances become T1, T2…). Mistakes are explained in plain
+  English, never silently dropped.
+- Card holds come only from the engine (`src/match/cards.ts`): elevation from a
+  calm solve, wind as full value from the left (9 o'clock) AND the right
+  (3 o'clock) at each card speed, spin drift included (owner's choice).
+  `cards.test.ts` checks they equal single-shot predictions.
+- Each card stores the rifle, weather and wind speeds it was worked out for.
+  **Cards never change silently:** when those differ, the Match screens show
+  "Conditions changed — Update all cards" and printing waits for the update.
+  New or edited stages get their card worked out straight away.
+- Full-screen card view keeps the screen awake; ◀ ▶ stay above the tab bar.
 
 ## Logbook and truing
 
