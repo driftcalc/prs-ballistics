@@ -423,7 +423,7 @@ button:not(.btn):not(.tab):active,
 }
 
 .toggle-row .segment {
-  font-size: var(--fs-body);
+  font-size: var(--fs-field); /* field screen: 18px */
 }
 
 .log-shot {

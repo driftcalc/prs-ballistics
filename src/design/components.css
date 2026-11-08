@@ -199,7 +199,8 @@ select:focus-visible {
 /* ---------- Big stepper (− value +) ---------- */
 .stepper {
   display: grid;
-  grid-template-columns: var(--control-primary) 1fr var(--control-primary);
+  /* minmax(0, 1fr): the middle never pushes the + button off a small screen */
+  grid-template-columns: var(--control-primary) minmax(0, 1fr) var(--control-primary);
   gap: var(--gap);
 }
 
@@ -222,7 +223,8 @@ select:focus-visible {
   display: flex;
   align-items: center;
   justify-content: center;
-  gap: var(--s2);
+  gap: var(--s1);
+  min-width: 0;
   min-height: var(--control-primary);
   border: var(--line-w) solid var(--line);
   border-radius: var(--radius);
@@ -237,7 +239,7 @@ select:focus-visible {
 }
 
 .stepper-input {
-  width: 5ch;
+  width: 4.4ch;
   min-height: var(--touch);
   padding: 0;
   border: 0;

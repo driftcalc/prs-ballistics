@@ -54,7 +54,7 @@
 /* Glove mode: primary controls at least 96px. */
 :root[data-glove] {
   --control-primary: 96px;
-  --fs-value: 40px;
+  --fs-value: 36px; /* big, but "1000 yd" still fits between two 96px buttons at 375px */
 }
 
 /* Respect "reduce motion" on the phone. */
