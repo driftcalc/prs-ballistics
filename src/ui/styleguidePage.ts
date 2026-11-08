@@ -1,7 +1,7 @@
 // Hidden style guide (#/styleguide): every component in Sun, Dark and Night,
 // so the design can be reviewed on a real phone. Not linked from the tab bar.
 // The controls work, but nothing here is saved.
-import { card, chipRow, openSheet, readout, readoutPair, segmented, setSelected, stepper, tabBar } from '../design/components.ts'
+import { card, chipRow, clockDial, openSheet, readout, readoutPair, segmented, setClock, setSelected, stepper, tabBar } from '../design/components.ts'
 import { TABS } from './tabs.ts'
 
 const THEMES = [
@@ -33,6 +33,9 @@ function panel(theme: string, title: string): string {
 
     <h3>Segmented toggle</h3>
     ${segmented({ name: `${theme}-unit`, label: 'Units', selected: 'mil', options: [{ value: 'mil', label: 'MIL' }, { value: 'moa', label: 'MOA' }] })}
+
+    <h3>Clock dial (wind from)</h3>
+    <div data-sg-clock>${clockDial({ label: 'Wind from', selected: 3 })}</div>
 
     <h3>Buttons</h3>
     <div class="sg-row">
@@ -87,6 +90,7 @@ export function renderStyleguidePage(root: HTMLElement): void {
     }
     if (btn.dataset.chip) setSelected(root, 'data-chip', btn.dataset.chip, btn.dataset.value!)
     if (btn.dataset.segment) setSelected(root, 'data-segment', btn.dataset.segment, btn.dataset.value!)
+    if (btn.dataset.clock) setClock(btn.closest('[data-sg-clock]')!, Number(btn.dataset.clock))
     if (btn.dataset.stepper) {
       const el = root.querySelector(`[data-stepper-value="${btn.dataset.stepper}"]`)!
       el.textContent = String(Math.max(25, Number(el.textContent) + Number(btn.dataset.dir) * 25))

@@ -106,6 +106,44 @@ export function setSelected(root: ParentNode, attr: 'data-chip' | 'data-segment'
   root.querySelectorAll<HTMLElement>(`[${attr}="${name}"]`).forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.value === value)))
 }
 
+/** Arrow showing where the wind blows TO (wind from 3 o'clock travels toward 9). */
+export function windArrowSvg(clock: number): string {
+  const angle = clock * 30 + 180
+  return `<svg class="wind-arrow" viewBox="-50 -50 100 100" aria-hidden="true">
+    <g transform="rotate(${angle})">
+      <line x1="0" y1="34" x2="0" y2="-24" stroke="currentColor" stroke-width="8" stroke-linecap="round" />
+      <path d="M -16 -16 L 0 -38 L 16 -16 Z" fill="currentColor" />
+    </g></svg>`
+}
+
+/**
+ * Clock dial: 12 tappable hours around a circle; the centre shows the arrow and
+ * the chosen hour. Buttons carry data-clock="hour". In Glove mode (CSS) the same
+ * buttons become a 4×4 clock-face grid of 96px buttons with the arrow in the middle.
+ */
+export function clockDial(o: { label: string; selected: number }): string {
+  const hours = Array.from({ length: 12 }, (_, i) => i + 1)
+  return `<div class="clock" role="group" aria-label="${esc(o.label)}">
+    ${hours
+      .map(
+        (h) =>
+          `<button class="btn clock-hour" type="button" data-clock="${h}" style="--i:${h % 12}" aria-pressed="${h === o.selected}" aria-label="${h} o'clock">${h}</button>`,
+      )
+      .join('')}
+    <div class="clock-center" aria-live="polite"><span data-clock-arrow>${windArrowSvg(o.selected)}</span>
+      <strong data-clock-value>${o.selected}</strong><span>o'clock</span></div>
+  </div>`
+}
+
+/** Updates a clock dial in place. */
+export function setClock(root: ParentNode, hour: number): void {
+  root.querySelectorAll<HTMLElement>('[data-clock]').forEach((b) => b.setAttribute('aria-pressed', String(Number(b.dataset.clock) === hour)))
+  const arrow = root.querySelector('[data-clock-arrow]')
+  if (arrow) arrow.innerHTML = windArrowSvg(hour)
+  const value = root.querySelector('[data-clock-value]')
+  if (value) value.textContent = String(hour)
+}
+
 /** Card: a flat, outlined box. */
 export function card(content: string, o: { title?: string; className?: string } = {}): string {
   return `<section class="card${o.className ? ' ' + o.className : ''}">${o.title ? `<h2 class="card-title">${esc(o.title)}</h2>` : ''}${content}</section>`
