@@ -74,6 +74,8 @@
   --text-2: #333333;
   --line: #000000;
   --accent: #b8481a;
+  --elev: #b8481a;
+  --wind: #0050a0;
   --on-accent: #ffffff;
   --danger: #b00000;
   --good: #005a00;
@@ -91,6 +93,8 @@
   --text-2: #a3aba5;
   --line: #4a5850;
   --accent: #e0632b;
+  --elev: #e0632b;
+  --wind: #6cb8f0;
   --on-accent: #000000;
   --danger: #ef6b5f;
   --good: #5cb86a;
@@ -109,6 +113,8 @@
   --text-2: #ff0000;
   --line: #990000;
   --accent: #ff0000;
+  --elev: #ff0000;
+  --wind: #ff0000;
   --on-accent: #000000;
   --danger: #ff0000;
   --good: #ff0000;

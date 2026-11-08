@@ -49,6 +49,10 @@ const TEXT_PAIRS: [text: string, background: string][] = [
   ['danger', 'surface'],
   ['good', 'bg'],
   ['good', 'surface'],
+  ['elev', 'bg'], // ELEV and WIND hold numbers (colour-coded)
+  ['elev', 'surface'],
+  ['wind', 'bg'],
+  ['wind', 'surface'],
   ['bg', 'text'], // pressed state inverts: background colour on text colour
 ]
 
