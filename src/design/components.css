@@ -101,6 +101,16 @@ select:focus-visible {
   font-variant-numeric: tabular-nums slashed-zero;
 }
 
+/* Colour-coded holds: ELEV and WIND each keep one colour (labels stay, so colour
+   never carries the meaning alone). */
+.tone-elev {
+  color: var(--elev);
+}
+
+.tone-wind {
+  color: var(--wind);
+}
+
 /* Long values (e.g. 143.1) use the 72px minimum so they still fit on a phone. */
 .readout[data-long] .readout-num {
   font-size: var(--fs-readout-min);

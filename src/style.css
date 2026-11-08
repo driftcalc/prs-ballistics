@@ -379,8 +379,56 @@ button:not(.btn):not(.tab):active,
   display: flex;
   flex-direction: column;
   gap: var(--s1);
-  color: var(--text-2);
+  color: var(--text); /* brief: no gray text on the Shoot screen */
   text-align: center;
+}
+
+/* One small line: rifle · conditions (two tap targets). */
+.shoot-info {
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr);
+  gap: var(--gap);
+}
+
+.info-btn {
+  justify-content: space-between;
+  gap: var(--s1);
+  padding: 0 var(--s3);
+  font-weight: 700;
+}
+
+.info-btn > span:first-child {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+/* Range shown large above the holds. */
+.shoot-range {
+  text-align: center;
+  font-size: var(--fs-value);
+  font-weight: 900;
+  line-height: 1;
+}
+
+.shoot-range-unit {
+  font-size: var(--fs-title);
+  font-weight: 700;
+}
+
+.toggle-row {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s4);
+}
+
+.toggle-row .segment {
+  font-size: var(--fs-body);
+}
+
+.log-shot {
+  min-height: var(--control-primary);
+  font-size: var(--fs-title);
 }
 
 .shot-notes p:empty {

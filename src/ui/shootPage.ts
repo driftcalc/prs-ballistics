@@ -2,29 +2,19 @@
 // shows huge holds at the top and keeps the glove-sized controls lower down,
 // where the thumb reaches. Built from the design components.
 import { BallisticsError, getEngine } from '../ballistics/index.ts'
-import { chipRow, openSheet, readout, readoutPair, segmented, setReadout, setSelected, stepper } from '../design/components.ts'
+import { chipRow, clockDial, openSheet, readout, readoutPair, segmented, setClock, setReadout, setSelected, stepper } from '../design/components.ts'
 import { combine, type Conditions, type RifleData } from '../data/profiles.ts'
-import { RANGE_STEPS_YD, MAX_RANGE_YD, MIN_RANGE_YD, rotateClock, stepRange, stepWindSpeed } from '../data/shootControls.ts'
+import { RANGE_STEPS_YD, MAX_RANGE_YD, MIN_RANGE_YD, stepRange, stepWindSpeed } from '../data/shootControls.ts'
 import { currentProfile, getData, updateData } from '../data/store.ts'
 import { toShotInput } from '../shotInputs.ts'
 import { radiansToMil, radiansToMoa, yardsToMeters } from '../units/index.ts'
 import { escapeHtml, holdParts, timeText, velocityText } from './format.ts'
 import { parseFormValues, readFormValues, renderShotFields, toFormValues, updateVisibility } from './shotForm.ts'
+import { keepScreenAwake } from './wakeLock.ts'
 
 function conditionsSummary(c: Conditions): string {
   const air = c.atmosphereMode === 'altitude' ? `${c.altitudeFt ?? 0} ft` : `${c.stationPressureInHg ?? '?'} inHg`
   return `${c.temperatureF}°F · ${air} · ${c.humidityPct}% RH`
-}
-
-/** Arrow showing where the wind blows TO, on a small clock face. */
-function windArrow(clock: number): string {
-  const angle = clock * 30 + 180 // wind from 3 o'clock travels toward 9 o'clock
-  return `<svg class="wind-arrow" viewBox="-50 -50 100 100" aria-hidden="true">
-    <circle r="44" fill="none" stroke="currentColor" stroke-width="3" />
-    <g transform="rotate(${angle})">
-      <line x1="0" y1="34" x2="0" y2="-24" stroke="currentColor" stroke-width="8" stroke-linecap="round" />
-      <path d="M -16 -16 L 0 -38 L 16 -16 Z" fill="currentColor" />
-    </g></svg>`
 }
 
 /**
@@ -63,17 +53,25 @@ export function renderShootPage(root: HTMLElement): void {
 
   const unitLabel = d.settings.angleUnit === 'mil' ? 'MIL' : 'MOA'
   root.innerHTML = `
-    <button class="btn picker" type="button" data-action="pick-rifle" aria-haspopup="dialog">
-      <span data-rifle-name>${escapeHtml(profile.name)}</span><span aria-hidden="true">▾</span>
-    </button>
-
-    ${readoutPair(readout({ id: 'elev', label: 'Elev', unit: unitLabel }), readout({ id: 'wind', label: 'Wind', unit: unitLabel }))}
+    <!-- Top half: read only -->
+    <div class="shoot-info">
+      <button class="btn info-btn" type="button" data-action="pick-rifle" aria-haspopup="dialog" aria-label="Change rifle">
+        <span data-rifle-name>${escapeHtml(profile.name)}</span><span aria-hidden="true">▾</span></button>
+      <button class="btn info-btn" type="button" data-action="conditions" aria-haspopup="dialog" aria-label="Edit conditions">
+        <span data-conditions></span><span aria-hidden="true">▸</span></button>
+    </div>
+    <p class="shoot-range"><span data-range-big>${d.shoot.rangeYd}</span> <span class="shoot-range-unit">yd</span></p>
+    ${readoutPair(
+      readout({ id: 'elev', label: 'Elev', unit: unitLabel, tone: 'elev' }),
+      readout({ id: 'wind', label: 'Wind · hold', unit: unitLabel, tone: 'wind' }),
+    )}
     <div class="shot-notes">
       <p data-sub>Loading the ballistics engine…</p>
       <p data-breakdown></p>
       <p data-mv-note hidden><a href="#/log">MV estimated from factory data — log confirmed hits to true it</a></p>
     </div>
 
+    <!-- Bottom half: thumb zone -->
     <section class="control" aria-label="Range">
       <h2 class="control-label">Range</h2>
       ${stepper({ name: 'range', label: 'Range', value: String(d.shoot.rangeYd), unit: 'yd', input: true })}
@@ -85,28 +83,14 @@ export function renderShootPage(root: HTMLElement): void {
       <h2 class="control-label">Wind speed</h2>
       ${stepper({ name: 'wind', label: 'Wind speed', value: String(d.shoot.windSpeedMph), unit: 'mph', minusLabel: 'Wind slower', plusLabel: 'Wind faster' })}
       <h2 class="control-label">Wind from</h2>
-      ${stepper({
-        name: 'clock',
-        label: 'Wind direction',
-        value: String(d.shoot.windClock),
-        unit: "o'clock",
-        prefixHtml: '<span class="wind-arrow-box" data-wind-arrow></span>',
-        minus: '⟲',
-        plus: '⟳',
-        minusLabel: 'Turn wind counter-clockwise',
-        plusLabel: 'Turn wind clockwise',
-      })}
+      ${clockDial({ label: 'Wind from (tap the hour)', selected: d.shoot.windClock })}
     </section>
 
-    <section class="control" aria-label="Units">
-      <h2 class="control-label">Units</h2>
+    <section class="control toggle-row" aria-label="Display">
+      ${segmented({ name: 'mode', label: 'Dial or hold', selected: d.settings.holdMode, options: [{ value: 'dial', label: 'DIAL' }, { value: 'hold', label: 'HOLD' }] })}
       ${segmented({ name: 'unit', label: 'Units', selected: d.settings.angleUnit, options: [{ value: 'mil', label: 'MIL' }, { value: 'moa', label: 'MOA' }] })}
     </section>
-    <a class="btn" href="#/log/new">✎ Log this shot</a>
-
-    <button class="btn picker" type="button" data-action="conditions" aria-haspopup="dialog">
-      <span><strong>Conditions</strong> <span data-conditions></span></span><span aria-hidden="true">▸</span>
-    </button>`
+    <a class="btn btn-primary log-shot" href="#/log/new">✎ Log shot</a>`
 
   const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!
   const rangeBox = $<HTMLInputElement>('[name="range"]')
@@ -121,12 +105,14 @@ export function renderShootPage(root: HTMLElement): void {
     // The note belongs to whichever rifle is picked now, not the one the screen opened on.
     $('[data-mv-note]').hidden = !p?.factory?.mvEstimated
     $('[data-stepper-value="wind"]').textContent = String(shoot.windSpeedMph)
-    $('[data-stepper-value="clock"]').textContent = String(shoot.windClock)
-    $('[data-wind-arrow]').innerHTML = windArrow(shoot.windClock)
+    $('[data-range-big]').textContent = String(shoot.rangeYd)
+    setClock(root, shoot.windClock)
     const unit = settings.angleUnit === 'mil' ? 'MIL' : 'MOA'
-    setReadout(root, 'elev', { unit })
+    // Dial = turret values, Hold = reticle holds. Same numbers; wind is always a hold.
+    setReadout(root, 'elev', { unit, label: settings.holdMode === 'hold' ? 'Elev · hold' : 'Elev · dial' })
     setReadout(root, 'wind', { unit })
     setSelected(root, 'data-segment', 'unit', settings.angleUnit)
+    setSelected(root, 'data-segment', 'mode', settings.holdMode)
     setSelected(root, 'data-chip', 'step', String(shoot.rangeStepYd))
     $('[data-conditions]').textContent = conditionsSummary(conditions)
     void recalc()
@@ -148,7 +134,9 @@ export function renderShootPage(root: HTMLElement): void {
       const unit = d.settings.angleUnit
       const elev = holdParts(s.elevation, unit, 'elevation')
       const wind = holdParts(s.windage, unit, 'windage')
-      setReadout(root, 'elev', { dir: elev.dir, value: elev.value })
+      // In Hold mode elevation reads as a reticle hold: OVER / UNDER instead of UP / DN.
+      const elevDir = d.settings.holdMode === 'hold' ? ({ UP: 'OVER', DN: 'UNDER' } as Record<string, string>)[elev.dir] ?? '' : elev.dir
+      setReadout(root, 'elev', { dir: elevDir, value: elev.value })
       setReadout(root, 'wind', { dir: wind.dir, value: wind.value })
       $('[data-sub]').textContent = `${velocityText(s.velocity)} · ${timeText(s.timeOfFlight)} · ${d.shoot.rangeYd} yd`
     } catch (e) {
@@ -174,9 +162,10 @@ export function renderShootPage(root: HTMLElement): void {
         return change((d) => void (d.shoot.rangeYd = stepRange(d.shoot.rangeYd, d.shoot.rangeStepYd, dir)))
       case 'wind':
         return change((d) => void (d.shoot.windSpeedMph = stepWindSpeed(d.shoot.windSpeedMph, dir)))
-      case 'clock':
-        return change((d) => void (d.shoot.windClock = rotateClock(d.shoot.windClock, dir)))
     }
+    if (btn.dataset.clock) return change((d) => void (d.shoot.windClock = Number(btn.dataset.clock)))
+    const mode = btn.dataset.segment === 'mode' ? btn.dataset.value : undefined
+    if (mode === 'dial' || mode === 'hold') return change((d) => void (d.settings.holdMode = mode))
     if (btn.dataset.chip === 'step') return change((d) => void (d.shoot.rangeStepYd = Number(btn.dataset.value)))
     // Units change only from the explicit MIL / MOA switch, never from tapping the holds.
     const unit = btn.dataset.segment === 'unit' ? btn.dataset.value : undefined
@@ -254,6 +243,10 @@ export function renderShootPage(root: HTMLElement): void {
     rangeBox.removeAttribute('aria-invalid')
     show()
   })
+
+  // Keep the screen on while Shoot is open; let it sleep again when you leave.
+  const release = keepScreenAwake()
+  window.addEventListener('hashchange', release, { once: true })
 
   show()
 }

@@ -14,11 +14,12 @@ export interface Option {
 }
 
 /** Big read-out: label, direction, huge number, unit. E.g. ELEV · UP · 4.6 · MIL. */
-export function readout(o: { id: string; label: string; dir?: string; value?: string; unit?: string }): string {
+export function readout(o: { id: string; label: string; dir?: string; value?: string; unit?: string; tone?: 'elev' | 'wind' }): string {
   const len = (o.value ?? '').length
   const long = len > 4 ? ' data-long' : ''
-  return `<div class="readout" data-readout="${esc(o.id)}" data-len="${len}"${long}>
-    <span class="readout-label">${esc(o.label)}</span>
+  const tone = o.tone ? ` tone-${o.tone}` : ''
+  return `<div class="readout${tone}" data-readout="${esc(o.id)}" data-len="${len}"${long}>
+    <span class="readout-label" data-part="label">${esc(o.label)}</span>
     <span class="readout-dir" data-part="dir">${esc(o.dir ?? '')}</span>
     <span class="readout-num" data-part="num">${esc(o.value ?? '…')}</span>
     <span class="readout-unit" data-part="unit">${esc(o.unit ?? '')}</span>
@@ -35,10 +36,10 @@ export function readoutPair(a: string, b: string): string {
 }
 
 /** Updates a readout made by readout() in place (no re-render, so no flicker). */
-export function setReadout(root: ParentNode, id: string, v: { dir?: string; value?: string; unit?: string }): void {
+export function setReadout(root: ParentNode, id: string, v: { label?: string; dir?: string; value?: string; unit?: string }): void {
   const el = root.querySelector(`[data-readout="${id}"]`)
   if (!el) return
-  for (const part of ['dir', 'value', 'unit'] as const) {
+  for (const part of ['label', 'dir', 'value', 'unit'] as const) {
     const key = part === 'value' ? 'num' : part
     if (v[part] !== undefined) el.querySelector(`[data-part="${key}"]`)!.textContent = v[part]!
   }
