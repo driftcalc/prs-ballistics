@@ -91,7 +91,7 @@ describe('ballistics wrapper', () => {
     await expect(solveAt({ ...base, muzzleVelocity: 300 }, 20000)).rejects.toThrow()
   })
 
-  it('out of reach is a plain BallisticsError, not the library's own error', async () => {
+  it("out of reach is a plain BallisticsError, not the library's own error", async () => {
     await expect(solveAt({ ...base, muzzleVelocity: 300 }, 20000)).rejects.toBeInstanceOf(BallisticsError)
   })
 })
