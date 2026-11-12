@@ -145,6 +145,31 @@ export function setClock(root: ParentNode, hour: number): void {
   if (value) value.textContent = String(hour)
 }
 
+/**
+ * Undo toast: a short message with an Undo button, just above the tab bar, for
+ * a few seconds. The brief prefers Undo to "are you sure?" pop-ups.
+ * Showing a new toast replaces any previous one.
+ */
+export function showUndoToast(o: { text: string; onUndo: () => void; ms?: number; theme?: string }): () => void {
+  document.querySelector('.undo-toast')?.remove()
+  const toast = document.createElement('div')
+  toast.className = 'undo-toast'
+  toast.setAttribute('role', 'status')
+  if (o.theme) toast.dataset.theme = o.theme
+  toast.innerHTML = `<p>${esc(o.text)}</p><button class="btn" type="button" data-undo>Undo</button>`
+  document.body.append(toast)
+  const close = () => {
+    clearTimeout(timer)
+    toast.remove()
+  }
+  const timer = setTimeout(close, o.ms ?? 5000)
+  toast.querySelector('[data-undo]')!.addEventListener('click', () => {
+    close()
+    o.onUndo()
+  })
+  return close
+}
+
 /** Card: a flat, outlined box. */
 export function card(content: string, o: { title?: string; className?: string } = {}): string {
   return `<section class="card${o.className ? ' ' + o.className : ''}">${o.title ? `<h2 class="card-title">${esc(o.title)}</h2>` : ''}${content}</section>`
@@ -181,13 +206,14 @@ export interface SheetHandle {
 /**
  * Bottom sheet: slides up from the bottom. Closes with ✕, tapping outside,
  * Escape, or the phone's back gesture. Keeps keyboard focus inside while open.
- * `theme` lets the style guide show a sheet in a specific theme.
+ * `theme` lets the style guide show a sheet in a specific theme; `field` gives it
+ * field-screen text (18px) for sheets used on the line.
  */
-export function openSheet(o: { title: string; content: string; onClose?: () => void; theme?: string }): SheetHandle {
+export function openSheet(o: { title: string; content: string; onClose?: () => void; theme?: string; field?: boolean }): SheetHandle {
   const wrap = document.createElement('div')
   wrap.className = 'sheet-backdrop'
   if (o.theme) wrap.dataset.theme = o.theme
-  wrap.innerHTML = `<section class="sheet" role="dialog" aria-modal="true" aria-label="${esc(o.title)}">
+  wrap.innerHTML = `<section class="sheet${o.field ? ' field-screen' : ''}" role="dialog" aria-modal="true" aria-label="${esc(o.title)}">
       <header class="sheet-head"><h2 class="sheet-title">${esc(o.title)}</h2>
         <button class="btn sheet-close" type="button" data-sheet-close aria-label="Close">✕</button></header>
       <div class="sheet-body">${o.content}</div>

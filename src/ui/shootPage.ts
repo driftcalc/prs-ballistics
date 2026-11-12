@@ -11,6 +11,7 @@ import { radiansToMil, radiansToMoa, yardsToMeters } from '../units/index.ts'
 import { conditionsSummary, openConditionsSheet } from './conditionsSheet.ts'
 import { escapeHtml, elevWord, holdParts, timeText, velocityText } from './format.ts'
 import { renderFirstRun } from './firstRun.ts'
+import { openLogShotSheet } from './logShotSheet.ts'
 import { keepScreenAwake } from './wakeLock.ts'
 
 /**
@@ -78,7 +79,7 @@ export function renderShootPage(root: HTMLElement): void {
       ${segmented({ name: 'mode', label: 'Dial or hold', selected: d.settings.holdMode, options: [{ value: 'dial', label: 'DIAL' }, { value: 'hold', label: 'HOLD' }] })}
       ${segmented({ name: 'unit', label: 'Units', selected: d.settings.angleUnit, options: [{ value: 'mil', label: 'MIL' }, { value: 'moa', label: 'MOA' }] })}
     </section>
-    <a class="btn btn-primary log-shot" href="#/log/new">✎ Log shot</a>`
+    <button class="btn btn-primary log-shot" type="button" data-action="log-shot" aria-haspopup="dialog">✎ Log shot</button>`
 
   const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!
   const rangeBox = $<HTMLInputElement>('[name="range"]')
@@ -160,6 +161,7 @@ export function renderShootPage(root: HTMLElement): void {
     if (unit === 'mil' || unit === 'moa') return change((d) => void (d.settings.angleUnit = unit))
     if (btn.dataset.action === 'pick-rifle') return pickRifle()
     if (btn.dataset.action === 'conditions') return editConditions()
+    if (btn.dataset.action === 'log-shot') return openLogShotSheet()
   })
 
   function pickRifle() {
@@ -167,6 +169,7 @@ export function renderShootPage(root: HTMLElement): void {
     const current = currentProfile(data)?.id
     const sheet = openSheet({
       title: 'Rifle',
+      field: true,
       content: `<div class="sheet-list">${data.profiles
         .map((p) => `<button class="btn" type="button" data-rifle="${p.id}" aria-pressed="${p.id === current}">${escapeHtml(p.name)}</button>`)
         .join('')}</div>

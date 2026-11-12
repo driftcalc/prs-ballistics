@@ -107,7 +107,8 @@ main {
 }
 
 /* Field screens (Shoot, Match, Log): 18px minimum. */
-main.field-screen {
+main.field-screen,
+.sheet.field-screen {
   font-size: var(--fs-field);
 }
 
@@ -1151,4 +1152,31 @@ button:not(.btn):not(.tab):active,
 .field-screen h3,
 .field-screen .setting .segment {
   font-size: var(--fs-field);
+}
+
+/* ---------- Log shot sheet ---------- */
+.log-sheet-meta {
+  font-weight: 600;
+}
+
+.log-sheet-predicted {
+  font-size: var(--fs-title);
+}
+
+.sheet .control + .control,
+.sheet .control + .segmented {
+  margin-top: var(--s3);
+}
+
+/* A sheet's main button stays in reach at the bottom while the sheet scrolls. */
+.sheet-footer {
+  position: sticky;
+  bottom: calc(-1 * max(var(--s4), env(safe-area-inset-bottom)));
+  margin-top: var(--s3);
+  padding: var(--s2) 0 max(var(--s4), env(safe-area-inset-bottom));
+  background: var(--bg);
+}
+
+.sheet-footer .btn {
+  width: 100%;
 }

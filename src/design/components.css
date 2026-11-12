@@ -491,3 +491,32 @@ body.sheet-open {
     animation: none;
   }
 }
+
+/* ---------- Undo toast (just above the tab bar) ---------- */
+.undo-toast {
+  position: fixed;
+  left: 50%;
+  bottom: calc(var(--tabbar-h) + var(--s3) + env(safe-area-inset-bottom));
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  gap: var(--s3);
+  width: min(608px, calc(100% - 2 * var(--s4)));
+  padding: var(--s2) var(--s2) var(--s2) var(--s4);
+  border: var(--line-w) solid var(--accent);
+  border-radius: var(--radius);
+  background: var(--surface);
+  color: var(--text);
+  font-weight: 700;
+  transform: translateX(-50%);
+}
+
+.undo-toast p {
+  flex: 1;
+  margin: 0;
+}
+
+.undo-toast .btn {
+  min-height: var(--control-primary);
+  min-width: var(--control-primary);
+}

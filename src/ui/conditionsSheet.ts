@@ -17,6 +17,7 @@ export function openConditionsSheet(onChange: () => void): void {
   const rifle = currentProfile(data)?.rifle ?? DEFAULT_RIFLE // only the weather fields are shown
   const sheet = openSheet({
     title: 'Conditions',
+    field: true,
     content: `<form class="shot-form" novalidate>${renderShotFields(toFormValues(combine(rifle, data.conditions, data.shoot)), false, ['weather'])}</form>
       <ul class="errors" data-errors></ul>
       <button class="btn btn-primary" type="button" data-sheet-close>Done</button>`,
