@@ -22,7 +22,8 @@ import {
 // 5 = adds settings.holdMode (Dial or Hold labels on Shoot; default dial).
 // 6 = adds matches (stage cards) and settings.cardWindsMph (default 5 and 10 mph).
 // 7 = adds settings.rangeCard (range card step and max range; default 50 yd to 1000 yd).
-export const DATA_VERSION = 7
+// 8 = rifles may have truingHistory (changes the truing assistant applied, for Revert; optional, nothing to convert).
+export const DATA_VERSION = 8
 const STORE_KEY = 'prs.data'
 
 export interface ShootState extends WindInputs {

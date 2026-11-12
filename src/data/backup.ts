@@ -81,6 +81,19 @@ export function parseBackupJson(text: string): ImportBundle {
             },
           }
         : {}),
+      // Truing changes (data version 8); only well-formed ones are kept.
+      ...(Array.isArray(p.truingHistory)
+        ? {
+            truingHistory: p.truingHistory.filter(
+              (c) =>
+                c &&
+                (c.field === 'muzzleVelocityFps' || c.field === 'bc') &&
+                typeof c.from === 'number' &&
+                typeof c.to === 'number' &&
+                typeof c.at === 'string',
+            ),
+          }
+        : {}),
     })
   }
 

@@ -39,6 +39,18 @@ export interface RifleProfile {
   updatedAt: string
   /** Set when the values were filled from the factory ammo library. */
   factory?: FactorySource
+  /** Changes applied by the truing assistant, oldest first, so the last one can be reverted. */
+  truingHistory?: TruingChange[]
+}
+
+export interface TruingChange {
+  field: 'muzzleVelocityFps' | 'bc'
+  from: number
+  to: number
+  /** ISO date-time it was applied. */
+  at: string
+  /** Was the velocity still the factory-library estimate before this change? (restored on revert) */
+  mvWasEstimated?: boolean
 }
 
 export interface FactorySource {

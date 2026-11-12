@@ -27,6 +27,7 @@ function sampleData(): AppData {
   d.profiles[1].rifle = { ...d.profiles[1].rifle, dragModel: 'G1', bc: 0.13, bulletLengthIn: 0.6, twistIn: undefined }
   d.profiles[0].notes = 'Barrel #2, new brass'
   d.profiles[0].factory = { loadId: 'hornady-65cm-140-eldm', barrelIn: 22, mvEstimated: true }
+  d.profiles[0].truingHistory = [{ field: 'muzzleVelocityFps', from: 2680, to: 2710, at: '2026-11-10T09:00:00.000Z', mvWasEstimated: true }]
   d.conditions.temperatureF = 33
   d.shoot = { ...d.shoot, profileId: 'b', rangeYd: 450, windClock: 10 }
   d.settings = { angleUnit: 'moa', theme: 'night', glove: true, leftHanded: true, holdMode: 'hold', cardWindsMph: [4, 8], rangeCard: { stepYd: 25, maxYd: 650 } }
