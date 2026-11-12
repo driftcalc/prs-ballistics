@@ -29,7 +29,7 @@ function sampleData(): AppData {
   d.profiles[0].factory = { loadId: 'hornady-65cm-140-eldm', barrelIn: 22, mvEstimated: true }
   d.conditions.temperatureF = 33
   d.shoot = { ...d.shoot, profileId: 'b', rangeYd: 450, windClock: 10 }
-  d.settings = { angleUnit: 'moa', theme: 'night', glove: true, leftHanded: true, holdMode: 'hold', cardWindsMph: [4, 8] }
+  d.settings = { angleUnit: 'moa', theme: 'night', glove: true, leftHanded: true, holdMode: 'hold', cardWindsMph: [4, 8], rangeCard: { stepYd: 25, maxYd: 650 } }
   d.matches = [
     {
       id: 'm1',

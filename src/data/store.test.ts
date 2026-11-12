@@ -60,8 +60,15 @@ describe('upgrading saved data', () => {
     expect(up.version).toBe(DATA_VERSION)
     expect(up.log).toEqual([])
     expect(up.profiles[0].name).toBe('Keep me')
-    expect(up.settings).toEqual({ angleUnit: 'moa', theme: 'night', glove: false, leftHanded: false, holdMode: 'dial', cardWindsMph: [5, 10] })
+    expect(up.settings).toEqual({ angleUnit: 'moa', theme: 'night', glove: false, leftHanded: false, holdMode: 'dial', cardWindsMph: [5, 10], rangeCard: { stepYd: 50, maxYd: 1000 } })
     expect(up.matches).toEqual([])
+  })
+
+  it('range card: keeps step 25/50 and a max of 200–3000 yd in 50s, otherwise 50 yd to 1000 yd', () => {
+    expect(normalizeSettings({ rangeCard: { stepYd: 25, maxYd: 400 } }).rangeCard).toEqual({ stepYd: 25, maxYd: 400 })
+    expect(normalizeSettings({ rangeCard: { stepYd: 30, maxYd: 5000 } as never }).rangeCard).toEqual({ stepYd: 50, maxYd: 1000 })
+    expect(normalizeSettings({ rangeCard: { stepYd: 50, maxYd: 425 } }).rangeCard).toEqual({ stepYd: 50, maxYd: 1000 })
+    expect(normalizeSettings({}).rangeCard).toEqual({ stepYd: 50, maxYd: 1000 })
   })
 
   it('card wind speeds: keeps two whole speeds 1–60 mph, otherwise 5 and 10', () => {

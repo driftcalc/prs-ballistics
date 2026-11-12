@@ -21,7 +21,8 @@ import {
 // 4 = settings.night (on/off) becomes settings.theme; adds glove and leftHanded.
 // 5 = adds settings.holdMode (Dial or Hold labels on Shoot; default dial).
 // 6 = adds matches (stage cards) and settings.cardWindsMph (default 5 and 10 mph).
-export const DATA_VERSION = 6
+// 7 = adds settings.rangeCard (range card step and max range; default 50 yd to 1000 yd).
+export const DATA_VERSION = 7
 const STORE_KEY = 'prs.data'
 
 export interface ShootState extends WindInputs {
@@ -47,6 +48,8 @@ export interface Settings {
   holdMode: 'dial' | 'hold'
   /** The two wind speeds stage cards show holds for. */
   cardWindsMph: [number, number]
+  /** Range card table: distance between rows and the farthest row. */
+  rangeCard: { stepYd: 25 | 50; maxYd: number }
   /** When the last full backup was exported, to remind the user. */
   lastBackupAt?: string
   /** User closed the "add to Home Screen" tip. */
@@ -73,7 +76,7 @@ export function emptyData(): AppData {
     profiles: [],
     conditions: { ...DEFAULT_CONDITIONS },
     shoot: { rangeYd: 600, rangeStepYd: 25, windSpeedMph: DEFAULT_INPUTS.windSpeedMph, windClock: DEFAULT_INPUTS.windClock },
-    settings: { angleUnit: 'mil', theme: 'auto', glove: false, leftHanded: false, holdMode: 'dial', cardWindsMph: [5, 10] },
+    settings: { angleUnit: 'mil', theme: 'auto', glove: false, leftHanded: false, holdMode: 'dial', cardWindsMph: [5, 10], rangeCard: { stepYd: 50, maxYd: 1000 } },
     comparisons: {},
     log: [],
     matches: [],
@@ -84,6 +87,17 @@ export function emptyData(): AppData {
 function cardWinds(v: unknown): [number, number] {
   const ok = (n: unknown): n is number => typeof n === 'number' && Number.isInteger(n) && n >= 1 && n <= 60
   return Array.isArray(v) && v.length === 2 && ok(v[0]) && ok(v[1]) ? [v[0], v[1]] : [5, 10]
+}
+
+export const RANGE_CARD_MIN_YD = 200
+export const RANGE_CARD_MAX_YD = 3000
+
+/** Step 25 or 50 yd; max a whole 50 yd from 200 to 3000. Anything else: 50 yd to 1000 yd. */
+function rangeCardSettings(v: unknown): Settings['rangeCard'] {
+  const r = (v ?? {}) as Partial<Settings['rangeCard']>
+  const stepYd = r.stepYd === 25 ? 25 : 50
+  const ok = typeof r.maxYd === 'number' && r.maxYd >= RANGE_CARD_MIN_YD && r.maxYd <= RANGE_CARD_MAX_YD && r.maxYd % 50 === 0
+  return { stepYd, maxYd: ok ? r.maxYd! : 1000 }
 }
 
 /**
@@ -103,6 +117,7 @@ export function normalizeSettings(raw: (Partial<Settings> & { night?: unknown })
     leftHanded: rest.leftHanded === true,
     holdMode: rest.holdMode === 'hold' ? 'hold' : 'dial',
     cardWindsMph: cardWinds(rest.cardWindsMph),
+    rangeCard: rangeCardSettings(rest.rangeCard),
   }
 }
 
