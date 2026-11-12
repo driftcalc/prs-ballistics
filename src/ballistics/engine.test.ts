@@ -1,7 +1,7 @@
 // Sanity checks: does the wrapper pass things to the library the right way round?
 // These are NOT accuracy checks against other apps; see reference.test.ts for those.
 import { describe, expect, it } from 'vitest'
-import { getEngine, type ShotInput } from './index.ts'
+import { BallisticsError, getEngine, type ShotInput } from './index.ts'
 
 const YARD = 0.9144
 
@@ -89,5 +89,9 @@ describe('ballistics wrapper', () => {
 
   it('reports when the target is out of reach', async () => {
     await expect(solveAt({ ...base, muzzleVelocity: 300 }, 20000)).rejects.toThrow()
+  })
+
+  it('out of reach is a plain BallisticsError, not the library's own error', async () => {
+    await expect(solveAt({ ...base, muzzleVelocity: 300 }, 20000)).rejects.toBeInstanceOf(BallisticsError)
   })
 })

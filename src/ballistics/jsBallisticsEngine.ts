@@ -12,6 +12,7 @@ import {
   Calculator,
   DragModel,
   DragTables,
+  RangeError as LibraryRangeError,
   Shot,
   UNew,
   Unit,
@@ -69,7 +70,15 @@ export function createJsBallisticsEngine(): BallisticsEngine {
       const results: RangeSolution[] = []
       for (const range of ranges) {
         // One run per range so the last sample lands exactly on the target distance.
-        const hit = await calc.fire({ shot, trajectoryRange: UNew.Meter(range), trajectoryStep: UNew.Meter(range) })
+        let hit: Awaited<ReturnType<typeof calc.fire>>
+        try {
+          hit = await calc.fire({ shot, trajectoryRange: UNew.Meter(range), trajectoryStep: UNew.Meter(range) })
+        } catch (e) {
+          // The library stops when the bullet falls too far or too slow ("Max range not reached").
+          // Same plain message as the check below; the numbers themselves are untouched.
+          if (e instanceof LibraryRangeError) throw new BallisticsError('The bullet does not reach that distance with these inputs.')
+          throw e
+        }
         const point = hit.samples.at(-1)
         if (!point || Math.abs(point.distance.In(Unit.Meter) - range) > RANGE_MATCH_M) {
           throw new BallisticsError('The bullet does not reach that distance with these inputs.')
