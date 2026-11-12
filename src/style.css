@@ -1127,3 +1127,16 @@ button:not(.btn):not(.tab):active,
     font-weight: 900;
   }
 }
+
+/* ---------- First run ---------- */
+.first-run {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.first-run-step {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}

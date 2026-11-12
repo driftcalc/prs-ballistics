@@ -10,6 +10,7 @@ import { toShotInput } from '../shotInputs.ts'
 import { radiansToMil, radiansToMoa, yardsToMeters } from '../units/index.ts'
 import { conditionsSummary, openConditionsSheet } from './conditionsSheet.ts'
 import { escapeHtml, elevWord, holdParts, timeText, velocityText } from './format.ts'
+import { renderFirstRun } from './firstRun.ts'
 import { keepScreenAwake } from './wakeLock.ts'
 
 /**
@@ -36,15 +37,7 @@ export function renderShootPage(root: HTMLElement): void {
   const d = getData()
   const profile = currentProfile(d)
 
-  if (!profile) {
-    root.innerHTML = `
-      <section class="card">
-        <h2 class="card-title">Welcome</h2>
-        <p>Add your rifle and load first. After that this screen opens straight to it.</p>
-        <a class="btn btn-primary" href="#/rifles">Add a rifle</a>
-      </section>`
-    return
-  }
+  if (!profile) return renderFirstRun(root) // no rifles yet: short setup or a sample rifle
 
   const unitLabel = d.settings.angleUnit === 'mil' ? 'MIL' : 'MOA'
   root.innerHTML = `
