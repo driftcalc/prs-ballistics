@@ -177,7 +177,8 @@ export function renderShootPage(root: HTMLElement): void {
       content: `<div class="sheet-list">${data.profiles
         .map((p) => `<button class="btn" type="button" data-rifle="${p.id}" aria-pressed="${p.id === current}">${escapeHtml(p.name)}</button>`)
         .join('')}</div>
-        <a class="btn" href="#/rifles" data-sheet-close>Manage rifles</a>`,
+        <a class="btn" href="#/card/${current ?? ''}" data-go>▦ Range card</a>
+        <a class="btn" href="#/rifles" data-go>Manage rifles</a>`,
     })
     sheet.body.addEventListener('click', (e) => {
       const b = (e.target as HTMLElement).closest<HTMLButtonElement>('[data-rifle]')
@@ -185,10 +186,12 @@ export function renderShootPage(root: HTMLElement): void {
       change((d) => void (d.shoot.profileId = b.dataset.rifle))
       sheet.close()
     })
-    sheet.body.querySelector('a[href="#/rifles"]')!.addEventListener('click', (e) => {
-      e.preventDefault()
-      sheet.closeAndGo('#/rifles')
-    })
+    sheet.body.querySelectorAll<HTMLAnchorElement>('a[data-go]').forEach((a) =>
+      a.addEventListener('click', (e) => {
+        e.preventDefault()
+        sheet.closeAndGo(a.getAttribute('href')!)
+      }),
+    )
   }
 
   function editConditions() {

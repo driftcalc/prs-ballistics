@@ -878,17 +878,75 @@ button:not(.btn):not(.tab):active,
   font-weight: 800;
 }
 
+/* ---------- Range card ---------- */
+.range-controls {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s4);
+}
+
+.range-controls .segment {
+  font-size: var(--fs-field);
+}
+
+.range-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-variant-numeric: tabular-nums slashed-zero;
+}
+
+.range-table thead th {
+  position: sticky;
+  top: 0;
+  z-index: 1;
+  padding: var(--s2) var(--s1);
+  border-bottom: var(--line-w) solid var(--line);
+  background: var(--bg);
+  font-weight: 800;
+  text-align: right;
+  line-height: 1.2;
+}
+
+.range-table th:first-child {
+  text-align: left;
+}
+
+.range-table tbody th,
+.range-table td {
+  padding: var(--s2) var(--s1);
+  border-bottom: var(--line-w) solid var(--line);
+  text-align: right;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+.range-table tbody th {
+  text-align: left;
+  font-size: var(--fs-title);
+  font-weight: 900;
+}
+
+.range-table td:nth-child(2) {
+  font-size: var(--fs-h1);
+  font-weight: 900;
+}
+
+.range-table td span {
+  display: block;
+  font-weight: 800;
+}
+
+.range-note {
+  font-weight: 700;
+}
+
 /* ---------- Printing stage cards on 3x5 index cards ---------- */
 .print-area {
   display: none;
 }
 
 @media print {
-  @page {
-    size: 5in 3in;
-    margin: 0.15in;
-  }
-
+  /* Page size is set per print in src/ui/print.ts (3x5 cards or normal paper). */
   body.printing > :not(.print-area) {
     display: none !important;
   }
@@ -903,6 +961,28 @@ button:not(.btn):not(.tab):active,
 
   .print-card {
     break-after: page;
+  }
+
+  .print-range + .print-range {
+    break-before: page;
+  }
+
+  .print-range .range-table thead th {
+    position: static;
+  }
+
+  .print-range .range-table td,
+  .print-range .range-table th {
+    padding: 0 var(--s2);
+    font-size: var(--fs-body);
+  }
+
+  .print-range .range-table td span {
+    display: inline;
+  }
+
+  .print-range .range-table td span + span::before {
+    content: ' · ';
   }
 
   .print-card:last-child {

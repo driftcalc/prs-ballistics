@@ -7,6 +7,7 @@ import { renderAccuracyPage } from './ui/accuracyPage.ts'
 import { renderDataPage } from './ui/dataPage.ts'
 import { renderLogPage } from './ui/logPage.ts'
 import { renderMatchPage } from './ui/matchPage.ts'
+import { renderRangeCardPage } from './ui/rangeCardPage.ts'
 import { renderRiflesPage } from './ui/riflesPage.ts'
 import { backupOverdue, isInstalled, requestPersistentStorage } from './ui/safety.ts'
 import { openSettings } from './ui/settingsSheet.ts'
@@ -22,13 +23,15 @@ interface Page {
   field?: boolean
 }
 
-// Shoot, Match, Log and Rifles are the tabs. Check and Data open from Settings;
+// Shoot, Match, Log and Rifles are the tabs. The range card opens from Rifles and Shoot;
+// Check and Data open from Settings;
 // the style guide is only reachable by typing #/styleguide.
 const PAGES: Record<string, Page> = {
   shoot: { title: 'Shoot', render: renderShootPage, field: true },
   match: { title: 'Match', render: renderMatchPage, field: true },
   log: { title: 'Log', render: renderLogPage, field: true },
   rifles: { title: 'Rifles', render: renderRiflesPage },
+  card: { title: 'Range card', render: renderRangeCardPage, field: true },
   check: { title: 'Check accuracy', render: renderAccuracyPage },
   data: { title: 'Data & backup', render: renderDataPage },
   styleguide: { title: 'Style guide', render: renderStyleguidePage },

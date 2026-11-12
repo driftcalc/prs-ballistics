@@ -3,6 +3,7 @@
 // and as a picture to share or keep on the lock screen.
 import type { Stage } from '../data/match.ts'
 import { downloadFile } from './download.ts'
+import { printArea } from './print.ts'
 import { conditionsSummary } from './conditionsSheet.ts'
 import { elevWord, escapeHtml, holdParts } from './format.ts'
 
@@ -89,19 +90,7 @@ function printCardHtml(v: CardView): string {
 
 /** Prints the given cards, one per 3x5 index card. */
 export function printCards(views: CardView[]): void {
-  document.querySelector('.print-area')?.remove()
-  const area = document.createElement('div')
-  area.className = 'print-area'
-  area.dataset.theme = 'sun'
-  area.innerHTML = views.map(printCardHtml).join('')
-  document.body.append(area)
-  document.body.classList.add('printing')
-  const done = () => {
-    area.remove()
-    document.body.classList.remove('printing')
-  }
-  window.addEventListener('afterprint', done, { once: true })
-  window.print()
+  printArea(views.map(printCardHtml).join(''), 'size: 5in 3in; margin: 0.15in;')
 }
 
 // ---------- Picture ----------
