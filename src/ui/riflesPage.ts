@@ -4,6 +4,7 @@
 import { combine, DEFAULT_RIFLE, newId, rifleOf, rifleSummary, type RifleProfile } from '../data/profiles.ts'
 import { getData, updateData } from '../data/store.ts'
 import { FACTORY_LOADS, loadName } from '../library/ammo.ts'
+import { revertableChange, revertLastChange, truingValue } from '../truing/apply.ts'
 import { renderFactoryPicker } from './factoryPicker.ts'
 import { escapeHtml } from './format.ts'
 import { parseFormValues, readFormValues, renderFieldsByKey, showFieldErrors, toFormValues, updateVisibility } from './shotForm.ts'
@@ -105,6 +106,14 @@ function factoryBanner(p: RifleProfile): string {
     ${p.factory.mvEstimated ? 'Muzzle velocity is an <strong>estimate</strong> — log confirmed hits to true it.' : 'Muzzle velocity has since been trued or entered by you.'}</p>`
 }
 
+/** Button to undo the last change the truing assistant made, if it can still be undone. */
+function truingUndo(p: RifleProfile): string {
+  const c = revertableChange(p)
+  if (!c) return ''
+  const what = c.field === 'muzzleVelocityFps' ? 'velocity' : 'BC'
+  return `<button class="btn" type="button" data-action="revert-truing">Undo truing: ${what} back to ${truingValue(c.field, c.from)}</button>`
+}
+
 const more = (summary: string, body: string) =>
   `<details class="more"><summary class="btn">${summary}</summary><div class="more-body">${body}</div></details>`
 
@@ -130,6 +139,7 @@ function renderEditor(root: HTMLElement, p: RifleProfile): void {
       <section class="card">
         <h2 class="card-title">Load</h2>
         ${factoryBanner(p)}
+        ${truingUndo(p)}
         <button class="btn" type="button" data-action="factory">⇩ Fill from factory ammo</button>
         <div data-factory></div>
         ${renderFieldsByKey(['muzzleVelocityFps', 'bc', 'dragModel', 'bulletWeightGr'], values)}
@@ -187,6 +197,12 @@ function renderEditor(root: HTMLElement, p: RifleProfile): void {
           renderEditor(freshRoot(root), getData().profiles.find((x) => x.id === p.id) ?? p)
         })
       }
+      case 'revert-truing':
+        updateData((data) => {
+          const target = data.profiles.find((x) => x.id === p.id)
+          if (target) revertLastChange(target)
+        })
+        return renderEditor(freshRoot(root), getData().profiles.find((x) => x.id === p.id) ?? p)
       case 'use':
         updateData((data) => void (data.shoot.profileId = p.id))
         location.hash = '#/shoot'

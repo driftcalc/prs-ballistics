@@ -459,38 +459,142 @@ button:not(.btn):not(.tab):active,
 }
 
 /* ---------- Logbook ---------- */
+.log-day {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s2);
+}
+
+.log-day-title {
+  font-size: inherit;
+  font-weight: 800;
+}
+
+.log-day-match {
+  color: var(--accent);
+}
+
 .log-list {
   list-style: none;
   margin: 0;
   padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
 }
 
-.log-list li + li {
-  border-top: var(--line-w) solid var(--line);
-}
-
-.log-list a {
+.log-row {
   display: grid;
-  grid-template-columns: 4.5rem 1fr auto;
-  gap: var(--s2);
+  grid-template-columns: auto minmax(0, 1fr) auto;
   align-items: center;
-  min-height: var(--touch);
-  padding: var(--s3) 0;
-  color: var(--text);
-  text-decoration: none;
+  gap: var(--s3);
+  width: 100%;
+  min-height: var(--control-primary);
+  padding: var(--s2) var(--s3);
+  text-align: left;
+  font-weight: 400;
 }
 
 .log-range {
-  font-weight: 800;
+  font-size: var(--fs-title);
+  font-weight: 900;
+  white-space: nowrap;
 }
 
-.log-meta {
-  text-align: right;
+.log-holds {
+  display: flex;
+  flex-direction: column;
+  min-width: 0;
 }
 
-.log-list small,
+.log-result {
+  padding: var(--s1) var(--s2);
+  border: var(--line-w) solid currentColor;
+  border-radius: var(--radius);
+  font-weight: 900;
+}
+
+.log-result.hit {
+  color: var(--good);
+}
+
+.log-result.miss {
+  color: var(--danger);
+}
+
 .predicted {
-  color: var(--text-2);
+  color: var(--text);
+}
+
+.truing-summary {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+/* Guided flows (truing) */
+.flow {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.flow-step {
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.pick-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+}
+
+.truing-chart {
+  width: 100%;
+}
+
+.chart {
+  display: block;
+  overflow: visible;
+}
+
+.chart-axis {
+  stroke: var(--line);
+  stroke-width: var(--line-w);
+}
+
+.chart-label {
+  fill: var(--text);
+  font-family: var(--font);
+  font-size: var(--fs-field);
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+}
+
+.chart-dot {
+  fill: var(--elev);
+}
+
+.chart-fix {
+  fill: none;
+  stroke: var(--text);
+  stroke-width: var(--line-w);
+  stroke-dasharray: 6 6;
+}
+
+.chart-fix-dot {
+  fill: var(--bg);
+  stroke: var(--text);
+  stroke-width: var(--line-w);
+}
+
+.chart-key {
+  font-weight: 700;
 }
 
 .check-big {
@@ -507,6 +611,10 @@ button:not(.btn):not(.tab):active,
 .check-big small {
   font-weight: 400;
   color: var(--text-2);
+}
+
+.check-big input {
+  flex: none;
 }
 
 /* ---------- Truing assistant ---------- */

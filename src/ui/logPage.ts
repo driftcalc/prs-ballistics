@@ -1,34 +1,46 @@
-// Log tab: the dope logbook. #/log = list, #/log/new = log a shot, #/log/<id> = edit.
+// Log tab: the dope logbook.
+//   #/log        list for one rifle, grouped by day (with the match of that day)
+//   #/log/true   truing in 3 steps (src/ui/truingFlow.ts)
+//   #/log/new    old full-page "log a shot" (Shoot now uses a bottom sheet)
+//   #/log/<id>   edit an entry
 import { parseMil } from '../accuracy/compare.ts'
+import { openSheet, segmented, setSelected, showUndoToast } from '../design/components.ts'
 import { predict, type DopeEntry, type Prediction } from '../data/log.ts'
 import { newId, type Conditions, type RifleData, type WindInputs } from '../data/profiles.ts'
-import { currentProfile, getData, updateData } from '../data/store.ts'
-import { milToRadians, moaToRadians, radiansToMil, radiansToMoa } from '../units/index.ts'
-import { escapeHtml, signed } from './format.ts'
-import { renderTruingCard } from './truingCard.ts'
+import { currentProfile, getData, updateData, type AppData } from '../data/store.ts'
+import { analyseTruing, truingPoints } from '../truing/truing.ts'
+import { escapeHtml } from './format.ts'
+import { fromMil, holdLabel, toMil } from './logShotSheet.ts'
+import { renderTruingFlow, resetTruingPicks } from './truingFlow.ts'
 
 type Unit = 'mil' | 'moa'
-
-/** mil -> number shown in the user's unit */
-const fromMil = (mil: number, unit: Unit) => (unit === 'mil' ? mil : radiansToMoa(milToRadians(mil)))
-/** typed number in the user's unit -> mil */
-const toMil = (v: number, unit: Unit) => (unit === 'mil' ? v : radiansToMil(moaToRadians(v)))
-
-function holdText(mil: number | null, unit: Unit, kind: 'elev' | 'wind'): string {
-  if (mil === null) return '–'
-  const v = fromMil(mil, unit)
-  if (Math.abs(v) < 0.05) return '0.0'
-  const dir = kind === 'elev' ? (v > 0 ? 'U' : 'D') : v > 0 ? 'R' : 'L'
-  return `${dir} ${Math.abs(v).toFixed(1)}`
-}
-
-const when = (iso: string) =>
-  new Date(iso).toLocaleString(undefined, { day: 'numeric', month: 'short', hour: '2-digit', minute: '2-digit' })
 
 // Rifle shown on the Log tab. Starts on the Shoot screen's rifle.
 let selectedProfileId: string | undefined
 
+/** The rifle the Log tab (and truing) is showing. */
+export function logProfile(d: AppData = getData()) {
+  const p = d.profiles.find((x) => x.id === selectedProfileId) ?? currentProfile(d)
+  if (p) selectedProfileId = p.id
+  return p
+}
+
+const dayKey = (iso: string) => new Date(iso).toLocaleDateString('en-CA') // YYYY-MM-DD, local
+const dayTitle = (key: string) =>
+  new Date(`${key}T12:00:00`).toLocaleDateString(undefined, { weekday: 'short', day: 'numeric', month: 'short', year: 'numeric' })
+const timeOf = (iso: string) => new Date(iso).toLocaleTimeString(undefined, { hour: '2-digit', minute: '2-digit' })
+
+/** "+0.2 mil over prediction" / "0.1 MOA under" / "on prediction". */
+function diffText(e: DopeEntry, unit: Unit): string {
+  if (e.actualElevationMil === null) return ''
+  const diff = fromMil(e.actualElevationMil - e.predicted.elevationMil, unit)
+  const u = unit === 'mil' ? 'mil' : 'MOA'
+  if (Math.abs(diff) < 0.05) return 'on prediction'
+  return `${Math.abs(diff).toFixed(unit === 'mil' ? 1 : 2)} ${u} ${diff > 0 ? 'over' : 'under'} prediction`
+}
+
 export function renderLogPage(root: HTMLElement, param?: string): void {
+  if (param === 'true') return renderTruingFlow(root)
   if (param === 'new') return renderEntryForm(root)
   const entry = getData().log.find((e) => e.id === param)
   if (entry) return renderEntryForm(root, entry)
@@ -38,52 +50,91 @@ export function renderLogPage(root: HTMLElement, param?: string): void {
 function renderList(root: HTMLElement): void {
   const d = getData()
   const unit = d.settings.angleUnit
-  const profile = d.profiles.find((p) => p.id === selectedProfileId) ?? currentProfile(d)
+  const mode = d.settings.holdMode
+  const profile = logProfile(d)
   if (!profile) {
-    root.innerHTML = `<section class="card"><h2>Logbook</h2><p>Add a rifle first.</p>
-      <a class="button primary big-button" href="#/rifles">Add a rifle</a></section>`
+    root.innerHTML = `<section class="card"><h2 class="card-title">Logbook</h2><p>Add a rifle first.</p>
+      <a class="btn btn-primary big-button" href="#/rifles">Add a rifle</a></section>`
     return
   }
-  selectedProfileId = profile.id
-  const entries = d.log.filter((e) => e.profileId === profile.id).reverse()
+  const entries = d.log.filter((e) => e.profileId === profile.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
+  const days = new Map<string, DopeEntry[]>()
+  for (const e of entries) days.set(dayKey(e.createdAt), [...(days.get(dayKey(e.createdAt)) ?? []), e])
+  const matchesOn = (key: string) => d.matches.filter((m) => m.date === key).map((m) => m.name)
+  const hold = (mil: number | null, kind: 'elev' | 'wind') => (mil === null ? '–' : holdLabel(fromMil(mil, unit), unit, kind, mode))
+  const u = unit === 'mil' ? 'MIL' : 'MOA'
 
   root.innerHTML = `
-    <select class="rifle-picker" name="logRifle" aria-label="Rifle">
-      ${d.profiles.map((p) => `<option value="${p.id}"${p.id === profile.id ? ' selected' : ''}>${escapeHtml(p.name)}</option>`).join('')}
-    </select>
-    <div data-truing></div>
-    <section class="card">
-      <h2>Logged shots <small>(${unit === 'mil' ? 'mil' : 'MOA'})</small></h2>
-      <p><small>Log shots from the Shoot screen with <strong>Log this shot</strong>.</small></p>
-      <ul class="log-list">
-        ${
-          entries.length
-            ? entries
-                .map((e) => {
-                  const diff = e.actualElevationMil === null ? null : e.actualElevationMil - e.predicted.elevationMil
-                  return `<li><a href="#/log/${e.id}">
-                    <span class="log-range">${e.rangeYd} yd</span>
-                    <span class="log-holds">held ${holdText(e.actualElevationMil, unit, 'elev')} · ${holdText(e.actualWindageMil, unit, 'wind')}<br />
-                      <small>predicted ${holdText(e.predicted.elevationMil, unit, 'elev')} · ${holdText(e.predicted.windageMil, unit, 'wind')}${
-                        diff === null ? '' : ` · elev diff ${signed(fromMil(diff, unit))}`
-                      }</small></span>
-                    <span class="log-meta">${e.confirmed ? '<span class="badge good">confirmed</span>' : '<span class="badge">not confirmed</span>'}<br /><small>${when(e.createdAt)}</small></span>
-                  </a></li>`
-                })
-                .join('')
-            : '<li><small>No shots logged for this rifle yet.</small></li>'
-        }
-      </ul>
-    </section>`
+    <button class="btn info-btn" type="button" data-action="pick-rifle" aria-haspopup="dialog" aria-label="Change rifle">
+      <span><strong>${escapeHtml(profile.name)}</strong> · ${entries.length} shot${entries.length === 1 ? '' : 's'}</span><span aria-hidden="true">▾</span></button>
+    <section class="card truing-summary" data-truing>
+      <h2 class="card-title">Truing</h2>
+      <p data-truing-status>Checking your confirmed hits…</p>
+      <a class="btn btn-primary big-button" href="#/log/true">True this rifle ▸</a>
+    </section>
+    ${
+      entries.length
+        ? [...days.entries()]
+            .map(
+              ([key, list]) => `<section class="log-day">
+          <h2 class="log-day-title">${dayTitle(key)}${matchesOn(key).map((n) => ` · <span class="log-day-match">${escapeHtml(n)}</span>`).join('')}</h2>
+          <ul class="log-list">${list
+            .map(
+              (e) => `<li><a class="btn log-row" href="#/log/${e.id}">
+              <span class="log-range">${e.rangeYd}<small> yd</small></span>
+              <span class="log-holds">
+                <span>Held <strong class="tone-elev">${hold(e.actualElevationMil, 'elev')}</strong> · <strong class="tone-wind">${hold(e.actualWindageMil, 'wind')}</strong> ${u}</span>
+                <span>Predicted ${hold(e.predicted.elevationMil, 'elev')} · ${hold(e.predicted.windageMil, 'wind')}</span>
+                <span>${diffText(e, unit)}${diffText(e, unit) ? ' · ' : ''}${timeOf(e.createdAt)}</span>
+              </span>
+              <span class="log-result ${e.confirmed ? 'hit' : 'miss'}">${e.confirmed ? 'HIT' : 'MISS'}</span>
+            </a></li>`,
+            )
+            .join('')}</ul></section>`,
+            )
+            .join('')
+        : `<section class="card"><p>No shots logged for this rifle yet. On the Shoot screen, tap <strong>✎ Log shot</strong> after you fire.</p></section>`
+    }`
 
-  root.querySelector<HTMLSelectElement>('[name="logRifle"]')!.addEventListener('change', (ev) => {
-    selectedProfileId = (ev.target as HTMLSelectElement).value
-    renderList(root)
+  root.querySelector('[data-action="pick-rifle"]')!.addEventListener('click', () => {
+    const sheet = openSheet({
+      title: 'Show the log for',
+      field: true,
+      content: `<div class="sheet-list">${d.profiles
+        .map((p) => `<button class="btn" type="button" data-rifle="${p.id}" aria-pressed="${p.id === profile.id}">${escapeHtml(p.name)}</button>`)
+        .join('')}</div>`,
+    })
+    sheet.body.addEventListener('click', (ev) => {
+      const b = (ev.target as HTMLElement).closest<HTMLButtonElement>('[data-rifle]')
+      if (!b) return
+      selectedProfileId = b.dataset.rifle
+      resetTruingPicks()
+      sheet.close()
+      renderList(freshRoot(root))
+    })
   })
-  renderTruingCard(root.querySelector<HTMLElement>('[data-truing]')!, profile.id, () => renderList(root))
+
+  // One-line truing summary; the full 3-step flow is on #/log/true.
+  const points = truingPoints(d.log, profile.id)
+  void analyseTruing(profile.rifle, points)
+    .then((r) => {
+      const box = root.querySelector('[data-truing-status]')
+      if (box) box.innerHTML = `<strong class="truing-headline verdict-${r.verdict}">${escapeHtml(r.headline)}</strong>`
+    })
+    .catch(() => {
+      const box = root.querySelector('[data-truing-status]')
+      if (box) box.textContent = "Couldn't check these holds yet."
+    })
 }
 
-/** New entry (from the Shoot screen's current state) or editing an existing one. */
+/** Swaps in an empty copy of the page root so old click handlers don't pile up. */
+function freshRoot(root: HTMLElement): HTMLElement {
+  const fresh = root.cloneNode(false) as HTMLElement
+  root.replaceWith(fresh)
+  return fresh
+}
+
+/** New entry (old full-page route) or editing an existing one. */
 function renderEntryForm(root: HTMLElement, existing?: DopeEntry): void {
   const d = getData()
   const unit = d.settings.angleUnit
@@ -97,44 +148,41 @@ function renderEntryForm(root: HTMLElement, existing?: DopeEntry): void {
   const wind: WindInputs = existing?.wind ?? { windSpeedMph: d.shoot.windSpeedMph, windClock: d.shoot.windClock }
   const name = existing?.profileName ?? profile!.name
   let predicted: Prediction | undefined = existing?.predicted
+  let hit = existing?.confirmed ?? false
   const air = conditions.atmosphereMode === 'altitude' ? `${conditions.altitudeFt ?? 0} ft` : `${conditions.stationPressureInHg} inHg`
   const u = unit === 'mil' ? 'mil' : 'MOA'
+  const holdText = (mil: number | null, kind: 'elev' | 'wind') => (mil === null ? '' : holdLabel(fromMil(mil, unit), unit, kind))
 
   root.innerHTML = `
-    <p><a href="#/${existing ? 'log' : 'shoot'}">&larr; ${existing ? 'Logbook' : 'Shoot'}</a></p>
+    <a class="btn back-link" href="#/${existing ? 'log' : 'shoot'}">← ${existing ? 'Logbook' : 'Shoot'}</a>
     <section class="card stack">
-      <h2>${existing ? 'Logged shot' : 'Log this shot'} — ${escapeHtml(name)}</h2>
-      <small>${conditions.temperatureF}°F · ${air} · ${conditions.humidityPct}% RH · wind ${wind.windSpeedMph} mph from ${wind.windClock} o'clock${
-        existing ? ` · ${when(existing.createdAt)}` : ''
-      }</small>
-      <label class="field big"><span>Range <small>(yd)</small></span>
+      <h2 class="card-title">${existing ? 'Logged shot' : 'Log this shot'} — ${escapeHtml(name)}</h2>
+      <p>${conditions.temperatureF}°F · ${air} · ${conditions.humidityPct}% RH · wind ${wind.windSpeedMph} mph from ${wind.windClock} o'clock${
+        existing ? ` · ${dayTitle(dayKey(existing.createdAt))} ${timeOf(existing.createdAt)}` : ''
+      }</p>
+      <label class="field"><span>Range (yd)</span>
         <input name="logRange" type="text" inputmode="numeric" value="${existing?.rangeYd ?? d.shoot.rangeYd}" /></label>
       <p class="predicted" data-predicted></p>
-      <div class="group" style="border:0;padding:0">
-        <label class="field big"><span>Elevation you used <small>(${u})</small></span>
-          <input name="logElev" type="text" inputmode="text" autocomplete="off" placeholder="e.g. U 4.2" /></label>
-        <label class="field big"><span>Windage you used <small>(${u})</small></span>
-          <input name="logWind" type="text" inputmode="text" autocomplete="off" placeholder="e.g. L 0.6" /></label>
-      </div>
-      <label class="check-big"><input type="checkbox" name="logConfirmed" ${existing?.confirmed ? 'checked' : ''} />
-        <span>Confirmed on target<br /><small>Only confirmed holds are used for truing.</small></span></label>
+      <label class="field"><span>Elevation you used (${u})</span>
+        <input name="logElev" type="text" inputmode="text" autocomplete="off" placeholder="e.g. UP 4.2" /></label>
+      <label class="field"><span>Windage you used (${u})</span>
+        <input name="logWind" type="text" inputmode="text" autocomplete="off" placeholder="e.g. L 0.6" /></label>
+      ${segmented({ name: 'result', label: 'Hit or miss', selected: hit ? 'hit' : 'miss', options: [{ value: 'hit', label: 'HIT' }, { value: 'miss', label: 'MISS' }] })}
+      <p class="hint">Hit = this hold was confirmed on target. Only hits are used for truing.</p>
       <label class="field"><span>Notes</span><input name="logNotes" type="text" value="${escapeHtml(existing?.notes ?? '')}" placeholder="e.g. 2 of 3 hits, mirage heavy" /></label>
       <ul class="errors" data-errors></ul>
-      <div class="actions">
-        <button class="primary big-button" data-action="save">${existing ? 'Save changes' : 'Save to logbook'}</button>
-        ${existing ? '<button class="danger big-button" data-action="delete">Delete</button>' : ''}
-      </div>
+      <button class="btn btn-primary big-button" type="button" data-action="save">${existing ? 'Save changes' : 'Save to logbook'}</button>
+      ${existing ? '<button class="btn btn-danger" type="button" data-action="delete">Delete</button>' : ''}
     </section>`
 
   const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!
   const rangeBox = $<HTMLInputElement>('[name="logRange"]')
   const elevBox = $<HTMLInputElement>('[name="logElev"]')
   const windBox = $<HTMLInputElement>('[name="logWind"]')
-  const showHold = (mil: number | null, kind: 'elev' | 'wind') => (mil === null ? '' : holdText(mil, unit, kind))
 
   if (existing) {
-    elevBox.value = showHold(existing.actualElevationMil, 'elev')
-    windBox.value = showHold(existing.actualWindageMil, 'wind')
+    elevBox.value = holdText(existing.actualElevationMil, 'elev')
+    windBox.value = holdText(existing.actualWindageMil, 'wind')
   }
 
   let latest = 0
@@ -150,10 +198,10 @@ function renderEntryForm(root: HTMLElement, existing?: DopeEntry): void {
       const p = await predict(rifle, conditions, wind, yd)
       if (run !== latest) return
       predicted = p
-      $('[data-predicted]').innerHTML = `App predicts <strong>${holdText(p.elevationMil, unit, 'elev')}</strong> · <strong>${holdText(p.windageMil, unit, 'wind')}</strong> ${u}`
+      $('[data-predicted]').innerHTML = `App predicts <strong class="tone-elev">${holdText(p.elevationMil, 'elev')}</strong> · <strong class="tone-wind">${holdText(p.windageMil, 'wind')}</strong> ${u}`
       if (prefill) {
-        elevBox.value = showHold(p.elevationMil, 'elev')
-        windBox.value = showHold(p.windageMil, 'wind')
+        elevBox.value = holdText(p.elevationMil, 'elev')
+        windBox.value = holdText(p.windageMil, 'wind')
       }
     } catch (e) {
       if (run !== latest) return
@@ -165,13 +213,36 @@ function renderEntryForm(root: HTMLElement, existing?: DopeEntry): void {
   void refreshPrediction(!existing)
   rangeBox.addEventListener('input', () => void refreshPrediction(false))
 
-  $('[data-action="save"]').addEventListener('click', () => {
+  root.addEventListener('click', (ev) => {
+    const btn = (ev.target as HTMLElement).closest<HTMLButtonElement>('button')
+    if (btn?.dataset.segment === 'result') {
+      hit = btn.dataset.value === 'hit'
+      setSelected(root, 'data-segment', 'result', hit ? 'hit' : 'miss')
+    }
+    if (btn?.dataset.action === 'save') save()
+    if (btn?.dataset.action === 'delete' && existing) {
+      const index = getData().log.findIndex((e) => e.id === existing.id)
+      updateData((data) => void (data.log = data.log.filter((e) => e.id !== existing.id)))
+      location.hash = '#/log'
+      showUndoToast({
+        text: `Deleted the ${existing.rangeYd} yd entry`,
+        onUndo: () => {
+          updateData((data) => void data.log.splice(Math.max(0, Math.min(index, data.log.length)), 0, existing))
+          window.dispatchEvent(new HashChangeEvent('hashchange'))
+        },
+      })
+    }
+  })
+
+  function save() {
     const errors: string[] = []
     const yd = Number(rangeBox.value)
-    const elev = parseMil(elevBox.value)
+    // Accept UP/DN/OVER/UNDER as well as U/D/L/R.
+    const clean = (s: string) => s.replace(/^\s*(UP|OVER)\b/i, 'U').replace(/^\s*(DN|DOWN|UNDER)\b/i, 'D')
+    const elev = parseMil(clean(elevBox.value))
     const windage = parseMil(windBox.value)
     if (!(yd >= 25 && yd <= 3000)) errors.push('Range should be between 25 and 3000 yd.')
-    if (Number.isNaN(elev)) errors.push('Elevation isn\'t a number (e.g. "U 4.2" or "4.2").')
+    if (Number.isNaN(elev)) errors.push('Elevation isn\'t a number (e.g. "UP 4.2" or "4.2").')
     if (Number.isNaN(windage)) errors.push('Windage isn\'t a number (e.g. "L 0.6" or "-0.6").')
     if (!predicted) errors.push('Waiting for the prediction — try again in a moment.')
     $('[data-errors]').innerHTML = errors.map((er) => `<li>${escapeHtml(er)}</li>`).join('')
@@ -188,7 +259,7 @@ function renderEntryForm(root: HTMLElement, existing?: DopeEntry): void {
       wind,
       actualElevationMil: elev === null ? null : toMil(elev, unit),
       actualWindageMil: windage === null ? null : toMil(windage, unit),
-      confirmed: $<HTMLInputElement>('[name="logConfirmed"]').checked,
+      confirmed: hit,
       notes: $<HTMLInputElement>('[name="logNotes"]').value.trim() || undefined,
       predicted,
     }
@@ -199,13 +270,5 @@ function renderEntryForm(root: HTMLElement, existing?: DopeEntry): void {
     })
     selectedProfileId = entry.profileId
     location.hash = '#/log'
-  })
-
-  root.querySelector('[data-action="delete"]')?.addEventListener('click', () => {
-    if (!confirm(`Delete this ${existing!.rangeYd} yd log entry? This can't be undone.`)) return
-    updateData((data) => {
-      data.log = data.log.filter((e) => e.id !== existing!.id)
-    })
-    location.hash = '#/log'
-  })
+  }
 }
