@@ -21,6 +21,7 @@ The owner is not a programmer and relies on Claude for all code.
 - No backend, no accounts. All user data is saved on the device only.
 - Hosted free on GitHub Pages. Vite `base` is `/prs-ballistics/`.
 - Pages (hash routes): bottom tabs Shoot (home), Match (stage cards), Log, Rifles;
+  the range card (`#/card/<rifle>`) opens from Rifles and Shoot's rifle sheet;
   Check accuracy and Data & backup open from the ⚙ Settings sheet; hidden
   `#/styleguide` shows every component in all three themes.
 - No ballistics logic changes during UI work.
@@ -104,6 +105,21 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
   "Conditions changed — Update all cards" and printing waits for the update.
   New or edited stages get their card worked out straight away.
 - Full-screen card view keeps the screen awake; ◀ ▶ stay above the tab bar.
+
+## Range card, Rifles, first run (brief prompt 4)
+
+- Range card (`src/match/rangeCard.ts` + `src/ui/rangeCardPage.ts`): 100 yd to
+  `settings.rangeCard.maxYd` every 25/50 yd (data version 7), elevation + full-value
+  wind L·R at the card speeds, worked out live (never stale). Rows the engine
+  can't reach show "—" with a note, never a guess. Prints MIL and MOA tables.
+  Printing goes through `src/ui/print.ts`, which sets the page size per print.
+- Rifles editor is grouped Rifle / Scope / Load / Zero; advanced boxes sit in a
+  closed "More" that opens itself when a box inside has a problem. Problems are
+  plain English under their own box (`HELP` + `fieldErrors` in `shotForm.ts`).
+  Delete offers Undo (no confirm pop-ups, per the brief).
+- First run (`src/ui/firstRun.ts`) shows on Shoot when there are no rifles:
+  set up (load, then scope & zero; every step skippable) or a sample rifle
+  built from the library's Hornady 6.5 CM 140 ELD Match, named "Sample · …".
 
 ## Logbook and truing
 
