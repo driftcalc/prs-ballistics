@@ -21,3 +21,21 @@ describe('weather boxes that are hidden', () => {
     expect(parseFormValues(values, ['weather']).errors).toEqual([])
   })
 })
+
+describe('plain-English problems', () => {
+  it('says what looks wrong, what is normal, and puts it under the right box', () => {
+    const values = { ...toFormValues(DEFAULT_INPUTS), muzzleVelocityFps: '27000', bc: '' }
+    const { inputs, errors, fieldErrors } = parseFormValues(values, ['rifle'])
+    expect(inputs).toBeUndefined()
+    expect(fieldErrors.muzzleVelocityFps).toBe(
+      'Muzzle velocity 27000 fps looks wrong — rifle loads are usually 1,000–4,000 fps. Check the ammo box or your chronograph.',
+    )
+    expect(fieldErrors.bc).toMatch(/^Ballistic coefficient \(BC\) is missing\. Hint: /)
+    expect(errors).toHaveLength(2)
+  })
+
+  it('a word instead of a number gets an example', () => {
+    const values = { ...toFormValues(DEFAULT_INPUTS), zeroRangeYd: 'abc' }
+    expect(parseFormValues(values, ['rifle']).fieldErrors.zeroRangeYd).toBe('Zero range must be a number, e.g. 100.')
+  })
+})

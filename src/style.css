@@ -940,6 +940,117 @@ button:not(.btn):not(.tab):active,
   font-weight: 700;
 }
 
+/* ---------- Rifles ---------- */
+.rifle-list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.rifle-item {
+  display: flex;
+  flex-direction: column;
+  gap: var(--gap);
+  padding: var(--s3);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+  background: var(--surface);
+}
+
+.rifle-item.active {
+  border-color: var(--accent);
+}
+
+.rifle-open {
+  flex-direction: column;
+  align-items: flex-start;
+  gap: var(--s1);
+  width: 100%;
+  min-height: var(--control-primary);
+  padding: var(--s2) var(--s3);
+  text-align: left;
+}
+
+.rifle-open > span:last-child {
+  font-weight: 400;
+}
+
+.rifle-name {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: var(--s2);
+}
+
+.active-mark {
+  color: var(--accent);
+  font-weight: 900;
+}
+
+.rifle-actions,
+.rifle-editor-actions {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--gap);
+}
+
+.rifle-editor-actions .big-button {
+  grid-column: 1 / -1;
+}
+
+.rifle-using {
+  border-style: dashed;
+}
+
+.rifle-editor {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s4);
+}
+
+.rifle-editor .card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+}
+
+.back-link {
+  align-self: flex-start;
+}
+
+/* "More" sections: closed by default, a 48px+ button to open. */
+.more summary {
+  justify-content: space-between;
+  width: 100%;
+  list-style: none;
+}
+
+.more summary::-webkit-details-marker {
+  display: none;
+}
+
+.more summary::after {
+  content: '▾';
+}
+
+.more[open] summary::after {
+  content: '▴';
+}
+
+.more-body {
+  display: flex;
+  flex-direction: column;
+  gap: var(--s3);
+  padding-top: var(--s3);
+}
+
+.factory-banner {
+  margin: 0;
+}
+
 /* ---------- Printing stage cards on 3x5 index cards ---------- */
 .print-area {
   display: none;

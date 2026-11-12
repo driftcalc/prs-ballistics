@@ -38,6 +38,23 @@ const clockOptions: [string, string][] = Array.from({ length: 12 }, (_, i) => {
 
 export type SectionId = 'rifle' | 'weather' | 'wind'
 
+/** Plain English: what's normal and where to find the number. Shown when a box looks wrong. */
+const HELP: Partial<Record<Key, string>> = {
+  muzzleVelocityFps: 'rifle loads are usually 1,000–4,000 fps. Check the ammo box or your chronograph',
+  bc: "BCs are usually 0.1–0.4 for G7 or 0.2–0.8 for G1. Check the bullet maker's website",
+  bulletWeightGr: "bullets are usually 20–300 gr. It's printed on the ammo box",
+  sightHeightIn: "it's usually 1.5–3 in, from the centre of the barrel to the centre of the scope",
+  zeroRangeYd: 'most rifles are zeroed at 100 yd (rimfire often 50 yd)',
+  twistIn: "type 8 for a 1:8 barrel. It's often stamped on the barrel",
+  bulletDiameterIn: "e.g. 0.224, 0.264 or 0.308. It's in the cartridge name or on the bullet box",
+  bulletLengthIn: "bullets are usually 0.5–1.7 in long. Measure one or check the maker's website",
+  temperatureF: 'type the air temperature in °F',
+  stationPressureInHg: 'station pressure is usually 20–31 inHg. Use the Kestrel reading, not the sea-level number from a forecast',
+  altitudeFt: 'type your height above sea level in feet',
+  humidityPct: 'humidity is 0–100 %',
+  windSpeedMph: 'wind speed is 0–60 mph',
+}
+
 export const SECTIONS: { id: SectionId; title: string; fields: Field[] }[] = [
   {
     id: 'rifle',
@@ -145,8 +162,30 @@ function renderField(f: Field, values: FormValues, disabled: boolean): string {
   const placeholder = f.optional ? 'optional' : ''
   return `<label class="field" data-field="${f.key}"${hidden}><span>${f.label}${f.unit ? ` <small>(${f.unit})</small>` : ''}</span>
     <input id="${id}" name="${f.key}" type="text" inputmode="decimal" autocomplete="off"
-      value="${escapeHtml(value)}" placeholder="${placeholder}"${dis} />
-    ${f.hint ? `<small class="hint">${f.hint}</small>` : ''}</label>`
+      value="${escapeHtml(value)}" placeholder="${placeholder}"${dis} aria-describedby="${id}-error" />
+    ${f.hint ? `<small class="hint">${f.hint}</small>` : ''}
+    <small class="field-error" id="${id}-error" data-error-for="${f.key}" hidden></small></label>`
+}
+
+/** Draws just the named boxes, in this order (for screens that group them their own way). */
+export function renderFieldsByKey(keys: Key[], values: FormValues): string {
+  const all = fieldsIn(ALL)
+  return keys.map((k) => renderField(all.find((f) => f.key === k)!, values, false)).join('')
+}
+
+/**
+ * Shows each problem under its own box (and clears fixed ones). A box inside
+ * a closed "More" section opens it, so a problem is never hidden.
+ */
+export function showFieldErrors(root: HTMLElement, fieldErrors: Partial<Record<Key, string>>): void {
+  root.querySelectorAll<HTMLElement>('[data-error-for]').forEach((el) => {
+    const key = el.dataset.errorFor as Key
+    const text = fieldErrors[key]
+    el.textContent = text ?? ''
+    el.hidden = !text
+    root.querySelector(`[name="${key}"]`)?.toggleAttribute('aria-invalid', !!text)
+    if (text) el.closest('details')?.setAttribute('open', '')
+  })
 }
 
 /** Reads the current text of every shot box inside `root`. */
@@ -170,11 +209,18 @@ export function updateVisibility(root: HTMLElement, values: FormValues, ids: Sec
 export interface ParseResult {
   inputs?: UsShotInputs
   errors: string[]
+  /** The same problems, by box, to show next to the box they belong to. */
+  fieldErrors: Partial<Record<Key, string>>
 }
 
 /** Checks every box and turns the text into numbers. */
 export function parseFormValues(values: FormValues, ids: SectionId[] = ALL): ParseResult {
   const errors: string[] = []
+  const fieldErrors: Partial<Record<Key, string>> = {}
+  const problem = (key: Key, text: string) => {
+    errors.push(text)
+    fieldErrors[key] = text
+  }
   const out: Record<string, unknown> = { ...DEFAULT_INPUTS }
   for (const f of fieldsIn(ids)) {
     if (f.showIf && !f.showIf(values)) {
@@ -192,17 +238,19 @@ export function parseFormValues(values: FormValues, ids: SectionId[] = ALL): Par
     }
     if (raw === '') {
       if (f.optional) out[f.key] = undefined
-      else errors.push(`${f.label} is missing.`)
+      else problem(f.key, `${f.label} is missing.${HELP[f.key] ? ` Hint: ${HELP[f.key]}.` : ''}`)
       continue
     }
     const n = Number(raw)
+    const unit = f.unit ? ` ${f.unit}` : ''
     if (!Number.isFinite(n)) {
-      errors.push(`${f.label} must be a number.`)
+      problem(f.key, `${f.label} must be a number, e.g. ${DEFAULT_INPUTS[f.key] ?? 1}.`)
     } else if ((f.min !== undefined && n < f.min) || (f.max !== undefined && n > f.max)) {
-      errors.push(`${f.label} should be between ${f.min} and ${f.max}${f.unit ? ' ' + f.unit : ''}.`)
+      const help = HELP[f.key]
+      problem(f.key, help ? `${f.label} ${n}${unit} looks wrong — ${help}.` : `${f.label} should be between ${f.min} and ${f.max}${unit}.`)
     } else {
       out[f.key] = n
     }
   }
-  return errors.length ? { errors } : { inputs: out as unknown as UsShotInputs, errors }
+  return errors.length ? { errors, fieldErrors } : { inputs: out as unknown as UsShotInputs, errors, fieldErrors }
 }
