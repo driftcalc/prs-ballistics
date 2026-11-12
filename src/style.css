@@ -483,9 +483,11 @@ button:not(.btn):not(.tab):active,
   gap: var(--gap);
 }
 
+/* Distance and Hit/Miss on top, the holds full width underneath. */
 .log-row {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) auto;
+  grid-template-areas: 'range result' 'holds holds';
   align-items: center;
   gap: var(--s3);
   width: 100%;
@@ -496,18 +498,21 @@ button:not(.btn):not(.tab):active,
 }
 
 .log-range {
+  grid-area: range;
   font-size: var(--fs-title);
   font-weight: 900;
   white-space: nowrap;
 }
 
 .log-holds {
+  grid-area: holds;
   display: flex;
   flex-direction: column;
   min-width: 0;
 }
 
 .log-result {
+  grid-area: result;
   padding: var(--s1) var(--s2);
   border: var(--line-w) solid currentColor;
   border-radius: var(--radius);

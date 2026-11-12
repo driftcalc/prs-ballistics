@@ -1,7 +1,7 @@
 // Hidden style guide (#/styleguide): every component in Sun, Dark and Night,
 // so the design can be reviewed on a real phone. Not linked from the tab bar.
 // The controls work, but nothing here is saved.
-import { card, chipRow, clockDial, openSheet, readout, readoutPair, segmented, setClock, setSelected, stepper, tabBar } from '../design/components.ts'
+import { card, chipRow, clockDial, openSheet, readout, readoutPair, segmented, setClock, setSelected, showUndoToast, stepper, tabBar } from '../design/components.ts'
 import { stageCardHtml, type CardView } from './stageCard.ts'
 import { TABS } from './tabs.ts'
 
@@ -71,6 +71,9 @@ function panel(theme: string, title: string): string {
     <h3>Bottom sheet</h3>
     <button class="btn" type="button" data-sg-sheet="${theme}">Open bottom sheet</button>
 
+    <h3>Undo toast</h3>
+    <button class="btn" type="button" data-sg-toast="${theme}">Show undo toast</button>
+
     <h3>Bottom tab bar</h3>
     <div class="sg-tabbar">${tabBar(TABS, 'shoot')}</div>
   </section>`
@@ -115,6 +118,7 @@ export function renderStyleguidePage(root: HTMLElement): void {
       const el = root.querySelector(`[data-stepper-value="${btn.dataset.stepper}"]`)!
       el.textContent = String(Math.max(25, Number(el.textContent) + Number(btn.dataset.dir) * 25))
     }
+    if (btn.dataset.sgToast) showUndoToast({ text: 'Logged 650 yd · Hit', onUndo: () => undefined, theme: btn.dataset.sgToast })
     if (btn.dataset.sgSheet) {
       openSheet({
         title: 'Bottom sheet',

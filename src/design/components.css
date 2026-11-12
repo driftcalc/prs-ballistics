@@ -507,6 +507,7 @@ body.sheet-open {
   border-radius: var(--radius);
   background: var(--surface);
   color: var(--text);
+  font-size: var(--fs-field); /* shown on field screens */
   font-weight: 700;
   transform: translateX(-50%);
 }

@@ -57,7 +57,7 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
 - **Components** (`src/design/components.ts` + `components.css`): readout,
   readoutPair, stepper, chipRow, segmented, clockDial (12 hours round a circle;
   a 4×4 clock-face grid of 96px buttons in Glove mode), card, tabBar (max 4
-  tabs), openSheet (bottom sheet). Use these instead of one-off markup; new
+  tabs), openSheet (bottom sheet; `field: true` for 18px text), showUndoToast. Use these instead of one-off markup; new
   buttons use `.btn`, `.btn-primary`, `.btn-danger`. Add any new component to
   the style guide.
 - **Colour-coded holds:** ELEV uses `--elev` (orange), WIND uses `--wind` (blue);
@@ -130,7 +130,16 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
   trial MV/BC values (golden-section search) — no ballistics formulas. It uses
   confirmed elevation holds only, never windage.
 - **It must never change a rifle by itself.** Changes happen only from the
-  "Apply" button after the owner confirms, and the old value goes in the notes.
+  "Apply" button (step 3 of the truing flow, `src/ui/truingFlow.ts`; the button
+  names the exact change, so tapping it is the confirmation). The old value goes
+  in the notes and in `profile.truingHistory` (data version 8, in backups);
+  `src/truing/apply.ts` applies and reverts, and "Undo truing" appears in the
+  flow and the rifle's Load section while the value is unchanged since.
+- "Hit" in the UI = `confirmed: true` on the entry (only hits are used for truing).
+  Logging from Shoot is a field sheet (`src/ui/logShotSheet.ts`): steppers move
+  one click (0.1 mil / 0.25 MOA), Hit|Miss, Save, then a 5 s Undo toast
+  (`showUndoToast` in components). The Log tab groups by day and names that
+  day's match; deletes use Undo, not confirm pop-ups.
 - Its "clear vs can't tell" decision accounts for the click size of the holds
   (`holdResolutionMil`). Prefer "can't tell yet" over a confident wrong answer.
   Known-answer tests in `truing.test.ts` generate holds from a hidden true MV/BC;
