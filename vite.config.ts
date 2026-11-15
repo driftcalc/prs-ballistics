@@ -22,8 +22,8 @@ export default defineConfig({
         name: 'Spin Drift',
         short_name: 'Spin Drift',
         description: 'Offline ballistic calculator for PRS, NRL and rimfire shooters.',
-        theme_color: '#1b2a1f',
-        background_color: '#1b2a1f',
+        theme_color: '#121814', // Dark theme background, so start-up matches the app
+        background_color: '#121814',
         display: 'standalone',
         orientation: 'portrait',
       },

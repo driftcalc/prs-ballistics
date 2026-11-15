@@ -77,6 +77,18 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
   transitions over 150ms. Never weaken these checks to make them pass.
   After UI changes, audit every screen in all three themes (text size, contrast,
   48px targets) at phone width before publishing.
+- **Field tests** (`e2e/`, Playwright, `npm run test:field`, run before every
+  publish in the workflow): the built app in Chrome, every screen/state × Sun/Dark/
+  Night × normal/Glove/Left-handed × 375/430 px — tap targets ≥ 48px and ≥ 8px
+  apart (only targets a finger can reach), contrast as drawn, Night pixels with any
+  green/blue, overflow, text sizes, holds ≥ 72px, and a full offline test. New
+  screens or states go in `STATES` in `e2e/field.spec.ts`. Never loosen a check
+  to make it pass.
+- Things pinned above the tab bar (Log shot on Shoot, ◀ ▶ on stage cards) are
+  solid strips from the tab bar up (`bottom: var(--tabbar-h)` + `--gap` padding):
+  nothing may show through, or be tappable, between them and the tabs.
+  `--tabbar-h` is the whole bar (buttons + padding + line). The Undo toast sits at
+  the top of the screen. Field screens hide the footer; Licenses is also in Settings.
 
 ## Saved data
 
@@ -209,6 +221,7 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
 
 - `npm run dev` — local dev server
 - `npm test` — run tests (Vitest)
+- `npm run test:field` — field tests in a real browser (Playwright; builds first)
 - `npm run build` — type-check and build to `dist/`
 - Publishing: `gh` CLI is not signed in. Commit locally, then the owner clicks
   **Push origin** in GitHub Desktop (account `driftcalc`).

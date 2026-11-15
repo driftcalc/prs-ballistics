@@ -105,6 +105,22 @@ export function auditInPage(o: AuditOptions): Finding[] {
     }
     const inTabbar = (el: Element) => el.closest('.tabbar') !== null
     if (inTabbar(a.el) !== inTabbar(b.el) && !pinned(inTabbar(a.el) ? b.el : a.el)) return
+    // Scrolling content that slides under a pinned bar can only be tapped where it
+    // still shows, so measure its visible part only.
+    const pinnedBox = (el: Element) => {
+      let box: DOMRect | undefined
+      for (let e: Element | null = el; e; e = e.parentElement) if (/fixed|sticky/.test(getComputedStyle(e).position)) box = e.getBoundingClientRect()
+      return box
+    }
+    for (const [p, s] of [[a, b], [b, a]] as const) {
+      if (!pinned(p.el) || pinned(s.el)) continue
+      const box = pinnedBox(p.el)!
+      const r = s.r
+      const top = r.top < box.top && r.bottom > box.top ? r.top : r.top < box.bottom && r.bottom > box.bottom ? box.bottom : r.top
+      const bottom = r.top < box.top && r.bottom > box.top ? box.top : r.bottom
+      if (bottom - top < 1) return // fully hidden under the bar
+      s.r = new DOMRect(r.left, top, r.width, bottom - top)
+    }
     // Round buttons (the clock dial) only react inside the circle.
     const round = (el: Element) => getComputedStyle(el).borderRadius.startsWith('50%')
     let dx: number

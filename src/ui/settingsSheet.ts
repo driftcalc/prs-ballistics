@@ -49,6 +49,7 @@ export function openSettings(onChange: () => void): void {
         <h3 class="setting-title">More</h3>
         <button class="btn" type="button" data-go="#/check">Check accuracy vs Hornady / AB</button>
         <button class="btn${due ? ' btn-danger' : ''}" type="button" data-go="#/data">${due ? '⚠ ' : ''}Data &amp; backup${due ? ' — backup due' : ''}</button>
+        <a class="btn" href="${import.meta.env.BASE_URL}licenses/">Licenses &amp; disclaimer · v${__APP_VERSION__}</a>
       </div>`,
   })
 

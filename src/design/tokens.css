@@ -46,7 +46,8 @@
   --touch: 48px; /* minimum target */
   --gap: 8px; /* minimum gap between targets */
   --control-primary: 64px; /* steppers, tab bar, unit switch */
-  --tabbar-h: var(--control-primary);
+  /* Whole tab bar: buttons + its padding + its top line (things pinned above it sit higher). */
+  --tabbar-h: calc(var(--control-primary) + 2 * var(--s2) + var(--line-w));
 
   /* Motion: nothing slower than 150ms */
   --motion: 100ms;

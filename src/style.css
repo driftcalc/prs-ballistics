@@ -191,12 +191,45 @@ textarea {
   font-size: max(var(--fs-body), 1em); /* 16px+ also stops iPhone zooming on focus */
 }
 
+/* Hint text in empty boxes: the theme's own colour (the phone's default grey would show in Night). */
+::placeholder {
+  color: var(--text-2);
+  opacity: 1;
+}
+
+/* Tick boxes drawn by the app in theme colours (the phone's own are grey/white, wrong for Night). */
 input[type='checkbox'] {
+  appearance: none;
+  display: inline-grid;
+  place-content: center;
+  flex: none;
   width: var(--touch);
   height: var(--touch);
   min-height: 0;
+  margin: 0;
   padding: 0;
-  accent-color: var(--accent);
+  border: var(--line-w) solid var(--text);
+  border-radius: var(--radius);
+  background: var(--bg);
+}
+
+input[type='checkbox']::before {
+  content: '';
+  width: var(--s3);
+  height: var(--s5);
+  margin-top: calc(-1 * var(--s1));
+  border: solid var(--on-accent);
+  border-width: 0 var(--s1) var(--s1) 0;
+  transform: rotate(45deg) scale(0);
+}
+
+input[type='checkbox']:checked {
+  border-color: var(--accent);
+  background: var(--accent);
+}
+
+input[type='checkbox']:checked::before {
+  transform: rotate(45deg);
 }
 
 input:disabled,
@@ -427,9 +460,25 @@ button:not(.btn):not(.tab):active,
   font-size: var(--fs-field); /* field screen: 18px */
 }
 
+/* Log shot stays in reach above the tab bar (8px clear), however far you scroll;
+   its strip keeps scrolling controls 8px away from it too. */
+.log-shot-bar {
+  position: sticky;
+  bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
+  z-index: 4;
+  padding: var(--gap) 0; /* solid down to the tab bar: nothing shows (or can be tapped) between */
+  background: var(--bg);
+}
+
 .log-shot {
+  width: 100%;
   min-height: var(--control-primary);
   font-size: var(--fs-title);
+}
+
+/* Shoot packs a little tighter so the wind controls start higher on small phones. */
+main:has(.shoot-info) {
+  gap: var(--s3);
 }
 
 .shot-notes p:empty {
@@ -846,9 +895,14 @@ button:not(.btn):not(.tab):active,
   gap: var(--s3);
 }
 
-.stage-form-where a {
-  color: var(--text);
+.stage-form-where {
   font-weight: 700;
+}
+
+/* Field screens show no footer small print (brief: no grey text on Shoot); the
+   Licenses & disclaimer link is also in Settings. */
+body:has(main.field-screen) .appfoot {
+  display: none;
 }
 
 .target-preview {
@@ -880,11 +934,12 @@ button:not(.btn):not(.tab):active,
   display: grid;
   grid-template-columns: var(--control-primary) minmax(0, 1fr) var(--control-primary);
   gap: var(--gap);
-  /* Always in thumb reach: sits just above the tab bar while the card scrolls. */
+  /* Always in thumb reach: sits just above the tab bar (8px clear of it) while the card scrolls.
+     Solid down to the tab bar, so nothing scrolling behind shows (or can be tapped) between. */
   position: sticky;
   bottom: calc(var(--tabbar-h) + env(safe-area-inset-bottom));
   z-index: 4;
-  padding: var(--s2) 0;
+  padding: var(--gap) 0;
   background: var(--bg);
 }
 

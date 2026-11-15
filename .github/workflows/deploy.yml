@@ -26,6 +26,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm test
+      # Field tests: the built app in a real browser (tap sizes, contrast, Night colours,
+      # overflow, offline). A failure here stops publishing.
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:field
       - run: npm run build
       - uses: actions/upload-pages-artifact@v4
         with:

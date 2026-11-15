@@ -273,7 +273,8 @@ function renderStageEditor(root: HTMLElement, matchId: string, n: string): void 
   const s0 = editing()
   root.innerHTML = `
     <form class="stage-form" novalidate>
-      <p class="stage-form-where"><a href="#/match/${matchId}">${escapeHtml(m0.name)}</a> · <span data-where></span></p>
+      <a class="btn back-link" href="#/match/${matchId}">← ${escapeHtml(m0.name)}</a>
+      <p class="stage-form-where" data-where></p>
       <label class="field"><span>Stage name</span>
         <input name="name" autocomplete="off" enterkeyhint="next" value="${escapeHtml(s0?.name ?? `Stage ${nextNumber()}`)}" /></label>
       <label class="field"><span>Targets (name and yards)</span>

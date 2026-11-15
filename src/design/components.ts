@@ -146,7 +146,7 @@ export function setClock(root: ParentNode, hour: number): void {
 }
 
 /**
- * Undo toast: a short message with an Undo button, just above the tab bar, for
+ * Undo toast: a short message with an Undo button at the top of the screen, for
  * a few seconds. The brief prefers Undo to "are you sure?" pop-ups.
  * Showing a new toast replaces any previous one.
  */

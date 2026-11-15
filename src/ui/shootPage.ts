@@ -79,7 +79,7 @@ export function renderShootPage(root: HTMLElement): void {
       ${segmented({ name: 'mode', label: 'Dial or hold', selected: d.settings.holdMode, options: [{ value: 'dial', label: 'DIAL' }, { value: 'hold', label: 'HOLD' }] })}
       ${segmented({ name: 'unit', label: 'Units', selected: d.settings.angleUnit, options: [{ value: 'mil', label: 'MIL' }, { value: 'moa', label: 'MOA' }] })}
     </section>
-    <button class="btn btn-primary log-shot" type="button" data-action="log-shot" aria-haspopup="dialog">✎ Log shot</button>`
+    <div class="log-shot-bar"><button class="btn btn-primary log-shot" type="button" data-action="log-shot" aria-haspopup="dialog">✎ Log shot</button></div>`
 
   const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!
   const rangeBox = $<HTMLInputElement>('[name="range"]')
