@@ -4,6 +4,7 @@ import { openSheet, segmented, setSelected, stepper } from '../design/components
 import { getData, updateData, type ThemeSetting } from '../data/store.ts'
 import { backupOverdue } from './safety.ts'
 import { applyTheme } from './theme.ts'
+import { icon } from '../design/icons.ts'
 
 const onOff = (name: string, label: string, on: boolean) =>
   segmented({ name, label, selected: on ? 'on' : 'off', options: [{ value: 'off', label: 'Off' }, { value: 'on', label: 'On' }] })
@@ -48,7 +49,7 @@ export function openSettings(onChange: () => void): void {
       <div class="setting">
         <h3 class="setting-title">More</h3>
         <button class="btn" type="button" data-go="#/check">Check accuracy vs Hornady / AB</button>
-        <button class="btn${due ? ' btn-danger' : ''}" type="button" data-go="#/data">${due ? '⚠ ' : ''}Data &amp; backup${due ? ' — backup due' : ''}</button>
+        <button class="btn${due ? ' btn-danger' : ''}" type="button" data-go="#/data">${due ? icon('warning') + ' ' : ''}Data &amp; backup${due ? ' — backup due' : ''}</button>
         <a class="btn" href="${import.meta.env.BASE_URL}licenses/">Licenses &amp; disclaimer · v${__APP_VERSION__}</a>
       </div>`,
   })

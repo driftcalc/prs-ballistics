@@ -14,6 +14,7 @@ import { conditionsSummary, openConditionsSheet } from './conditionsSheet.ts'
 import { escapeHtml } from './format.ts'
 import { cardViewOf, printCards, shareCardImage, stageCardHtml, type CardView } from './stageCard.ts'
 import { keepScreenAwake } from './wakeLock.ts'
+import { icon } from '../design/icons.ts'
 
 const today = () => new Date().toLocaleDateString('en-CA') // YYYY-MM-DD in local time
 const shortDate = (iso: string) =>
@@ -129,7 +130,7 @@ function openMatchDetails(matchId?: string): void {
           <select name="rifle">${d.profiles
             .map((p) => `<option value="${p.id}"${p.id === rifleId ? ' selected' : ''}>${escapeHtml(p.name)}</option>`)
             .join('')}</select></label>
-        <button class="btn btn-primary big-button" type="submit">${m ? 'Save' : 'Create · add stages ▸'}</button>
+        <button class="btn btn-primary big-button" type="submit">${m ? 'Save' : `Create ${icon('next')}`}</button>
         ${m ? '<button class="btn btn-danger" type="button" data-action="delete">Delete match</button>' : ''}
       </form>`,
   })
@@ -179,9 +180,9 @@ function renderMatch(root: HTMLElement, matchId: string): void {
   root.innerHTML = `
     <div class="match-head">
       <button class="btn info-btn" type="button" data-action="details" aria-haspopup="dialog">
-        <span><strong>${escapeHtml(m.name)}</strong> · ${shortDate(m.date)} · ${escapeHtml(rifle?.name ?? 'rifle deleted')}</span><span aria-hidden="true">▸</span></button>
+        <span><strong>${escapeHtml(m.name)}</strong> · ${shortDate(m.date)} · ${escapeHtml(rifle?.name ?? 'rifle deleted')}</span>${icon('next')}</button>
       <button class="btn info-btn" type="button" data-action="conditions" aria-haspopup="dialog" aria-label="Edit conditions">
-        <span>${escapeHtml(conditionsSummary(d.conditions))}</span><span aria-hidden="true">▸</span></button>
+        <span>${escapeHtml(conditionsSummary(d.conditions))}</span>${icon('next')}</button>
     </div>
     ${rifle ? '' : `<div class="banner error" role="alert"><p>This match's rifle was deleted. Pick a rifle under the match details.</p></div>`}
     ${staleBanner(stale.length)}
@@ -273,7 +274,7 @@ function renderStageEditor(root: HTMLElement, matchId: string, n: string): void 
   const s0 = editing()
   root.innerHTML = `
     <form class="stage-form" novalidate>
-      <a class="btn back-link" href="#/match/${matchId}">← ${escapeHtml(m0.name)}</a>
+      <a class="btn back-link" href="#/match/${matchId}">${icon('back')} ${escapeHtml(m0.name)}</a>
       <p class="stage-form-where" data-where></p>
       <label class="field"><span>Stage name</span>
         <input name="name" autocomplete="off" enterkeyhint="next" value="${escapeHtml(s0?.name ?? `Stage ${nextNumber()}`)}" /></label>
@@ -288,7 +289,7 @@ function renderStageEditor(root: HTMLElement, matchId: string, n: string): void 
           placeholder="T1, T3, T2, T1" value="${escapeHtml(s0?.order.join(', ') ?? '')}" /></label>
       <ul class="errors" data-order-problems></ul>
       <p class="ok-note" data-saved role="status"></p>
-      <button class="btn btn-primary big-button" type="submit">Save · next stage ▸</button>
+      <button class="btn btn-primary big-button" type="submit">Next stage ${icon('next')}</button>
       <div class="actions">
         <button class="btn" type="button" data-action="done">Save · done</button>
         <a class="btn" href="#/match/${matchId}">Cancel</a>
@@ -341,7 +342,7 @@ function renderStageEditor(root: HTMLElement, matchId: string, n: string): void 
     })
     const savedId = stageId
     if (!editing()?.card) void computeAndSave(matchId, savedId)
-    form.querySelector('[data-saved]')!.textContent = `✓ ${name} saved: ${targets.map((t) => `${t.name} ${t.rangeYd}`).join(' · ')}`
+    form.querySelector('[data-saved]')!.innerHTML = `${icon('check')} ${escapeHtml(name)} saved: ${escapeHtml(targets.map((t) => `${t.name} ${t.rangeYd}`).join(' · '))}`
     return true
   }
 
@@ -408,9 +409,9 @@ function renderCardView(root: HTMLElement, matchId: string, n: number): void {
       <button class="btn" type="button" data-action="print"${view && !stale ? '' : ' disabled'}>Print card</button>
     </div>
     <nav class="card-nav" aria-label="Stages">
-      <button class="btn" type="button" data-go="-1" aria-label="Previous stage"${i > 1 ? '' : ' disabled'}>◀</button>
+      <button class="btn" type="button" data-go="-1" aria-label="Previous stage"${i > 1 ? '' : ' disabled'}>${icon('prev')}</button>
       <a class="btn" href="#/match/${matchId}">All stages</a>
-      <button class="btn" type="button" data-go="1" aria-label="Next stage"${i < m.stages.length ? '' : ' disabled'}>▶</button>
+      <button class="btn" type="button" data-go="1" aria-label="Next stage"${i < m.stages.length ? '' : ' disabled'}>${icon('next')}</button>
     </nav>`
 
   const go = (step: number) => {
@@ -440,7 +441,7 @@ function renderCardView(root: HTMLElement, matchId: string, n: number): void {
       btn.disabled = true
       try {
         const how = await shareCardImage(view)
-        btn.textContent = how === 'saved' ? 'Picture saved ✓' : 'Share picture'
+        btn.textContent = how === 'saved' ? 'Picture saved' : 'Share picture'
       } catch (err) {
         console.error(err)
         btn.textContent = 'Could not make the picture'

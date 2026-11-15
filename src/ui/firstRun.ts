@@ -8,6 +8,7 @@ import { FACTORY_LOADS } from '../library/ammo.ts'
 import { renderFactoryPicker } from './factoryPicker.ts'
 import { escapeHtml } from './format.ts'
 import { parseFormValues, readFormValues, renderFieldsByKey, showFieldErrors, toFormValues } from './shotForm.ts'
+import { icon } from '../design/icons.ts'
 
 const SAMPLE_LOAD_ID = 'hornady-65cm-140-eldm'
 
@@ -40,7 +41,7 @@ export function renderFirstRun(root: HTMLElement): void {
     <section class="card first-run">
       <h2 class="card-title">Welcome to Spin Drift</h2>
       <p>Let's set up your rifle — about a minute. You can skip any step; typical values are used until you change them in Rifles.</p>
-      <button class="btn btn-primary big-button" type="button" data-action="setup">Set up my rifle ▸</button>
+      <button class="btn btn-primary big-button" type="button" data-action="setup">Set up my rifle ${icon('next')}</button>
       <button class="btn big-button" type="button" data-action="sample">Try a sample rifle</button>
       <p class="hint">The sample is a 6.5 Creedmoor with Hornady's published factory figures, so you can look around first.</p>
     </section>`
@@ -101,11 +102,11 @@ function loadStep(root: HTMLElement, id: string): void {
     1,
     'Your load',
     `<label class="field"><span>Rifle name</span><input name="profileName" type="text" autocomplete="off" value="${escapeHtml(p.name)}" /></label>
-      <button class="btn" type="button" data-action="factory">⇩ Pick factory ammo</button>
+      <button class="btn" type="button" data-action="factory">${icon('download')} Pick factory ammo</button>
       <div data-factory></div>
       <p class="hint">…or type your load:</p>
       ${renderFieldsByKey(['muzzleVelocityFps', 'bc', 'dragModel', 'bulletWeightGr'], values)}
-      <button class="btn btn-primary big-button" type="button" data-action="next">Next ▸</button>
+      <button class="btn btn-primary big-button" type="button" data-action="next">Next ${icon('next')}</button>
       <button class="btn" type="button" data-action="skip">Skip (use typical values)</button>`,
   )
   root.querySelector('[data-action="factory"]')!.addEventListener('click', () =>
@@ -129,7 +130,7 @@ function scopeStep(root: HTMLElement, id: string): void {
         <h3 class="setting-title">Your turrets</h3>
         ${segmented({ name: 'unit', label: 'Turret units', selected: d.settings.angleUnit, options: [{ value: 'mil', label: 'MIL' }, { value: 'moa', label: 'MOA' }] })}
       </div>
-      <button class="btn btn-primary big-button" type="button" data-action="done">Done — go to Shoot ▸</button>
+      <button class="btn btn-primary big-button" type="button" data-action="done">Done ${icon('next')}</button>
       <button class="btn" type="button" data-action="skip">Skip (use typical values)</button>`,
   )
   root.addEventListener('click', function onClick(e) {

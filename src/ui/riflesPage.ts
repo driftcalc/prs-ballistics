@@ -8,6 +8,7 @@ import { revertableChange, revertLastChange, truingValue } from '../truing/apply
 import { renderFactoryPicker } from './factoryPicker.ts'
 import { escapeHtml } from './format.ts'
 import { parseFormValues, readFormValues, renderFieldsByKey, showFieldErrors, toFormValues, updateVisibility } from './shotForm.ts'
+import { icon } from '../design/icons.ts'
 
 // Last deleted rifle, for Undo (kept until another rifle is deleted or the app closes).
 let deleted: { profile: RifleProfile; index: number; wasActive: boolean; at: number } | undefined
@@ -53,7 +54,7 @@ function renderList(root: HTMLElement): void {
               const active = p.id === activeId
               return `<li class="rifle-item${active ? ' active' : ''}">
             <a class="btn rifle-open" href="#/rifles/${p.id}">
-              <span class="rifle-name"><strong>${escapeHtml(p.name)}</strong>${active ? '<span class="active-mark">● Active</span>' : ''}</span>
+              <span class="rifle-name"><strong>${escapeHtml(p.name)}</strong>${active ? `<span class="active-mark">${icon('dot')} Active</span>` : ''}</span>
               <span>${escapeHtml(rifleSummary(p.rifle))}</span></a>
             <div class="rifle-actions">
               ${active ? '<span class="btn rifle-using" aria-disabled="true">On Shoot</span>' : `<button class="btn" type="button" data-use="${p.id}">Use</button>`}
@@ -121,7 +122,7 @@ function renderEditor(root: HTMLElement, p: RifleProfile): void {
   const d = getData()
   const values = toFormValues(combine(p.rifle, d.conditions, d.shoot))
   root.innerHTML = `
-    <a class="btn back-link" href="#/rifles">← All rifles</a>
+    <a class="btn back-link" href="#/rifles">${icon('back')} All rifles</a>
     <div class="rifle-editor" data-editor>
       <section class="card">
         <h2 class="card-title">Rifle</h2>
@@ -140,7 +141,7 @@ function renderEditor(root: HTMLElement, p: RifleProfile): void {
         <h2 class="card-title">Load</h2>
         ${factoryBanner(p)}
         ${truingUndo(p)}
-        <button class="btn" type="button" data-action="factory">⇩ Fill from factory ammo</button>
+        <button class="btn" type="button" data-action="factory">${icon('download')} Fill from factory ammo</button>
         <div data-factory></div>
         ${renderFieldsByKey(['muzzleVelocityFps', 'bc', 'dragModel', 'bulletWeightGr'], values)}
         ${more('More: bullet size (spin drift)', renderFieldsByKey(['bulletDiameterIn', 'bulletLengthIn'], values))}

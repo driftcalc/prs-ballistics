@@ -9,6 +9,7 @@ import { conditionsSummary, openConditionsSheet } from './conditionsSheet.ts'
 import { elevWord, escapeHtml, holdParts } from './format.ts'
 import { printArea } from './print.ts'
 import { keepScreenAwake } from './wakeLock.ts'
+import { icon } from '../design/icons.ts'
 
 type Unit = 'mil' | 'moa'
 
@@ -49,9 +50,9 @@ export function renderRangeCardPage(root: HTMLElement, param?: string): void {
 
   root.innerHTML = `
     <div class="match-head">
-      <a class="btn info-btn" href="#/rifles/${profile.id}"><span><strong>${escapeHtml(profile.name)}</strong></span><span aria-hidden="true">▸</span></a>
+      <a class="btn info-btn" href="#/rifles/${profile.id}"><span><strong>${escapeHtml(profile.name)}</strong></span>${icon('next')}</a>
       <button class="btn info-btn" type="button" data-action="conditions" aria-haspopup="dialog" aria-label="Edit conditions">
-        <span data-conditions></span><span aria-hidden="true">▸</span></button>
+        <span data-conditions></span>${icon('next')}</button>
     </div>
     <div data-table aria-live="polite"><p class="card-working">Working out the card…</p></div>
     <div class="range-controls">

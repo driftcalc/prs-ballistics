@@ -838,6 +838,30 @@ main:has(.shoot-info) {
   gap: var(--gap);
 }
 
+.sg-icons {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  gap: var(--s2);
+}
+
+.sg-icons li {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s1);
+  padding: var(--s2);
+  border: var(--line-w) solid var(--line);
+  border-radius: var(--radius);
+}
+
+.sg-icons .icon {
+  width: var(--s6);
+  height: var(--s6);
+}
+
 /* ---------- Match ---------- */
 .match-list,
 .stage-list {

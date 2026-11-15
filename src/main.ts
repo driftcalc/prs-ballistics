@@ -15,6 +15,7 @@ import { renderShootPage } from './ui/shootPage.ts'
 import { renderStyleguidePage } from './ui/styleguidePage.ts'
 import { TABS } from './ui/tabs.ts'
 import { applyTheme, followPhoneTheme } from './ui/theme.ts'
+import { icon } from './design/icons.ts'
 
 interface Page {
   title: string
@@ -40,7 +41,7 @@ const PAGES: Record<string, Page> = {
 document.querySelector<HTMLDivElement>('#app')!.innerHTML = `
 <header class="appbar">
   <h1 class="appbar-title" data-page-title>Spin Drift</h1>
-  <button class="btn appbar-btn" type="button" data-action="settings" aria-label="Settings">⚙</button>
+  <button class="btn appbar-btn" type="button" data-action="settings" aria-label="Settings">${icon('settings')}</button>
 </header>
 <div data-banners></div>
 <main id="page"></main>
@@ -68,7 +69,7 @@ function showSafetyHints() {
     `<div class="banner" data-install-tip>
       <p><strong>Add Spin Drift to your Home Screen.</strong> In a browser tab (especially Safari on iPhone),
         your saved rifles and logbook can be erased after about a week without use. From the Home Screen they're kept.<br />
-        iPhone: Share ⎋ → Add to Home Screen. Android: ⋮ menu → Install app.</p>
+        iPhone: Share ${icon('share')} → Add to Home Screen. Android: ⋮ menu → Install app.</p>
       <button class="btn" type="button" data-action="dismiss-install">Got it</button>
     </div>`,
   )

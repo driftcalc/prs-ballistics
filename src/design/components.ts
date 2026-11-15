@@ -1,3 +1,4 @@
+import { icon, type IconName } from './icons.ts'
 // The app's reusable components. Each returns plain HTML using the classes in
 // components.css (all colours/sizes from tokens.css). Screens wire up clicks
 // with the data-* attributes these put on their buttons.
@@ -178,7 +179,7 @@ export function card(content: string, o: { title?: string; className?: string } 
 export interface Tab {
   id: string
   label: string
-  icon: string
+  icon: IconName
 }
 
 /** Bottom tab bar (max 4 tabs). Links to #/id; the current one is aria-current="page". */
@@ -189,7 +190,7 @@ export function tabBar(tabs: Tab[], current: string): string {
       .map(
         (t) =>
           `<a class="tab" href="#/${esc(t.id)}" data-tab="${esc(t.id)}"${t.id === current ? ' aria-current="page"' : ''}>
-            <span class="tab-icon" aria-hidden="true">${t.icon}</span><span class="tab-label">${esc(t.label)}</span></a>`,
+            <span class="tab-icon" aria-hidden="true">${icon(t.icon)}</span><span class="tab-label">${esc(t.label)}</span></a>`,
       )
       .join('')}
   </nav>`
@@ -215,7 +216,7 @@ export function openSheet(o: { title: string; content: string; onClose?: () => v
   if (o.theme) wrap.dataset.theme = o.theme
   wrap.innerHTML = `<section class="sheet${o.field ? ' field-screen' : ''}" role="dialog" aria-modal="true" aria-label="${esc(o.title)}">
       <header class="sheet-head"><h2 class="sheet-title">${esc(o.title)}</h2>
-        <button class="btn sheet-close" type="button" data-sheet-close aria-label="Close">✕</button></header>
+        <button class="btn sheet-close" type="button" data-sheet-close aria-label="Close">${icon('close')}</button></header>
       <div class="sheet-body">${o.content}</div>
     </section>`
   const opener = document.activeElement as HTMLElement | null

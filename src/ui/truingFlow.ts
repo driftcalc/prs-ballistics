@@ -12,6 +12,7 @@ import { analyseTruing, truingPoints, type TruingResult } from '../truing/truing
 import { escapeHtml } from './format.ts'
 import { logProfile } from './logPage.ts'
 import { fromMil, holdLabel } from './logShotSheet.ts'
+import { icon } from '../design/icons.ts'
 
 type Unit = 'mil' | 'moa'
 const fieldName = (f: 'muzzleVelocityFps' | 'bc') => (f === 'muzzleVelocityFps' ? 'muzzle velocity' : 'BC')
@@ -33,7 +34,7 @@ export function renderTruingFlow(root: HTMLElement): void {
 }
 
 function frame(n: number, title: string, body: string): string {
-  return `<a class="btn back-link" href="#/log">← Logbook</a>
+  return `<a class="btn back-link" href="#/log">${icon('back')} Logbook</a>
     <section class="card flow">
       <p class="flow-step">Truing · step ${n} of 3</p>
       <h2 class="card-title">${title}</h2>
@@ -68,7 +69,7 @@ function pickStep(root: HTMLElement, profile: RifleProfile): void {
               ${new Date(e.createdAt).toLocaleDateString(undefined, { day: 'numeric', month: 'short' })} · ${e.conditions.temperatureF}°F</span></label></li>`,
           )
           .join('')}</ul>
-        <button class="btn btn-primary big-button" type="button" data-action="next">Next: see the chart ▸</button>`
+        <button class="btn btn-primary big-button" type="button" data-action="next">Next ${icon('next')}</button>`
       : `<p>No confirmed hits for this rifle yet. Log shots from the Shoot screen and mark them <strong>Hit</strong>.
           Truing needs at least 3 hits spread over 100 yd or more.</p>
         <a class="btn btn-primary big-button" href="#/shoot">Go to Shoot</a>`,
@@ -118,8 +119,8 @@ async function reviewStep(root: HTMLElement, profileId: string, chosen: DopeEntr
           .join('')}
       </tbody></table>
       <p class="hint">Elevation in ${u}. Windage isn't trued — wind is too uncertain to learn from.</p>
-      <button class="btn btn-primary big-button" type="button" data-action="next">Next: the verdict ▸</button>
-      <button class="btn" type="button" data-action="back">◀ Back to the shots</button>`,
+      <button class="btn btn-primary big-button" type="button" data-action="next">Next ${icon('next')}</button>
+      <button class="btn" type="button" data-action="back">${icon('prev')} Back</button>`,
   )
   const chart = root.querySelector<HTMLElement>('[data-chart]')!
   chart.innerHTML = chartSvg(r, unit, chart.clientWidth || 320)
@@ -174,7 +175,7 @@ function verdictStep(root: HTMLElement, profileId: string, r: TruingResult): voi
     'The verdict',
     `<p class="truing-headline verdict-${r.verdict}"><strong>${escapeHtml(r.headline)}</strong></p>
       <p>${escapeHtml(r.explanation)}</p>
-      ${r.warning ? `<p class="truing-warning">⚠ ${escapeHtml(r.warning)}</p>` : ''}
+      ${r.warning ? `<p class="truing-warning">${icon('warning')} ${escapeHtml(r.warning)}</p>` : ''}
       ${
         s
           ? `<button class="btn btn-primary big-button" type="button" data-action="apply">Change ${fieldName(s.field)} ${truingValue(s.field, s.current)} → ${truingValue(s.field, s.suggested)}</button>

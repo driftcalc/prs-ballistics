@@ -2,6 +2,7 @@
 // so the design can be reviewed on a real phone. Not linked from the tab bar.
 // The controls work, but nothing here is saved.
 import { card, chipRow, clockDial, openSheet, readout, readoutPair, segmented, setClock, setSelected, showUndoToast, stepper, tabBar } from '../design/components.ts'
+import { icon, ICON_NAMES } from '../design/icons.ts'
 import { stageCardHtml, type CardView } from './stageCard.ts'
 import { TABS } from './tabs.ts'
 
@@ -56,6 +57,9 @@ function panel(theme: string, title: string): string {
 
     <h3>Stage card</h3>
     ${stageCardHtml(SAMPLE_CARD)}
+
+    <h3>Icons</h3>
+    <ul class="sg-icons">${ICON_NAMES.map((n) => `<li>${icon(n)}<span>${n}</span></li>`).join('')}</ul>
 
     <h3>Buttons</h3>
     <div class="sg-row">

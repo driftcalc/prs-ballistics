@@ -12,6 +12,7 @@ import { analyseTruing, truingPoints } from '../truing/truing.ts'
 import { escapeHtml } from './format.ts'
 import { fromMil, holdLabel, toMil } from './logShotSheet.ts'
 import { renderTruingFlow, resetTruingPicks } from './truingFlow.ts'
+import { icon } from '../design/icons.ts'
 
 type Unit = 'mil' | 'moa'
 
@@ -66,11 +67,11 @@ function renderList(root: HTMLElement): void {
 
   root.innerHTML = `
     <button class="btn info-btn" type="button" data-action="pick-rifle" aria-haspopup="dialog" aria-label="Change rifle">
-      <span><strong>${escapeHtml(profile.name)}</strong> · ${entries.length} shot${entries.length === 1 ? '' : 's'}</span><span aria-hidden="true">▾</span></button>
+      <span><strong>${escapeHtml(profile.name)}</strong> · ${entries.length} shot${entries.length === 1 ? '' : 's'}</span>${icon('down')}</button>
     <section class="card truing-summary" data-truing>
       <h2 class="card-title">Truing</h2>
       <p data-truing-status>Checking your confirmed hits…</p>
-      <a class="btn btn-primary big-button" href="#/log/true">True this rifle ▸</a>
+      <a class="btn btn-primary big-button" href="#/log/true">True this rifle ${icon('next')}</a>
     </section>
     ${
       entries.length
@@ -93,7 +94,7 @@ function renderList(root: HTMLElement): void {
             .join('')}</ul></section>`,
             )
             .join('')
-        : `<section class="card"><p>No shots logged for this rifle yet. On the Shoot screen, tap <strong>✎ Log shot</strong> after you fire.</p></section>`
+        : `<section class="card"><p>No shots logged for this rifle yet. On the Shoot screen, tap <strong>Log shot</strong> after you fire.</p></section>`
     }`
 
   root.querySelector('[data-action="pick-rifle"]')!.addEventListener('click', () => {
@@ -154,7 +155,7 @@ function renderEntryForm(root: HTMLElement, existing?: DopeEntry): void {
   const holdText = (mil: number | null, kind: 'elev' | 'wind') => (mil === null ? '' : holdLabel(fromMil(mil, unit), unit, kind))
 
   root.innerHTML = `
-    <a class="btn back-link" href="#/${existing ? 'log' : 'shoot'}">← ${existing ? 'Logbook' : 'Shoot'}</a>
+    <a class="btn back-link" href="#/${existing ? 'log' : 'shoot'}">${icon('back')} ${existing ? 'Logbook' : 'Shoot'}</a>
     <section class="card stack">
       <h2 class="card-title">${existing ? 'Logged shot' : 'Log this shot'} — ${escapeHtml(name)}</h2>
       <p>${conditions.temperatureF}°F · ${air} · ${conditions.humidityPct}% RH · wind ${wind.windSpeedMph} mph from ${wind.windClock} o'clock${

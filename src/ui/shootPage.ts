@@ -13,6 +13,7 @@ import { escapeHtml, elevWord, holdParts, timeText, velocityText } from './forma
 import { renderFirstRun } from './firstRun.ts'
 import { openLogShotSheet } from './logShotSheet.ts'
 import { keepScreenAwake } from './wakeLock.ts'
+import { icon } from '../design/icons.ts'
 
 /**
  * Splits the WIND hold into its parts, e.g. "Hold = wind R 1.0 + spin drift L 0.1"
@@ -45,9 +46,9 @@ export function renderShootPage(root: HTMLElement): void {
     <!-- Top half: read only -->
     <div class="shoot-info">
       <button class="btn info-btn" type="button" data-action="pick-rifle" aria-haspopup="dialog" aria-label="Change rifle">
-        <span data-rifle-name>${escapeHtml(profile.name)}</span><span aria-hidden="true">▾</span></button>
+        <span data-rifle-name>${escapeHtml(profile.name)}</span>${icon('down')}</button>
       <button class="btn info-btn" type="button" data-action="conditions" aria-haspopup="dialog" aria-label="Edit conditions">
-        <span data-conditions></span><span aria-hidden="true">▸</span></button>
+        <span data-conditions></span>${icon('next')}</button>
     </div>
     <p class="shoot-range"><span data-range-big>${d.shoot.rangeYd}</span> <span class="shoot-range-unit">yd</span></p>
     ${readoutPair(
@@ -79,7 +80,7 @@ export function renderShootPage(root: HTMLElement): void {
       ${segmented({ name: 'mode', label: 'Dial or hold', selected: d.settings.holdMode, options: [{ value: 'dial', label: 'DIAL' }, { value: 'hold', label: 'HOLD' }] })}
       ${segmented({ name: 'unit', label: 'Units', selected: d.settings.angleUnit, options: [{ value: 'mil', label: 'MIL' }, { value: 'moa', label: 'MOA' }] })}
     </section>
-    <div class="log-shot-bar"><button class="btn btn-primary log-shot" type="button" data-action="log-shot" aria-haspopup="dialog">✎ Log shot</button></div>`
+    <div class="log-shot-bar"><button class="btn btn-primary log-shot" type="button" data-action="log-shot" aria-haspopup="dialog">${icon('log')} Log shot</button></div>`
 
   const $ = <T extends HTMLElement>(sel: string) => root.querySelector<T>(sel)!
   const rangeBox = $<HTMLInputElement>('[name="range"]')
@@ -173,7 +174,7 @@ export function renderShootPage(root: HTMLElement): void {
       content: `<div class="sheet-list">${data.profiles
         .map((p) => `<button class="btn" type="button" data-rifle="${p.id}" aria-pressed="${p.id === current}">${escapeHtml(p.name)}</button>`)
         .join('')}</div>
-        <a class="btn" href="#/card/${current ?? ''}" data-go>▦ Range card</a>
+        <a class="btn" href="#/card/${current ?? ''}" data-go>${icon('table')} Range card</a>
         <a class="btn" href="#/rifles" data-go>Manage rifles</a>`,
     })
     sheet.body.addEventListener('click', (e) => {

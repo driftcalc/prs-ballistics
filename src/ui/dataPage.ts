@@ -16,6 +16,7 @@ import { downloadFile } from './download.ts'
 import { escapeHtml } from './format.ts'
 import { applyTheme } from './theme.ts'
 import { backupOverdue, daysSinceBackup } from './safety.ts'
+import { icon } from '../design/icons.ts'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
@@ -25,7 +26,7 @@ function lastBackupText(): string {
   const base = at ? `Last full backup: ${new Date(at).toLocaleString()}.` : 'No full backup exported yet.'
   if (!backupOverdue(d)) return base
   const days = daysSinceBackup(d)
-  return `${base} ⚠ ${days === undefined ? 'Export one now' : `That was ${days} days ago — export a fresh one`} so a lost or reset phone doesn't take your data with it.`
+  return `${base} ${icon('warning')} ${days === undefined ? 'Export one now' : `That was ${days} days ago — export a fresh one`} so a lost or reset phone doesn't take your data with it.`
 }
 
 /** Copies of saved data the app couldn't read (kept instead of being thrown away). */
@@ -158,6 +159,6 @@ export function renderDataPage(root: HTMLElement): void {
 
   function done(message: string) {
     renderDataPage(root)
-    root.querySelector('[data-import-result]')!.innerHTML = `<p class="ok-note">✓ ${escapeHtml(message)}</p>`
+    root.querySelector('[data-import-result]')!.innerHTML = `<p class="ok-note">${icon('check')} ${escapeHtml(message)}</p>`
   }
 }

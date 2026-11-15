@@ -13,6 +13,7 @@ import {
   type ReferenceRow,
 } from '../accuracy/compare.ts'
 import { getEngine } from '../ballistics/index.ts'
+import { icon } from '../design/icons.ts'
 import { combine, DEFAULT_RIFLE, newId } from '../data/profiles.ts'
 import { currentProfile, getData, updateData } from '../data/store.ts'
 import { downloadFile } from './download.ts'
@@ -268,7 +269,7 @@ function renderEditor(root: HTMLElement, id: string): void {
   }
 
   function showDiff(td: HTMLElement, diff: number | null, ok: boolean | null) {
-    td.textContent = diff === null ? '' : `${signed(diff)}${ok ? '' : ' ⚠'}`
+    td.innerHTML = diff === null ? '' : `${signed(diff)}${ok ? '' : ` ${icon('warning')}`}`
     td.className = ok === null ? '' : ok ? 'flag-good' : 'flag-bad'
   }
 
@@ -282,7 +283,7 @@ function renderEditor(root: HTMLElement, id: string): void {
     const btn = e.currentTarget as HTMLButtonElement
     try {
       await navigator.clipboard.writeText(caseJson(current))
-      btn.textContent = 'Copied ✓'
+      btn.textContent = 'Copied'
     } catch {
       btn.textContent = 'Copy failed — use Export'
     }
