@@ -3,7 +3,7 @@
 // and Apply the suggested change (or Undo a change made earlier).
 // The analysis itself is the existing truing assistant (src/truing/truing.ts);
 // nothing changes on the rifle until Apply is tapped.
-import { showUndoToast } from '../design/components.ts'
+import { emptyState, showUndoToast } from '../design/components.ts'
 import type { DopeEntry } from '../data/log.ts'
 import type { RifleProfile } from '../data/profiles.ts'
 import { getData, updateData } from '../data/store.ts'
@@ -70,9 +70,7 @@ function pickStep(root: HTMLElement, profile: RifleProfile): void {
           )
           .join('')}</ul>
         <button class="btn btn-primary big-button" type="button" data-action="next">Next ${icon('next')}</button>`
-      : `<p>No confirmed hits for this rifle yet. Log shots from the Shoot screen and mark them <strong>Hit</strong>.
-          Truing needs at least 3 hits spread over 100 yd or more.</p>
-        <a class="btn btn-primary big-button" href="#/shoot">Go to Shoot</a>`,
+      : emptyState({ icon: 'log', text: 'No hits logged yet. Truing needs at least 3 hits, spread over 100 yd or more.', label: 'Go to Shoot', href: '#/shoot' }),
   )
   root.addEventListener('change', (ev) => {
     const box = ev.target as HTMLInputElement
@@ -184,7 +182,7 @@ function verdictStep(root: HTMLElement, profileId: string, r: TruingResult): voi
       }
       ${
         undo
-          ? `<button class="btn" type="button" data-action="revert">Undo the last truing change (back to ${truingValue(undo.field, undo.from)})</button>`
+          ? `<button class="btn" type="button" data-action="revert">Undo last truing (${truingValue(undo.field, undo.from)})</button>`
           : ''
       }
       <a class="btn" href="#/log">Done</a>`,

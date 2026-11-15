@@ -19,6 +19,7 @@ import { currentProfile, getData, updateData } from '../data/store.ts'
 import { downloadFile } from './download.ts'
 import { escapeHtml, signed } from './format.ts'
 import { parseFormValues, readFormValues, renderShotFields, toFormValues, updateVisibility } from './shotForm.ts'
+import { emptyState } from '../design/components.ts'
 
 const BUILTIN_PREFIX = 'builtin-'
 
@@ -60,7 +61,7 @@ function renderList(root: HTMLElement): void {
       <h2>Check accuracy</h2>
       <p>Compare our answers with Hornady or Applied Ballistics at 100–1000 yd.
         Any difference over <strong>${TOLERANCE_MIL} mil</strong> is flagged red.</p>
-      <button class="primary" data-action="new">New comparison</button>
+      ${ids.length ? '<button class="btn btn-primary big-button" type="button" data-action="new">New comparison</button>' : ''}
     </section>
     ${TIPS}
     <ul class="case-list">
@@ -73,7 +74,7 @@ function renderList(root: HTMLElement): void {
                   <small>${escapeHtml(cases[id].source)}${id.startsWith(BUILTIN_PREFIX) ? ' · saved test case' : ''}</small></a></li>`,
               )
               .join('')
-          : '<li><small>No comparisons yet.</small></li>'
+          : `<li>${emptyState({ icon: 'check', text: 'No comparisons yet. Enter the same rifle in Hornady or AB and compare.', label: 'New comparison', action: 'new' })}</li>`
       }
     </ul>`
 

@@ -171,6 +171,17 @@ export function showUndoToast(o: { text: string; onUndo: () => void; ms?: number
   return close
 }
 
+/**
+ * Empty state: an icon, one short sentence, and ONE main action (a link with
+ * `href`, or a button with `action` → data-action).
+ */
+export function emptyState(o: { icon: IconName; text: string; label: string; href?: string; action?: string }): string {
+  const btn = o.href
+    ? `<a class="btn btn-primary big-button" href="${esc(o.href)}">${esc(o.label)}</a>`
+    : `<button class="btn btn-primary big-button" type="button" data-action="${esc(o.action ?? '')}">${esc(o.label)}</button>`
+  return `<section class="empty-state">${icon(o.icon, { className: 'empty-icon' })}<p>${esc(o.text)}</p>${btn}</section>`
+}
+
 /** Card: a flat, outlined box. */
 export function card(content: string, o: { title?: string; className?: string } = {}): string {
   return `<section class="card${o.className ? ' ' + o.className : ''}">${o.title ? `<h2 class="card-title">${esc(o.title)}</h2>` : ''}${content}</section>`

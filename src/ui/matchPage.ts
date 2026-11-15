@@ -4,7 +4,7 @@
 //   #/match/<id>/stage/new   fast stage entry (also /stage/<n> to edit)
 //   #/match/<id>/card/<n>    full-screen stage card, swipe between stages
 import { BallisticsError } from '../ballistics/index.ts'
-import { openSheet } from '../design/components.ts'
+import { openSheet, emptyState } from '../design/components.ts'
 import { cardIsStale, type Match, type Stage } from '../data/match.ts'
 import { newId, type RifleProfile } from '../data/profiles.ts'
 import { currentProfile, getData, updateData, type AppData } from '../data/store.ts'
@@ -87,21 +87,21 @@ function renderList(root: HTMLElement): void {
             <button class="btn" type="button" data-action="undo">Undo</button></div>`
         : ''
     }
-    <button class="btn btn-primary big-button" type="button" data-action="new">+ New match</button>
+    ${
+      d.matches.length
+        ? `<button class="btn btn-primary big-button" type="button" data-action="new">+ New match</button>
     <section class="card">
       <h2 class="card-title">Matches</h2>
-      ${
-        d.matches.length
-          ? `<ul class="match-list">${d.matches
+      <ul class="match-list">${d.matches
               .map((m) => {
                 const rifle = rifleOf(d, m)?.name ?? 'rifle deleted'
                 return `<li><a class="btn match-item" href="#/match/${m.id}"><strong>${escapeHtml(m.name)}</strong>
                   <span>${shortDate(m.date)} · ${m.stages.length} stage${m.stages.length === 1 ? '' : 's'} · ${escapeHtml(rifle)}</span></a></li>`
               })
-              .join('')}</ul>`
-          : `<p>No matches yet. Before match day, type each stage's targets once and get a stage card for your wrist coach.</p>`
-      }
+              .join('')}</ul>
     </section>`
+        : emptyState({ icon: 'match', text: "No matches yet. Type each stage's targets once and get a stage card for your wrist coach.", label: '+ New match', action: 'new' })
+    }`
 
   root.addEventListener('click', (e) => {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
@@ -197,9 +197,9 @@ function renderMatch(root: HTMLElement, matchId: string): void {
           <a class="btn stage-edit" href="#/match/${m.id}/stage/${i + 1}" aria-label="Edit ${escapeHtml(s.name)}">Edit</a></li>`,
             )
             .join('')}</ol>`
-        : '<p>No stages yet.</p>'
+        : emptyState({ icon: 'match', text: 'No stages yet. Add each stage and its targets.', label: '+ Add stage', href: `#/match/${m.id}/stage/new` })
     }
-    <a class="btn btn-primary big-button" href="#/match/${m.id}/stage/new">+ Add stage</a>
+    ${m.stages.length ? `<a class="btn btn-primary big-button" href="#/match/${m.id}/stage/new">+ Add stage</a>` : ''}
     ${
       m.stages.length
         ? `<div class="match-actions">
@@ -291,7 +291,7 @@ function renderStageEditor(root: HTMLElement, matchId: string, n: string): void 
       <p class="ok-note" data-saved role="status"></p>
       <button class="btn btn-primary big-button" type="submit">Next stage ${icon('next')}</button>
       <div class="actions">
-        <button class="btn" type="button" data-action="done">Save · done</button>
+        <button class="btn" type="button" data-action="done">Done</button>
         <a class="btn" href="#/match/${matchId}">Cancel</a>
         <button class="btn btn-danger" type="button" data-action="delete-stage"${s0 ? '' : ' hidden'}>Delete stage</button>
       </div>

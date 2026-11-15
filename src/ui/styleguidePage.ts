@@ -1,7 +1,7 @@
 // Hidden style guide (#/styleguide): every component in Sun, Dark and Night,
 // so the design can be reviewed on a real phone. Not linked from the tab bar.
 // The controls work, but nothing here is saved.
-import { card, chipRow, clockDial, openSheet, readout, readoutPair, segmented, setClock, setSelected, showUndoToast, stepper, tabBar } from '../design/components.ts'
+import { card, chipRow, clockDial, emptyState, openSheet, readout, readoutPair, segmented, setClock, setSelected, showUndoToast, stepper, tabBar } from '../design/components.ts'
 import { icon, ICON_NAMES } from '../design/icons.ts'
 import { stageCardHtml, type CardView } from './stageCard.ts'
 import { TABS } from './tabs.ts'
@@ -60,6 +60,9 @@ function panel(theme: string, title: string): string {
 
     <h3>Icons</h3>
     <ul class="sg-icons">${ICON_NAMES.map((n) => `<li>${icon(n)}<span>${n}</span></li>`).join('')}</ul>
+
+    <h3>Empty state</h3>
+    ${emptyState({ icon: 'match', text: "No matches yet. Type each stage's targets once and get a stage card.", label: '+ New match', href: '#/styleguide' })}
 
     <h3>Buttons</h3>
     <div class="sg-row">

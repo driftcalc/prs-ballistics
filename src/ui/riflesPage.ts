@@ -9,6 +9,7 @@ import { renderFactoryPicker } from './factoryPicker.ts'
 import { escapeHtml } from './format.ts'
 import { parseFormValues, readFormValues, renderFieldsByKey, showFieldErrors, toFormValues, updateVisibility } from './shotForm.ts'
 import { icon } from '../design/icons.ts'
+import { emptyState } from '../design/components.ts'
 
 // Last deleted rifle, for Undo (kept until another rifle is deleted or the app closes).
 let deleted: { profile: RifleProfile; index: number; wasActive: boolean; at: number } | undefined
@@ -46,10 +47,10 @@ function renderList(root: HTMLElement): void {
             <button class="btn" type="button" data-action="undo">Undo</button></div>`
         : ''
     }
-    <button class="btn btn-primary big-button" type="button" data-action="add">+ Add rifle</button>
     ${
       d.profiles.length
-        ? `<ul class="rifle-list">${d.profiles
+        ? `<button class="btn btn-primary big-button" type="button" data-action="add">+ Add rifle</button>
+    <ul class="rifle-list">${d.profiles
             .map((p) => {
               const active = p.id === activeId
               return `<li class="rifle-item${active ? ' active' : ''}">
@@ -62,7 +63,7 @@ function renderList(root: HTMLElement): void {
             </div></li>`
             })
             .join('')}</ul>`
-        : '<p>No rifles yet. Tap <strong>+ Add rifle</strong>.</p>'
+        : emptyState({ icon: 'rifles', text: 'No rifles yet. Add your rifle and load to get holds.', label: '+ Add rifle', action: 'add' })
     }
     <p class="hint">The weather is set on the Shoot screen and shared by all rifles.</p>`
 
@@ -112,7 +113,7 @@ function truingUndo(p: RifleProfile): string {
   const c = revertableChange(p)
   if (!c) return ''
   const what = c.field === 'muzzleVelocityFps' ? 'velocity' : 'BC'
-  return `<button class="btn" type="button" data-action="revert-truing">Undo truing: ${what} back to ${truingValue(c.field, c.from)}</button>`
+  return `<button class="btn" type="button" data-action="revert-truing">Undo truing (${what} ${truingValue(c.field, c.from)})</button>`
 }
 
 const more = (summary: string, body: string) =>

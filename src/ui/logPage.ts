@@ -4,7 +4,7 @@
 //   #/log/new    old full-page "log a shot" (Shoot now uses a bottom sheet)
 //   #/log/<id>   edit an entry
 import { parseMil } from '../accuracy/compare.ts'
-import { openSheet, segmented, setSelected, showUndoToast } from '../design/components.ts'
+import { openSheet, segmented, setSelected, showUndoToast, emptyState } from '../design/components.ts'
 import { predict, type DopeEntry, type Prediction } from '../data/log.ts'
 import { newId, type Conditions, type RifleData, type WindInputs } from '../data/profiles.ts'
 import { currentProfile, getData, updateData, type AppData } from '../data/store.ts'
@@ -54,8 +54,7 @@ function renderList(root: HTMLElement): void {
   const mode = d.settings.holdMode
   const profile = logProfile(d)
   if (!profile) {
-    root.innerHTML = `<section class="card"><h2 class="card-title">Logbook</h2><p>Add a rifle first.</p>
-      <a class="btn btn-primary big-button" href="#/rifles">Add a rifle</a></section>`
+    root.innerHTML = emptyState({ icon: 'rifles', text: 'Add your rifle first, then log shots from Shoot.', label: '+ Add rifle', href: '#/rifles' })
     return
   }
   const entries = d.log.filter((e) => e.profileId === profile.id).sort((a, b) => b.createdAt.localeCompare(a.createdAt))
@@ -68,11 +67,15 @@ function renderList(root: HTMLElement): void {
   root.innerHTML = `
     <button class="btn info-btn" type="button" data-action="pick-rifle" aria-haspopup="dialog" aria-label="Change rifle">
       <span><strong>${escapeHtml(profile.name)}</strong> · ${entries.length} shot${entries.length === 1 ? '' : 's'}</span>${icon('down')}</button>
-    <section class="card truing-summary" data-truing>
+    ${
+      entries.length
+        ? `<section class="card truing-summary" data-truing>
       <h2 class="card-title">Truing</h2>
       <p data-truing-status>Checking your confirmed hits…</p>
       <a class="btn btn-primary big-button" href="#/log/true">True this rifle ${icon('next')}</a>
-    </section>
+    </section>`
+        : ''
+    }
     ${
       entries.length
         ? [...days.entries()]
@@ -94,7 +97,7 @@ function renderList(root: HTMLElement): void {
             .join('')}</ul></section>`,
             )
             .join('')
-        : `<section class="card"><p>No shots logged for this rifle yet. On the Shoot screen, tap <strong>Log shot</strong> after you fire.</p></section>`
+        : emptyState({ icon: 'log', text: 'No shots logged for this rifle yet. On Shoot, tap Log shot after you fire.', label: 'Go to Shoot', href: '#/shoot' })
     }`
 
   root.querySelector('[data-action="pick-rifle"]')!.addEventListener('click', () => {

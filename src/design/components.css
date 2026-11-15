@@ -535,3 +535,24 @@ body.sheet-open {
   vertical-align: -0.25em;
 }
 
+
+/* ---------- Empty state: icon, one sentence, one main action ---------- */
+.empty-state {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: var(--s4);
+  padding: var(--s6) var(--s4);
+  border: var(--line-w) dashed var(--line);
+  border-radius: var(--radius);
+  text-align: center;
+}
+
+.empty-state .btn {
+  width: 100%;
+}
+
+.empty-icon {
+  width: var(--s6);
+  height: var(--s6);
+}

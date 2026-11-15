@@ -115,6 +115,21 @@ const FIRST_RUN: typeof STATES = [
   { name: 'First run · scope & zero', open: async (p) => { await click(p, '[data-action="skip"]'); await wait(p) } },
 ]
 
+const NO_RIFLE: typeof STATES = [
+  { name: 'Empty · Rifles (no rifles)', open: (p) => go(p, '#/rifles') },
+  { name: 'Empty · Log (no rifle)', open: (p) => go(p, '#/log') },
+  { name: 'Empty · Range card (no rifle)', open: (p) => go(p, '#/card/r1') },
+]
+
+const EMPTY: Record<'all' | 'stages', typeof STATES> = {
+  all: [
+    { name: 'Empty · Match list', open: (p) => go(p, '#/match') },
+    { name: 'Empty · Log (no shots)', open: (p) => go(p, '#/log') },
+    { name: 'Empty · Truing (no hits)', open: (p) => go(p, '#/log/true') },
+  ],
+  stages: [{ name: 'Empty · Match with no stages', open: (p) => go(p, '#/match/m1') }],
+}
+
 async function runStates(page: Page, theme: Theme, states: typeof STATES, label: string): Promise<{ state: string; findings: Finding[] }[]> {
   const results: { state: string; findings: Finding[] }[] = []
   for (const s of states) {
@@ -144,10 +159,18 @@ for (const theme of THEMES) {
         await page.goto('#/shoot')
         const results = await runStates(page, theme, STATES, label)
 
-        // First run needs a phone with no rifles yet.
+        // First run and "no rifle" screens need a phone with no rifles yet.
         await page.evaluate((data) => localStorage.setItem('prs.data', data), seed(false))
         await page.reload()
-        results.push(...(await runStates(page, theme, FIRST_RUN, label)))
+        results.push(...(await runStates(page, theme, [...NO_RIFLE, ...FIRST_RUN], label)))
+
+        // Empty states: rifles, but nothing logged and no matches; then a match with no stages.
+        for (const empty of ['all', 'stages'] as const) {
+          const data = JSON.stringify(seedData({ theme, glove: mode.glove, leftHanded: mode.leftHanded, empty }))
+          await page.evaluate((d) => localStorage.setItem('prs.data', d), data)
+          await page.reload()
+          results.push(...(await runStates(page, theme, EMPTY[empty], label)))
+        }
 
         mkdirSync('field-report', { recursive: true })
         writeFileSync(`field-report/${label.replace(/[^\w]+/g, '-')}.json`, JSON.stringify(results, null, 2))

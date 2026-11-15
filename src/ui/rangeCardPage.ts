@@ -1,7 +1,7 @@
 // Range card (#/card/<rifle id>): elevation and wind both sides at the card
 // wind speeds, every 25 or 50 yd from 100 yd to the max. Worked out live from
 // the current conditions, so it is never out of date. Printable.
-import { segmented, setSelected, stepper } from '../design/components.ts'
+import { segmented, setSelected, stepper, emptyState } from '../design/components.ts'
 import type { CardRow } from '../data/match.ts'
 import { currentProfile, getData, RANGE_CARD_MAX_YD, RANGE_CARD_MIN_YD, updateData } from '../data/store.ts'
 import { computeRangeCard, type RangeCard } from '../match/rangeCard.ts'
@@ -43,8 +43,7 @@ export function renderRangeCardPage(root: HTMLElement, param?: string): void {
   const d0 = getData()
   const profile = d0.profiles.find((p) => p.id === param) ?? currentProfile(d0)
   if (!profile) {
-    root.innerHTML = `<section class="card"><h2 class="card-title">Range card</h2><p>Add a rifle first.</p>
-      <a class="btn btn-primary big-button" href="#/rifles">Add a rifle</a></section>`
+    root.innerHTML = emptyState({ icon: 'table', text: 'Add your rifle first to get a range card.', label: '+ Add rifle', href: '#/rifles' })
     return
   }
 
@@ -69,7 +68,7 @@ export function renderRangeCardPage(root: HTMLElement, param?: string): void {
       <h2 class="control-label">Out to</h2>
       ${stepper({ name: 'rcmax', label: 'Max range', value: String(d0.settings.rangeCard.maxYd), unit: 'yd', minusLabel: 'Shorter', plusLabel: 'Farther' })}
     </section>
-    <button class="btn big-button" type="button" data-action="print" disabled>Print (MIL and MOA)</button>`
+    <button class="btn big-button" type="button" data-action="print" disabled>Print</button>`
 
   let latest = 0
   let shown: RangeCard | undefined
