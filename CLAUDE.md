@@ -34,9 +34,11 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
 
 - **Tokens only.** Every colour, size, space and timing comes from
   `src/design/tokens.css` (`--bg`, `--surface`, `--text`, `--text-2`, `--line`,
-  `--accent`, `--on-accent`, `--danger`, `--good`, `--s1..--s6`, `--touch`, `--gap`,
+  `--accent`, `--on-accent`, `--danger`, `--good`, `--s1 --s2 --s4 --s5 --s6`, `--touch`, `--gap`,
   `--control-primary`, `--fs-*`, `--motion`). Never hard-code a colour or px size
   in a screen.
+- **8px grid:** spacing is 8 / 16 / 24 / 32 (`--s2 --s4 --s5 --s6`); `--s1` (4px)
+  only for tight gaps inside text. There is no 12px step (`--s3` was retired).
 - **Themes:** Sun (black on white), Dark (default; white on black, amber accent),
   Night (pure red on pure black). Set by `data-theme` on `<html>`; setting
   `auto` follows the phone. **Night has no green or blue in any colour.**
@@ -57,9 +59,16 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
 - **Components** (`src/design/components.ts` + `components.css`): readout,
   readoutPair, stepper, chipRow, segmented, clockDial (12 hours round a circle;
   a 4×4 clock-face grid of 96px buttons in Glove mode), card, tabBar (max 4
-  tabs), openSheet (bottom sheet; `field: true` for 18px text), showUndoToast. Use these instead of one-off markup; new
-  buttons use `.btn`, `.btn-primary`, `.btn-danger`. Add any new component to
-  the style guide.
+  tabs), openSheet (bottom sheet; `field: true` for 18px text), showUndoToast,
+  emptyState (icon + one sentence + ONE main action, for every empty screen).
+  Use these instead of one-off markup; new buttons use `.btn`, `.btn-primary`,
+  `.btn-danger`. Add any new component to the style guide.
+- **Icons:** only the app's own line icons, `icon(name)` from `src/design/icons.ts`
+  (24-unit grid, 2-unit round lines, `currentColor`). Never typed symbols like
+  ⚙ ✎ ⚠ ✓ — phones draw them differently and iPhone can turn some into colour
+  emoji (which breaks Night). Arrows inside sentences (2700 → 2617) stay text.
+- **App icon:** `public/icon.svg` (mil reticle on #121814); the phone icons are
+  generated from it at build, padded in the Dark colour (`vite.config.ts`).
 - **Colour-coded holds:** ELEV uses `--elev` (orange), WIND uses `--wind` (blue);
   both pure red in Night. Labels always stay, so colour never carries meaning alone.
 - **Shoot screen** (brief prompt 2): top half reads (rifle · conditions line,
