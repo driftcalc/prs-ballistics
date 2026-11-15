@@ -58,7 +58,7 @@ p {
 
 a {
   color: var(--accent);
-  text-underline-offset: 3px;
+  text-underline-offset: var(--s1);
 }
 
 /* ---------- App shell ---------- */
@@ -70,7 +70,7 @@ a {
   max-width: 640px;
   margin: 0 auto;
   /* Clear of notches; room at the bottom for the fixed tab bar. */
-  padding: max(var(--s3), env(safe-area-inset-top)) max(var(--s4), env(safe-area-inset-right))
+  padding: max(var(--s4), env(safe-area-inset-top)) max(var(--s4), env(safe-area-inset-right))
     calc(var(--control-primary) + var(--s6) + env(safe-area-inset-bottom)) max(var(--s4), env(safe-area-inset-left));
 }
 
@@ -96,7 +96,7 @@ a {
 .appbar-btn[data-due]::after {
   content: '•';
   color: var(--danger);
-  margin-left: 2px;
+  margin-left: var(--line-w);
 }
 
 main {
@@ -143,7 +143,7 @@ main.field-screen,
 .group {
   display: grid;
   grid-template-columns: 1fr 1fr;
-  gap: var(--s3);
+  gap: var(--s4);
   padding: var(--s4);
   border: var(--line-w) solid var(--line);
   border-radius: var(--radius);
@@ -182,7 +182,7 @@ select,
 textarea {
   width: 100%;
   min-height: var(--touch);
-  padding: var(--s2) var(--s3);
+  padding: var(--s2) var(--s4);
   border: var(--line-w) solid var(--line);
   border-radius: var(--radius);
   background: var(--bg);
@@ -215,7 +215,7 @@ input[type='checkbox'] {
 
 input[type='checkbox']::before {
   content: '';
-  width: var(--s3);
+  width: var(--s2);
   height: var(--s5);
   margin-top: calc(-1 * var(--s1));
   border: solid var(--on-accent);
@@ -341,9 +341,9 @@ button:not(.btn):not(.tab):active,
 
 .banner {
   display: flex;
-  gap: var(--s3);
+  gap: var(--s4);
   align-items: center;
-  padding: var(--s3) var(--s4);
+  padding: var(--s4);
   border: var(--line-w) solid var(--accent);
   border-radius: var(--radius);
   background: var(--surface);
@@ -427,7 +427,7 @@ button:not(.btn):not(.tab):active,
 .info-btn {
   justify-content: space-between;
   gap: var(--s1);
-  padding: 0 var(--s3);
+  padding: 0 var(--s4);
   font-weight: 700;
 }
 
@@ -478,7 +478,7 @@ button:not(.btn):not(.tab):active,
 
 /* Shoot packs a little tighter so the wind controls start higher on small phones. */
 main:has(.shoot-info) {
-  gap: var(--s3);
+  gap: var(--s2);
 }
 
 .shot-notes p:empty {
@@ -503,8 +503,8 @@ main:has(.shoot-info) {
 }
 
 .wind-arrow {
-  width: 40px;
-  height: 40px;
+  width: calc(var(--s6) + var(--s2));
+  height: calc(var(--s6) + var(--s2));
 }
 
 /* ---------- Logbook ---------- */
@@ -538,10 +538,10 @@ main:has(.shoot-info) {
   grid-template-columns: minmax(0, 1fr) auto;
   grid-template-areas: 'range result' 'holds holds';
   align-items: center;
-  gap: var(--s3);
+  gap: var(--s2);
   width: 100%;
   min-height: var(--control-primary);
-  padding: var(--s2) var(--s3);
+  padding: var(--s2) var(--s4);
   text-align: left;
   font-weight: 400;
 }
@@ -583,14 +583,14 @@ main:has(.shoot-info) {
 .truing-summary {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s4);
 }
 
 /* Guided flows (truing) */
 .flow {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s4);
 }
 
 .flow-step {
@@ -654,9 +654,9 @@ main:has(.shoot-info) {
 .check-big {
   display: flex;
   align-items: center;
-  gap: var(--s3);
+  gap: var(--s4);
   min-height: var(--control-primary);
-  padding: var(--s2) var(--s3);
+  padding: var(--s2) var(--s4);
   border: var(--line-w) solid var(--line);
   border-radius: var(--radius);
   font-weight: 700;
@@ -707,7 +707,7 @@ main:has(.shoot-info) {
   display: block;
   width: 100%;
   min-height: var(--control-primary);
-  padding: var(--s2) var(--s3);
+  padding: var(--s2) var(--s4);
   text-align: left;
 }
 
@@ -726,8 +726,8 @@ main:has(.shoot-info) {
 }
 
 .replaces {
-  padding: var(--s2) var(--s3);
-  border-left: 4px solid var(--accent);
+  padding: var(--s2) var(--s4);
+  border-left: var(--s1) solid var(--accent);
 }
 
 .estimate {
@@ -814,7 +814,7 @@ main:has(.shoot-info) {
 .sg-panel {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s4);
   padding: var(--s4);
   border: var(--line-w) solid var(--line);
   border-radius: var(--radius);
@@ -823,7 +823,7 @@ main:has(.shoot-info) {
 }
 
 .sg-panel h3 {
-  margin-top: var(--s3);
+  margin-top: var(--s4);
   letter-spacing: 0.08em;
   text-transform: uppercase;
 }
@@ -843,7 +843,7 @@ main:has(.shoot-info) {
   margin: 0;
   padding: 0;
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(96px, 1fr));
+  grid-template-columns: repeat(auto-fill, minmax(calc(3 * var(--s6)), 1fr));
   gap: var(--s2);
 }
 
@@ -880,7 +880,7 @@ main:has(.shoot-info) {
   gap: var(--s1);
   width: 100%;
   min-height: var(--control-primary);
-  padding: var(--s2) var(--s3);
+  padding: var(--s2) var(--s4);
   text-align: left;
 }
 
@@ -916,7 +916,7 @@ main:has(.shoot-info) {
 .stage-form {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s4);
 }
 
 .stage-form-where {
@@ -993,7 +993,7 @@ body:has(main.field-screen) .appfoot {
   display: flex;
   justify-content: space-between;
   align-items: baseline;
-  gap: var(--s3);
+  gap: var(--s2);
 }
 
 .stage-card-title {
@@ -1023,7 +1023,7 @@ body:has(main.field-screen) .appfoot {
   display: flex;
   flex-wrap: wrap;
   align-items: baseline;
-  column-gap: var(--s3);
+  column-gap: var(--s2);
   padding: var(--s2) 0;
   border-top: var(--line-w) solid var(--line);
 }
@@ -1055,7 +1055,7 @@ body:has(main.field-screen) .appfoot {
   flex-basis: 100%;
   display: flex;
   justify-content: space-between;
-  gap: var(--s3);
+  gap: var(--s2);
   font-size: var(--fs-title);
   font-weight: 700;
 }
@@ -1140,14 +1140,14 @@ body:has(main.field-screen) .appfoot {
   padding: 0;
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s4);
 }
 
 .rifle-item {
   display: flex;
   flex-direction: column;
   gap: var(--gap);
-  padding: var(--s3);
+  padding: var(--s2);
   border: var(--line-w) solid var(--line);
   border-radius: var(--radius);
   background: var(--surface);
@@ -1163,7 +1163,7 @@ body:has(main.field-screen) .appfoot {
   gap: var(--s1);
   width: 100%;
   min-height: var(--control-primary);
-  padding: var(--s2) var(--s3);
+  padding: var(--s2) var(--s4);
   text-align: left;
 }
 
@@ -1207,7 +1207,7 @@ body:has(main.field-screen) .appfoot {
 .rifle-editor .card {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s4);
 }
 
 .back-link {
@@ -1236,8 +1236,8 @@ body:has(main.field-screen) .appfoot {
 .more-body {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
-  padding-top: var(--s3);
+  gap: var(--s4);
+  padding-top: var(--s4);
 }
 
 .factory-banner {
@@ -1325,7 +1325,7 @@ body:has(main.field-screen) .appfoot {
 .first-run {
   display: flex;
   flex-direction: column;
-  gap: var(--s3);
+  gap: var(--s4);
 }
 
 .first-run-step {
@@ -1357,14 +1357,14 @@ body:has(main.field-screen) .appfoot {
 
 .sheet .control + .control,
 .sheet .control + .segmented {
-  margin-top: var(--s3);
+  margin-top: var(--s4);
 }
 
 /* A sheet's main button stays in reach at the bottom while the sheet scrolls. */
 .sheet-footer {
   position: sticky;
   bottom: calc(-1 * max(var(--s4), env(safe-area-inset-bottom)));
-  margin-top: var(--s3);
+  margin-top: var(--s4);
   padding: var(--s2) 0 max(var(--s4), env(safe-area-inset-bottom));
   background: var(--bg);
 }

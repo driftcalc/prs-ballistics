@@ -30,10 +30,9 @@
   --fs-card: 48px; /* elevation on a stage card: several targets must fit one screen */
   --lh: 1.4;
 
-  /* Space (8px grid) */
+  /* Space: 8px grid. --s1 (4px) only for tight gaps inside text; there is no 12px step. */
   --s1: 4px;
   --s2: 8px;
-  --s3: 12px;
   --s4: 16px;
   --s5: 24px;
   --s6: 32px;
