@@ -36,6 +36,12 @@ The same information is shown in the app at `/licenses/` (source: `public/licens
 - Barrel-length velocity figures cite the published cut-down tests they come from
   (`src/library/barrelEstimate.ts`).
 
+## Playwright (testing only, not shipped)
+
+- Package: `@playwright/test` (Microsoft), Apache-2.0 licence.
+- Used only by `npm run test:field` on the developer's computer to open the built app in a test
+  copy of Chrome and check it. None of it is included in the app that is published.
+
 ## How to stay compliant
 
 1. Keep the files in `public/licenses/` and the in-app "Licenses & disclaimer" link.
