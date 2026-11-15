@@ -1,5 +1,6 @@
 /// <reference types="vitest/config" />
 import { defineConfig } from 'vite'
+import { minimal2023Preset } from '@vite-pwa/assets-generator/config'
 import { VitePWA } from 'vite-plugin-pwa'
 import pkg from './package.json' with { type: 'json' }
 
@@ -16,7 +17,13 @@ export default defineConfig({
       // Builds the PNG app icons from public/icon.svg.
       pwaAssets: {
         image: 'public/icon.svg',
-        preset: 'minimal-2023',
+        // The standard set of sizes, but the round-crop (Android) and iPhone icons are
+        // padded with the Dark background instead of the default white frame.
+        preset: {
+          ...minimal2023Preset,
+          maskable: { sizes: [512], padding: 0.2, resizeOptions: { background: '#121814' } },
+          apple: { sizes: [180], padding: 0.12, resizeOptions: { background: '#121814' } },
+        },
       },
       manifest: {
         name: 'Spin Drift',
