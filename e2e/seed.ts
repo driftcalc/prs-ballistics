@@ -26,9 +26,17 @@ const shots: [number, number, number][] = [
 
 export type Theme = 'sun' | 'dark' | 'night'
 
-export function seedData(o: { theme: Theme; glove: boolean; leftHanded: boolean; rifles?: boolean }) {
+export function seedData(o: { theme: Theme; glove: boolean; leftHanded: boolean; rifles?: boolean; empty?: 'all' | 'stages' }) {
   const now = new Date().toISOString()
   const today = now.slice(0, 10)
+  const full = seedFull(o, now, today)
+  // Empty states: rifles but nothing logged and no matches (or one match with no stages).
+  if (o.empty === 'all') return { ...full, log: [], matches: [] }
+  if (o.empty === 'stages') return { ...full, log: [], matches: [{ ...full.matches[0], stages: [] }] }
+  return full
+}
+
+function seedFull(o: { theme: Theme; glove: boolean; leftHanded: boolean; rifles?: boolean }, now: string, today: string) {
   return {
     version: 8,
     profiles:
