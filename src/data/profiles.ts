@@ -41,6 +41,40 @@ export interface RifleProfile {
   factory?: FactorySource
   /** Changes applied by the truing assistant, oldest first, so the last one can be reverted. */
   truingHistory?: TruingChange[]
+  /**
+   * Values the app filled in with a typical guess that the shooter hasn't
+   * confirmed yet (data version 9). Missing or empty = all confirmed.
+   */
+  guessed?: GuessableKey[]
+}
+
+/**
+ * Rifle values the app may fill in with a typical guess and that change every
+ * hold without showing on screen: twist (spin drift) and sight height.
+ * (Zero range shows on every rifle and card, so it's never hidden.)
+ */
+export const GUESSABLE_KEYS = ['twistIn', 'sightHeightIn'] as const
+export type GuessableKey = (typeof GUESSABLE_KEYS)[number]
+
+/** For rifles saved before version 9: values still exactly at the app's typical guess may never have been checked. */
+export function guessedFromDefaults(r: RifleData): GuessableKey[] {
+  return GUESSABLE_KEYS.filter((k) => r[k] !== undefined && r[k] === DEFAULT_RIFLE[k])
+}
+
+/** A guessed value the shooter has changed counts as confirmed. */
+export function stillGuessed(guessed: GuessableKey[] | undefined, before: RifleData, after: RifleData): GuessableKey[] | undefined {
+  const left = (guessed ?? []).filter((k) => before[k] === after[k] && after[k] !== undefined)
+  return left.length ? left : undefined
+}
+
+/** "twist 1:8 and sight height 2 in", or '' when nothing is a guess. */
+export function guessedText(p: Pick<RifleProfile, 'guessed' | 'rifle'>): string {
+  const parts = (p.guessed ?? []).flatMap((k) => {
+    const v = p.rifle[k]
+    if (v === undefined) return []
+    return [k === 'twistIn' ? `twist 1:${v}` : `sight height ${v} in`]
+  })
+  return parts.join(' and ')
 }
 
 export interface TruingChange {

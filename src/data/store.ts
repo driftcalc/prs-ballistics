@@ -9,6 +9,7 @@ import type { Match } from './match.ts'
 import {
   conditionsOf,
   DEFAULT_CONDITIONS,
+  guessedFromDefaults,
   newId,
   rifleOf,
   type Conditions,
@@ -23,7 +24,9 @@ import {
 // 6 = adds matches (stage cards) and settings.cardWindsMph (default 5 and 10 mph).
 // 7 = adds settings.rangeCard (range card step and max range; default 50 yd to 1000 yd).
 // 8 = rifles may have truingHistory (changes the truing assistant applied, for Revert; optional, nothing to convert).
-export const DATA_VERSION = 8
+// 9 = rifles may have `guessed` (twist / sight height the app filled in, not yet confirmed). Older rifles whose
+//     twist or sight height is still exactly the app's typical value get it marked, since nobody may have checked it.
+export const DATA_VERSION = 9
 const STORE_KEY = 'prs.data'
 
 export interface ShootState extends WindInputs {
@@ -122,15 +125,23 @@ export function normalizeSettings(raw: (Partial<Settings> & { night?: unknown })
   }
 }
 
+/** Version 9: a rifle saved earlier may still have the app's typical twist / sight height, never checked. */
+export function markOldGuesses(p: RifleProfile): RifleProfile {
+  const guessed = guessedFromDefaults(p.rifle)
+  return guessed.length ? { ...p, guessed } : p
+}
+
 /**
  * Brings a saved bundle from any earlier version up to date. Missing pieces
  * get defaults; nothing that was saved is dropped.
  */
 export function upgradeSaved(saved: { version?: number } & Partial<AppData>): AppData {
   const base = emptyData()
+  const profiles = Array.isArray(saved.profiles) ? saved.profiles : []
   return {
     ...base,
     ...saved,
+    profiles: (saved.version ?? 0) < 9 ? profiles.map(markOldGuesses) : profiles,
     shoot: { ...base.shoot, ...saved.shoot },
     settings: normalizeSettings(saved.settings),
     conditions: { ...base.conditions, ...saved.conditions },
@@ -149,7 +160,7 @@ export function migrateLegacy(calcValues?: FormValues, targetYd?: string, cases?
   const parsed = calcValues ? parseFormValues(calcValues).inputs : undefined
   if (parsed) {
     const id = newId()
-    data.profiles.push({ id, name: 'My rifle', rifle: rifleOf(parsed), updatedAt: new Date().toISOString() })
+    data.profiles.push(markOldGuesses({ id, name: 'My rifle', rifle: rifleOf(parsed), updatedAt: new Date().toISOString() }))
     data.conditions = conditionsOf(parsed)
     data.shoot = { ...data.shoot, profileId: id, windSpeedMph: parsed.windSpeedMph, windClock: parsed.windClock }
   }

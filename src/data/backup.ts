@@ -4,7 +4,7 @@ import { validateCase, type ReferenceCase } from '../accuracy/compare.ts'
 import { parseFormValues, type FormValues } from '../ui/shotForm.ts'
 import { logEntryProblem, type DopeEntry } from './log.ts'
 import { matchProblem, type Match } from './match.ts'
-import { newId, RIFLE_KEYS, rifleOf, type RifleData, type RifleProfile } from './profiles.ts'
+import { GUESSABLE_KEYS, guessedFromDefaults, newId, RIFLE_KEYS, rifleOf, type GuessableKey, type RifleData, type RifleProfile } from './profiles.ts'
 import { DATA_VERSION, emptyData, normalizeSettings, type AppData } from './store.ts'
 
 const APP_ID = 'prs-ballistics'
@@ -39,6 +39,12 @@ function checkRifle(rifle: Partial<RifleData> | undefined): { rifle?: RifleData;
   }
   const { inputs, errors } = parseFormValues(values, ['rifle'])
   return { rifle: inputs ? rifleOf(inputs) : undefined, errors }
+}
+
+/** Only known keys, no repeats; nothing at all when empty. */
+function guessedOf(v: unknown): { guessed?: GuessableKey[] } {
+  const keys = Array.isArray(v) ? GUESSABLE_KEYS.filter((k) => v.includes(k)) : []
+  return keys.length ? { guessed: keys } : {}
 }
 
 export function parseBackupJson(text: string): ImportBundle {
@@ -94,6 +100,8 @@ export function parseBackupJson(text: string): ImportBundle {
             ),
           }
         : {}),
+      // Guessed values (data version 9). Older backups: mark values still at the app's typical guess.
+      ...guessedOf(parsed.format < 9 ? guessedFromDefaults(rifle) : p.guessed),
     })
   }
 
@@ -246,7 +254,7 @@ export function mergeImport(current: AppData, incoming: ImportBundle): AppData {
   const next: AppData = structuredClone(current)
   for (const p of incoming.profiles) {
     const match = next.profiles.find((x) => sameName(x.name, p.name))
-    if (match) Object.assign(match, { rifle: p.rifle, notes: p.notes, updatedAt: p.updatedAt })
+    if (match) Object.assign(match, { rifle: p.rifle, notes: p.notes, updatedAt: p.updatedAt, guessed: p.guessed })
     else next.profiles.push({ ...p, id: next.profiles.some((x) => x.id === p.id) ? newId() : p.id })
   }
   Object.assign(next.comparisons, incoming.comparisons)

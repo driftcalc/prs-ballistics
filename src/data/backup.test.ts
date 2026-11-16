@@ -28,6 +28,7 @@ function sampleData(): AppData {
   d.profiles[0].notes = 'Barrel #2, new brass'
   d.profiles[0].factory = { loadId: 'hornady-65cm-140-eldm', barrelIn: 22, mvEstimated: true }
   d.profiles[0].truingHistory = [{ field: 'muzzleVelocityFps', from: 2680, to: 2710, at: '2026-11-10T09:00:00.000Z', mvWasEstimated: true }]
+  d.profiles[0].guessed = ['twistIn']
   d.conditions.temperatureF = 33
   d.shoot = { ...d.shoot, profileId: 'b', rangeYd: 450, windClock: 10 }
   d.settings = { angleUnit: 'moa', theme: 'night', glove: true, leftHanded: true, holdMode: 'hold', cardWindsMph: [4, 8], rangeCard: { stepYd: 25, maxYd: 650 } }
@@ -97,6 +98,25 @@ describe('JSON backup', () => {
     expect(back.warnings).toEqual([])
     expect(back.profiles).toHaveLength(2)
     expect(back.full?.log).toEqual([])
+  })
+
+  it('a backup from before version 9 marks twist / sight height still at the typical value as guesses', () => {
+    const old = JSON.parse(toBackupJson(sampleData()))
+    old.format = 8
+    for (const p of old.data.profiles) delete p.guessed
+    old.data.profiles[0].rifle.sightHeightIn = 1.75 // typed by the shooter
+    const back = parseBackupJson(JSON.stringify(old))
+    expect(back.profiles[0].guessed).toEqual(['twistIn'])
+    expect(back.profiles[1].guessed).toEqual(['sightHeightIn']) // its twist is blank (spin drift off)
+  })
+
+  it('keeps only known guessed values from a backup', () => {
+    const b = JSON.parse(toBackupJson(sampleData()))
+    b.data.profiles[0].guessed = ['twistIn', 'muzzleVelocityFps', 'twistIn']
+    b.data.profiles[1].guessed = 'twistIn'
+    const back = parseBackupJson(JSON.stringify(b))
+    expect(back.profiles[0].guessed).toEqual(['twistIn'])
+    expect(back.profiles[1].guessed).toBeUndefined()
   })
 
   it('"Add" with a backup adds new log entries without duplicating existing ones', () => {
