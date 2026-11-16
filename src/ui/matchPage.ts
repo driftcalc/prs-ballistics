@@ -351,8 +351,9 @@ function renderStageEditor(root: HTMLElement, matchId: string, n: string): void 
     e.preventDefault()
     targetsBox.focus()
   })
+  // Problems stay on screen until the shooter changes the targets (save() moves
+  // the cursor back here, so clearing on focus would hide the reason).
   targetsBox.addEventListener('input', () => preview(false))
-  targetsBox.addEventListener('focus', () => list('[data-problems]', []))
 
   form.addEventListener('submit', (e) => {
     e.preventDefault()

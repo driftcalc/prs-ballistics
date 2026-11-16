@@ -1,14 +1,23 @@
 // "Fill from factory ammo": pick a load from the library, enter your barrel
 // length, preview the estimated velocity, and only then fill the rifle.
-import type { RifleData } from '../data/profiles.ts'
+import { DEFAULT_RIFLE, type RifleData } from '../data/profiles.ts'
 import { getData, updateData } from '../data/store.ts'
 import { FACTORY_LOADS, loadName, searchLoads, type FactoryLoad } from '../library/ammo.ts'
 import { estimateVelocity, FPS_PER_INCH, MAX_BARREL_IN, MIN_BARREL_IN } from '../library/barrelEstimate.ts'
 import { escapeHtml } from './format.ts'
 
-/** The values a factory load would replace, described as "MV 2617 fps", "BC G7 0.310", etc. */
+const LOAD_KEYS = ['muzzleVelocityFps', 'bc', 'dragModel', 'bulletWeightGr', 'bulletDiameterIn', 'bulletLengthIn'] as const
+
+/** True while the load is still the app's typical starting values (e.g. a rifle just made in first-run setup). */
+const isStarterLoad = (r: RifleData) => LOAD_KEYS.every((k) => r[k] === DEFAULT_RIFLE[k])
+
+/**
+ * The values a factory load would replace, described as "MV 2617 fps", "BC G7 0.310", etc.
+ * Empty when the rifle still has the app's starting values: those aren't the shooter's.
+ */
 function replacedValues(current: RifleData, next: RifleData, mvTrued: boolean): string[] {
   const out: string[] = []
+  if (isStarterLoad(current)) return out
   if (current.muzzleVelocityFps !== next.muzzleVelocityFps)
     out.push(`MV ${current.muzzleVelocityFps} fps${mvTrued ? ' (trued or entered by you)' : ''}`)
   if (current.bc !== next.bc || current.dragModel !== next.dragModel) out.push(`BC ${current.dragModel} ${current.bc.toFixed(3)}`)
