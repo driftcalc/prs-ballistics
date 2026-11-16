@@ -20,6 +20,7 @@ const SAMPLE_CARD: CardView = {
     { name: 'PLATE', rangeYd: 1012, elev: 'UP 10.6', winds: [{ mph: 5, left: 'L 1.4', right: 'R 1.0' }, { mph: 10, left: 'L 2.8', right: 'R 2.3' }] },
   ],
   order: ['T1', 'PLATE', 'T1'],
+  guessed: 'Guessed: twist 1:8',
 }
 
 const THEMES = [

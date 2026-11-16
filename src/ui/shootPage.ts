@@ -3,7 +3,7 @@
 // where the thumb reaches. Built from the design components.
 import { BallisticsError, getEngine } from '../ballistics/index.ts'
 import { chipRow, clockDial, openSheet, readout, readoutPair, segmented, setClock, setReadout, setSelected, stepper } from '../design/components.ts'
-import { combine, type RifleData } from '../data/profiles.ts'
+import { combine, guessNote, type RifleData } from '../data/profiles.ts'
 import { RANGE_STEPS_YD, MAX_RANGE_YD, MIN_RANGE_YD, stepRange, stepWindSpeed } from '../data/shootControls.ts'
 import { currentProfile, getData, updateData } from '../data/store.ts'
 import { toShotInput } from '../shotInputs.ts'
@@ -59,6 +59,7 @@ export function renderShootPage(root: HTMLElement): void {
       <p data-sub>Loading the ballistics engine…</p>
       <p data-breakdown></p>
       <p data-mv-note hidden><a href="#/log">MV estimated from factory data — log confirmed hits to true it</a></p>
+      <p data-guess-note hidden><a href="#/rifles"></a></p>
     </div>
 
     <!-- Bottom half: thumb zone -->
@@ -94,6 +95,12 @@ export function renderShootPage(root: HTMLElement): void {
     $('[data-rifle-name]').textContent = p?.name ?? ''
     // The note belongs to whichever rifle is picked now, not the one the screen opened on.
     $('[data-mv-note]').hidden = !p?.factory?.mvEstimated
+    // Twist / sight height the app filled in change every hold, so say so until they're checked.
+    const guess = p ? guessNote(p) : ''
+    $('[data-guess-note]').hidden = !guess
+    const guessLink = $<HTMLAnchorElement>('[data-guess-note] a')
+    guessLink.textContent = guess
+    guessLink.href = `#/rifles/${p?.id ?? ''}`
     $('[data-stepper-value="wind"]').textContent = String(shoot.windSpeedMph)
     $('[data-range-big]').textContent = String(shoot.rangeYd)
     setClock(root, shoot.windClock)

@@ -139,8 +139,15 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
   plain English under their own box (`HELP` + `fieldErrors` in `shotForm.ts`).
   Delete offers Undo (no confirm pop-ups, per the brief).
 - First run (`src/ui/firstRun.ts`) shows on Shoot when there are no rifles:
-  set up (load, then scope & zero; every step skippable) or a sample rifle
+  set up (load, then scope & zero & twist; every step skippable) or a sample rifle
   built from the library's Hornady 6.5 CM 140 ELD Match, named "Sample · …".
+- **Guesses are never hidden** (data version 9): `profile.guessed` lists the
+  values the app filled in that nobody confirmed — twist and sight height
+  (`GUESSABLE_KEYS`; new rifles, the sample, a skipped setup step, and older rifles
+  still at exactly 1:8 / 2 in). Shoot, the range card and stage cards (screen,
+  print, picture) say so via `guessNote`/`guessedText` in `profiles.ts` until the
+  value is changed or confirmed ("These are right" in Rifles; setup step 2's Done).
+  Twist only counts while spin drift is on. In backups; tested in `e2e/guesses.spec.ts`.
 
 ## Logbook and truing
 

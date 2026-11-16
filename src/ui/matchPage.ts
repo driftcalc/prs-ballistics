@@ -244,7 +244,7 @@ function renderMatch(root: HTMLElement, matchId: string): void {
         const now = getData()
         const fresh = findMatch(now, matchId)!
         const views = fresh.stages
-          .map((s, i) => cardViewOf(s, i + 1, fresh.stages.length, now.settings.angleUnit, now.settings.holdMode))
+          .map((s, i) => cardViewOf(s, i + 1, fresh.stages.length, now.settings.angleUnit, now.settings.holdMode, guessesFor(now, fresh)))
           .filter((v): v is CardView => !!v)
         return printCards(views)
       }
@@ -387,6 +387,9 @@ function renderStageEditor(root: HTMLElement, matchId: string, n: string): void 
   if (!s0) targetsBox.focus()
 }
 
+/** Values of the match's rifle the app guessed and nobody has confirmed (shown on its cards). */
+const guessesFor = (d: AppData, m: Match) => d.profiles.find((p) => p.id === m.profileId)?.guessed
+
 // ---------- Full-screen card ----------
 
 function renderCardView(root: HTMLElement, matchId: string, n: number): void {
@@ -398,7 +401,7 @@ function renderCardView(root: HTMLElement, matchId: string, n: number): void {
   }
   const i = Math.min(Math.max(n, 1), m.stages.length)
   const stage = m.stages[i - 1]
-  const view = cardViewOf(stage, i, m.stages.length, d.settings.angleUnit, d.settings.holdMode)
+  const view = cardViewOf(stage, i, m.stages.length, d.settings.angleUnit, d.settings.holdMode, guessesFor(d, m))
   const stale = staleStages(d, m).length
 
   root.innerHTML = `

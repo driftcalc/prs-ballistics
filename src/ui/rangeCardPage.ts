@@ -3,6 +3,7 @@
 // the current conditions, so it is never out of date. Printable.
 import { segmented, setSelected, stepper, emptyState } from '../design/components.ts'
 import type { CardRow } from '../data/match.ts'
+import { guessedText, guessNote, type RifleProfile } from '../data/profiles.ts'
 import { currentProfile, getData, RANGE_CARD_MAX_YD, RANGE_CARD_MIN_YD, updateData } from '../data/store.ts'
 import { computeRangeCard, type RangeCard } from '../match/rangeCard.ts'
 import { conditionsSummary, openConditionsSheet } from './conditionsSheet.ts'
@@ -32,6 +33,12 @@ export function rangeTableHtml(card: RangeCard, unit: Unit, mode: 'dial' | 'hold
         ${windsMph.map((m) => `<th scope="col" class="tone-wind">${m} mph<br />L · R</th>`).join('')}</tr></thead>
       <tbody>${card.rows.map(row).join('')}${card.unreachableYd.map(missing).join('')}</tbody>
     </table>`
+}
+
+/** Says which of the rifle's values are still the app's guesses (every row depends on them). */
+const guessedNoteHtml = (p: RifleProfile, print = false) => {
+  const what = print ? guessedText(p) : guessNote(p)
+  return what ? `<p class="range-note" data-card-guessed>${escapeHtml(print ? `Guessed: ${what}` : what)}</p>` : ''
 }
 
 const unreachableNote = (card: RangeCard) =>
@@ -88,7 +95,8 @@ export function renderRangeCardPage(root: HTMLElement, param?: string): void {
       const card = await computeRangeCard(p, d.conditions, d.settings.cardWindsMph, stepYd, maxYd)
       if (run !== latest) return
       shown = card
-      box.innerHTML = rangeTableHtml(card, d.settings.angleUnit, d.settings.holdMode, d.settings.cardWindsMph) + unreachableNote(card)
+      box.innerHTML =
+        guessedNoteHtml(p) + rangeTableHtml(card, d.settings.angleUnit, d.settings.holdMode, d.settings.cardWindsMph) + unreachableNote(card)
       root.querySelector<HTMLButtonElement>('[data-action="print"]')!.disabled = false
     } catch (e) {
       if (run !== latest) return
@@ -101,7 +109,10 @@ export function renderRangeCardPage(root: HTMLElement, param?: string): void {
     const btn = (e.target as HTMLElement).closest<HTMLButtonElement>('button')
     if (!btn) return
     if (btn.dataset.action === 'conditions') return openConditionsSheet(() => void show())
-    if (btn.dataset.action === 'print' && shown) return printRangeCard(profile!.name, shown)
+    if (btn.dataset.action === 'print' && shown) {
+      const p = getData().profiles.find((x) => x.id === profile!.id) ?? profile!
+      return printRangeCard(p, shown)
+    }
     if (btn.dataset.segment === 'rcstep') {
       updateData((d) => void (d.settings.rangeCard.stepYd = btn.dataset.value === '25' ? 25 : 50))
       return void show()
@@ -126,10 +137,11 @@ export function renderRangeCardPage(root: HTMLElement, param?: string): void {
   void show()
 }
 
-function printRangeCard(name: string, card: RangeCard): void {
+function printRangeCard(p: RifleProfile, card: RangeCard): void {
   const d = getData()
-  const head = `<p class="print-head"><strong>${escapeHtml(name)}</strong> · ${escapeHtml(conditionsSummary(d.conditions))} ·
+  const head = `<p class="print-head"><strong>${escapeHtml(p.name)}</strong> · ${escapeHtml(conditionsSummary(d.conditions))} ·
     wind full value, L = from the left, R = from the right · ${new Date().toLocaleDateString()}</p>`
-  const table = (unit: Unit) => `<section class="print-range">${head}${rangeTableHtml(card, unit, d.settings.holdMode, d.settings.cardWindsMph)}${unreachableNote(card)}</section>`
+  const table = (unit: Unit) =>
+    `<section class="print-range">${head}${guessedNoteHtml(p, true)}${rangeTableHtml(card, unit, d.settings.holdMode, d.settings.cardWindsMph)}${unreachableNote(card)}</section>`
   printArea(table('mil') + table('moa'), 'margin: 0.5in;')
 }

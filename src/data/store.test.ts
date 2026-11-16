@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import type { ReferenceCase } from '../accuracy/compare.ts'
 import { DEFAULT_INPUTS } from '../shotInputs.ts'
 import { toFormValues } from '../ui/shotForm.ts'
-import { combine, conditionsOf, guessedText, rifleOf, stillGuessed, windOf } from './profiles.ts'
+import { combine, conditionsOf, guessedText, guessNote, rifleOf, stillGuessed, windOf } from './profiles.ts'
 import { DATA_VERSION, emptyData, migrateLegacy, normalizeSettings, upgradeSaved, type AppData } from './store.ts'
 
 describe('profiles', () => {
@@ -13,7 +13,13 @@ describe('profiles', () => {
 })
 
 describe('guessed values', () => {
-  const r = rifleOf(DEFAULT_INPUTS)
+  const r = { ...rifleOf(DEFAULT_INPUTS), bulletLengthIn: 1.35 } // spin drift on
+  it("doesn't mention a guessed twist while spin drift is off (no bullet length)", () => {
+    const noLength = { ...r, bulletLengthIn: undefined }
+    expect(guessedText({ rifle: noLength, guessed: ['twistIn', 'sightHeightIn'] })).toBe('sight height 2 in')
+    expect(guessNote({ rifle: noLength, guessed: ['twistIn'] })).toBe('')
+  })
+
   it('changing a guessed value confirms it; the others stay guesses', () => {
     expect(stillGuessed(['twistIn', 'sightHeightIn'], r, { ...r, twistIn: 10 })).toEqual(['sightHeightIn'])
     expect(stillGuessed(['twistIn'], r, { ...r, twistIn: 10 })).toBeUndefined()
@@ -26,6 +32,9 @@ describe('guessed values', () => {
     expect(guessedText({ rifle: r, guessed: ['twistIn', 'sightHeightIn'] })).toBe('twist 1:8 and sight height 2 in')
     expect(guessedText({ rifle: r, guessed: [] })).toBe('')
     expect(guessedText({ rifle: r })).toBe('')
+    expect(guessNote({ rifle: r, guessed: ['twistIn'] })).toBe('Twist 1:8 is a guess — check it in Rifles')
+    expect(guessNote({ rifle: r, guessed: ['twistIn', 'sightHeightIn'] })).toBe('Twist 1:8 and sight height 2 in are guesses — check them in Rifles')
+    expect(guessNote({ rifle: r })).toBe('')
   })
 })
 

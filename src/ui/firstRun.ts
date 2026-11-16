@@ -2,7 +2,7 @@
 // scope & zero → Shoot. Every step can be skipped (typical values are used), or
 // the shooter can try a sample rifle built from the factory ammo library.
 import { segmented, setSelected } from '../design/components.ts'
-import { combine, DEFAULT_RIFLE, newId, rifleOf, type RifleProfile } from '../data/profiles.ts'
+import { combine, DEFAULT_RIFLE, GUESSABLE_KEYS, newId, rifleOf, type RifleProfile } from '../data/profiles.ts'
 import { getData, updateData } from '../data/store.ts'
 import { FACTORY_LOADS } from '../library/ammo.ts'
 import { renderFactoryPicker } from './factoryPicker.ts'
@@ -29,6 +29,8 @@ export function sampleRifle(): RifleProfile {
       bulletLengthIn: l.bulletLengthIn,
     },
     factory: { loadId: l.id, mvEstimated: true },
+    // Twist and sight height are the app's typical values, not the sample load's.
+    guessed: [...GUESSABLE_KEYS],
     updatedAt: new Date().toISOString(),
   }
 }
@@ -57,7 +59,8 @@ export function renderFirstRun(root: HTMLElement): void {
     // Create the rifle now so the factory ammo picker can fill it.
     const id = newId()
     updateData((d) => {
-      d.profiles.push({ id, name: 'My rifle', rifle: { ...DEFAULT_RIFLE }, updatedAt: new Date().toISOString() })
+      // Twist and sight height stay marked as guesses until step 2's Done (or an edit in Rifles).
+      d.profiles.push({ id, name: 'My rifle', rifle: { ...DEFAULT_RIFLE }, guessed: [...GUESSABLE_KEYS], updatedAt: new Date().toISOString() })
       d.shoot.profileId = id
     })
     loadStep(root, id)
@@ -125,7 +128,7 @@ function scopeStep(root: HTMLElement, id: string): void {
   root.innerHTML = step(
     2,
     'Scope & zero',
-    `${renderFieldsByKey(['sightHeightIn', 'zeroRangeYd'], values)}
+    `${renderFieldsByKey(['sightHeightIn', 'zeroRangeYd', 'twistIn'], values)}
       <div class="setting">
         <h3 class="setting-title">Your turrets</h3>
         ${segmented({ name: 'unit', label: 'Turret units', selected: d.settings.angleUnit, options: [{ value: 'mil', label: 'MIL' }, { value: 'moa', label: 'MOA' }] })}
@@ -142,7 +145,14 @@ function scopeStep(root: HTMLElement, id: string): void {
       setSelected(root, 'data-segment', 'unit', unit)
       updateData((data) => void (data.settings.angleUnit = unit))
     }
-    if (btn?.dataset.action === 'done' && !saveBoxes(root, id)) return
+    if (btn?.dataset.action === 'done') {
+      if (!saveBoxes(root, id)) return
+      // The shooter saw sight height and twist on this step and tapped Done: confirmed.
+      updateData((data) => {
+        const t = data.profiles.find((x) => x.id === id)
+        if (t) delete t.guessed
+      })
+    }
     if (btn?.dataset.action === 'done' || btn?.dataset.action === 'skip') {
       root.removeEventListener('click', onClick)
       reopen()

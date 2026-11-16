@@ -1,7 +1,17 @@
 // Rifles: the list (active rifle marked, Use and Range card on each) and the
 // editor, grouped into Rifle, Scope, Load and Zero with the advanced boxes
 // under "More". Edits save as you type.
-import { combine, DEFAULT_RIFLE, newId, rifleOf, rifleSummary, type RifleProfile } from '../data/profiles.ts'
+import {
+  combine,
+  DEFAULT_RIFLE,
+  GUESSABLE_KEYS,
+  guessedText,
+  newId,
+  rifleOf,
+  rifleSummary,
+  stillGuessed,
+  type RifleProfile,
+} from '../data/profiles.ts'
 import { getData, updateData } from '../data/store.ts'
 import { FACTORY_LOADS, loadName } from '../library/ammo.ts'
 import { revertableChange, revertLastChange, truingValue } from '../truing/apply.ts'
@@ -30,6 +40,8 @@ function addRifle(from?: RifleProfile): string {
       notes: from?.notes,
       rifle: { ...(from?.rifle ?? DEFAULT_RIFLE) },
       factory: from?.factory ? { ...from.factory } : undefined,
+      // A new rifle starts with the app's typical twist and sight height: guesses until checked.
+      guessed: from ? from.guessed && [...from.guessed] : [...GUESSABLE_KEYS],
       updatedAt: new Date().toISOString(),
     })
   })
@@ -116,14 +128,28 @@ function truingUndo(p: RifleProfile): string {
   return `<button class="btn" type="button" data-action="revert-truing">Undo truing (${what} ${truingValue(c.field, c.from)})</button>`
 }
 
-const more = (summary: string, body: string) =>
-  `<details class="more"><summary class="btn">${summary}</summary><div class="more-body">${body}</div></details>`
+/** Note at the top of the editor while twist / sight height are still the app's guesses. */
+function guessedBanner(p: RifleProfile): string {
+  const what = guessedText(p)
+  if (!what) return ''
+  const many = what.includes(' and ')
+  return `<div class="banner" role="status" data-guessed-banner>
+      <p>${icon('warning')} The app filled in <strong>${escapeHtml(what)}</strong>. Check ${many ? 'them' : 'it'} below — ${
+        what.includes('twist') ? 'twist is often stamped on the barrel' : 'measure from the centre of the bore to the centre of the scope'
+      }.</p>
+      <button class="btn" type="button" data-action="confirm-guessed">${many ? 'These are right' : 'This is right'}</button>
+    </div>`
+}
+
+const more = (summary: string, body: string, open = false) =>
+  `<details class="more"${open ? ' open' : ''}><summary class="btn">${summary}</summary><div class="more-body">${body}</div></details>`
 
 function renderEditor(root: HTMLElement, p: RifleProfile): void {
   const d = getData()
   const values = toFormValues(combine(p.rifle, d.conditions, d.shoot))
   root.innerHTML = `
     <a class="btn back-link" href="#/rifles">${icon('back')} All rifles</a>
+    ${guessedBanner(p)}
     <div class="rifle-editor" data-editor>
       <section class="card">
         <h2 class="card-title">Rifle</h2>
@@ -132,6 +158,8 @@ function renderEditor(root: HTMLElement, p: RifleProfile): void {
           'More: notes, twist',
           `<label class="field"><span>Notes</span><input name="profileNotes" type="text" value="${escapeHtml(p.notes ?? '')}" placeholder="optional" /></label>
           ${renderFieldsByKey(['twistIn', 'twistDirection'], values)}`,
+          // Show the twist straight away while it's a guess that affects the holds.
+          guessedText(p).includes('twist'),
         )}
       </section>
       <section class="card">
@@ -181,7 +209,11 @@ function renderEditor(root: HTMLElement, p: RifleProfile): void {
         if (target.factory?.mvEstimated && inputs.muzzleVelocityFps !== target.rifle.muzzleVelocityFps) {
           target.factory.mvEstimated = false
         }
-        target.rifle = rifleOf(inputs)
+        // Changing a guessed value (twist, sight height) means it's now the shooter's own.
+        const next = rifleOf(inputs)
+        target.guessed = stillGuessed(target.guessed, target.rifle, next)
+        if (!target.guessed) delete target.guessed
+        target.rifle = next
       }
       target.updatedAt = new Date().toISOString()
     })
@@ -199,6 +231,13 @@ function renderEditor(root: HTMLElement, p: RifleProfile): void {
           renderEditor(freshRoot(root), getData().profiles.find((x) => x.id === p.id) ?? p)
         })
       }
+      case 'confirm-guessed':
+        updateData((data) => {
+          const target = data.profiles.find((x) => x.id === p.id)
+          if (target) delete target.guessed
+        })
+        root.querySelector('[data-guessed-banner]')?.remove()
+        return
       case 'revert-truing':
         updateData((data) => {
           const target = data.profiles.find((x) => x.id === p.id)

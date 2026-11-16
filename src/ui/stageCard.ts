@@ -2,6 +2,7 @@
 // coach. Shown three ways: on screen (huge text), printed on a 3x5 index card,
 // and as a picture to share or keep on the lock screen.
 import type { Stage } from '../data/match.ts'
+import { guessedText, type GuessableKey, type RifleData } from '../data/profiles.ts'
 import { downloadFile } from './download.ts'
 import { printArea } from './print.ts'
 import { conditionsSummary } from './conditionsSheet.ts'
@@ -19,9 +20,19 @@ export interface CardView {
   modeLabel: 'DIAL' | 'HOLD'
   rows: { name: string; rangeYd: number; elev: string; winds: { mph: number; left: string; right: string }[] }[]
   order: string[]
+  /** "Guessed: twist 1:8", or '' when the rifle's values are all confirmed. */
+  guessed: string
 }
 
-export function cardViewOf(stage: Stage, index: number, total: number, unit: 'mil' | 'moa', mode: 'dial' | 'hold'): CardView | undefined {
+/** `guessed` = the rifle's values the app filled in and nobody has confirmed yet. */
+export function cardViewOf(
+  stage: Stage,
+  index: number,
+  total: number,
+  unit: 'mil' | 'moa',
+  mode: 'dial' | 'hold',
+  guessed?: GuessableKey[],
+): CardView | undefined {
   const c = stage.card
   if (!c) return undefined
   const text = (rad: number, kind: 'elevation' | 'windage') => {
@@ -44,7 +55,14 @@ export function cardViewOf(stage: Stage, index: number, total: number, unit: 'mi
       winds: r.wind.map((w) => ({ mph: w.mph, left: text(w.fromLeftRad, 'windage'), right: text(w.fromRightRad, 'windage') })),
     })),
     order: stage.order,
+    guessed: guessedLine(c.rifle, guessed),
   }
+}
+
+/** Uses the card's own rifle numbers, so it names the values the holds were worked out with. */
+function guessedLine(rifle: RifleData, guessed?: GuessableKey[]): string {
+  const what = guessedText({ rifle, guessed })
+  return what ? `Guessed: ${what}` : ''
 }
 
 const orderText = (order: string[]) => (order.length ? `Order: ${order.join(' → ')}` : '')
@@ -57,6 +75,7 @@ export function stageCardHtml(v: CardView): string {
       <span class="stage-card-count">${v.index} / ${v.total}</span>
     </header>
     <p class="stage-card-meta">${escapeHtml(v.rifleName)} · ${escapeHtml(v.conditions)}</p>
+    ${v.guessed ? `<p class="stage-card-meta" data-card-guessed>${escapeHtml(v.guessed)}</p>` : ''}
     <p class="stage-card-key"><span class="tone-elev">ELEV · ${v.modeLabel}</span> · <span class="tone-wind">WIND full value L · R</span> · ${v.unitLabel}</p>
     <ol class="stage-rows">
       ${v.rows
@@ -77,7 +96,9 @@ export function stageCardHtml(v: CardView): string {
 function printCardHtml(v: CardView): string {
   const mphs = v.rows[0]?.winds.map((w) => w.mph) ?? []
   return `<section class="print-card">
-    <p class="print-head"><strong>${escapeHtml(v.stageName)}</strong> · ${escapeHtml(v.rifleName)} · ${escapeHtml(v.conditions)}</p>
+    <p class="print-head"><strong>${escapeHtml(v.stageName)}</strong> · ${escapeHtml(v.rifleName)} · ${escapeHtml(v.conditions)}${
+      v.guessed ? ` · ${escapeHtml(v.guessed)}` : ''
+    }</p>
     <table class="print-table">
       <thead><tr><th>Tgt</th><th>Yd</th><th>${v.modeLabel === 'DIAL' ? 'Elev' : 'Hold'} ${v.unitLabel}</th>${mphs.map((m) => `<th>${m} mph L · R</th>`).join('')}</tr></thead>
       <tbody>${v.rows
@@ -108,7 +129,7 @@ export async function stageCardImage(v: CardView): Promise<Blob> {
   // Sizes chosen so the picture still reads when shown phone-width (about a third of 1080px).
   const windH = 72
   const rowH = 132 + (v.rows[0]?.winds.length ?? 0) * windH + 48
-  const H = pad * 2 + 260 + v.rows.length * rowH + (v.order.length ? 96 : 0)
+  const H = pad * 2 + 260 + (v.guessed ? 64 : 0) + v.rows.length * rowH + (v.order.length ? 96 : 0)
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
@@ -129,6 +150,10 @@ export async function stageCardImage(v: CardView): Promise<Blob> {
   y += 76
   text(`${v.rifleName} · ${v.conditions}`, pad, y, 44, 700, color.text)
   y += 64
+  if (v.guessed) {
+    text(v.guessed, pad, y, 44, 700, color.text)
+    y += 64
+  }
   text(`ELEV · ${v.modeLabel} · WIND L · R · ${v.unitLabel}`, pad, y, 44, 800, color.text)
   y += 56
 

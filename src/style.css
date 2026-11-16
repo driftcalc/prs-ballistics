@@ -417,6 +417,14 @@ button:not(.btn):not(.tab):active,
   text-align: center;
 }
 
+/* A note that is a whole link (MV estimated, guessed values) is a full-size tap target. */
+.shot-notes p > a:only-child {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  min-height: var(--touch);
+}
+
 /* One small line: rifle · conditions (two tap targets). */
 .shoot-info {
   display: grid;

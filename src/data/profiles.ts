@@ -67,14 +67,26 @@ export function stillGuessed(guessed: GuessableKey[] | undefined, before: RifleD
   return left.length ? left : undefined
 }
 
-/** "twist 1:8 and sight height 2 in", or '' when nothing is a guess. */
+/**
+ * "twist 1:8 and sight height 2 in", or '' when nothing is a guess. Twist only
+ * matters while spin drift is on (it also needs bullet diameter and length).
+ */
 export function guessedText(p: Pick<RifleProfile, 'guessed' | 'rifle'>): string {
+  const spinDriftOn = p.rifle.bulletDiameterIn !== undefined && p.rifle.bulletLengthIn !== undefined
   const parts = (p.guessed ?? []).flatMap((k) => {
     const v = p.rifle[k]
-    if (v === undefined) return []
+    if (v === undefined || (k === 'twistIn' && !spinDriftOn)) return []
     return [k === 'twistIn' ? `twist 1:${v}` : `sight height ${v} in`]
   })
   return parts.join(' and ')
+}
+
+/** "Twist 1:8 is a guess — check it in Rifles", or '' when nothing is a guess. Shown wherever holds are. */
+export function guessNote(p: Pick<RifleProfile, 'guessed' | 'rifle'>): string {
+  const what = guessedText(p)
+  if (!what) return ''
+  const many = what.includes(' and ')
+  return `${what[0].toUpperCase()}${what.slice(1)} ${many ? 'are guesses' : 'is a guess'} — check ${many ? 'them' : 'it'} in Rifles`
 }
 
 export interface TruingChange {
