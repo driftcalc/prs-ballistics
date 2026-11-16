@@ -55,6 +55,10 @@ export interface RangeSolution {
   velocity: number
   /** Time of flight, s. */
   timeOfFlight: number
+  /** Bullet speed at this distance as a multiple of the local speed of sound (from the library). */
+  mach: number
+  /** The same at the muzzle, so callers can tell a supersonic load from a subsonic one. */
+  muzzleMach: number
 }
 
 export interface BallisticsEngine {

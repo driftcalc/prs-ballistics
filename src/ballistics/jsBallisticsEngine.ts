@@ -90,6 +90,9 @@ export function createJsBallisticsEngine(): BallisticsEngine {
           windage: -point.windageAngle.In(Unit.Radian),
           velocity: point.velocity.In(Unit.MPS),
           timeOfFlight: point.time,
+          // The library's own Mach figures (local speed of sound); the first sample is the muzzle.
+          mach: point.mach,
+          muzzleMach: hit.samples[0].mach,
         })
       }
       return results

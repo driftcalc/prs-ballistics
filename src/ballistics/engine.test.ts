@@ -40,6 +40,16 @@ describe('ballistics wrapper', () => {
     expect(rows[2].timeOfFlight).toBeGreaterThan(rows[0].timeOfFlight)
   })
 
+  it("passes on the library's Mach figures: muzzle the same at every range, falling with distance", async () => {
+    const engine = await getEngine()
+    const rows = await engine.solve(base, [300, 1000, 1600].map((y) => y * YARD))
+    // 2700 fps at 59 F is about Mach 2.4 at the muzzle.
+    for (const r of rows) expect(r.muzzleMach).toBeCloseTo(2.42, 1)
+    expect(rows[0].mach).toBeGreaterThan(rows[1].mach)
+    expect(rows[1].mach).toBeGreaterThan(rows[2].mach)
+    expect(rows[2].mach).toBeLessThan(1) // a 0.3 G7 bullet is subsonic by 1600 yd
+  })
+
   it('returns the exact distances asked for', async () => {
     const engine = await getEngine()
     const rows = await engine.solve(base, [237 * YARD, 1000 * YARD])
