@@ -58,6 +58,16 @@ const STATES: { name: string; mixed?: boolean; open: (p: Page) => Promise<void> 
       await wait(p, 150)
     },
   },
+  {
+    // Past the speed of sound: the warning line under the holds.
+    name: 'Shoot · 1500 yd (speed of sound)',
+    open: async (p) => {
+      await go(p, '#/shoot')
+      await p.locator('[name="range"]').fill('1500')
+      await p.locator('[name="range"]').blur()
+      await waitText(p, '[data-sound-note]', /speed of sound/)
+    },
+  },
   { name: 'Settings sheet', open: async (p) => { await go(p, '#/shoot'); await click(p, '[data-action="settings"]'); await wait(p) } },
   { name: 'Match list', open: (p) => go(p, '#/match') },
   { name: 'Match', open: async (p) => { await go(p, '#/match/m1'); await wait(p, 1500) } },

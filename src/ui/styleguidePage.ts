@@ -16,8 +16,14 @@ const SAMPLE_CARD: CardView = {
   unitLabel: 'MIL',
   modeLabel: 'DIAL',
   rows: [
-    { name: 'T1', rangeYd: 611, elev: 'UP 4.1', winds: [{ mph: 5, left: 'L 0.7', right: 'R 0.5' }, { mph: 10, left: 'L 1.3', right: 'R 1.0' }] },
-    { name: 'PLATE', rangeYd: 1012, elev: 'UP 10.6', winds: [{ mph: 5, left: 'L 1.4', right: 'R 1.0' }, { mph: 10, left: 'L 2.8', right: 'R 2.3' }] },
+    { name: 'T1', rangeYd: 611, elev: 'UP 4.1', winds: [{ mph: 5, left: 'L 0.7', right: 'R 0.5' }, { mph: 10, left: 'L 1.3', right: 'R 1.0' }], sound: '' },
+    {
+      name: 'PLATE',
+      rangeYd: 1012,
+      elev: 'UP 10.6',
+      winds: [{ mph: 5, left: 'L 1.4', right: 'R 1.0' }, { mph: 10, left: 'L 2.8', right: 'R 2.3' }],
+      sound: 'Nearing the speed of sound',
+    },
   ],
   order: ['T1', 'PLATE', 'T1'],
   guessed: 'Guessed: twist 1:8',

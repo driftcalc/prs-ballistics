@@ -2,6 +2,7 @@
 // shows huge holds at the top and keeps the glove-sized controls lower down,
 // where the thumb reaches. Built from the design components.
 import { BallisticsError, getEngine } from '../ballistics/index.ts'
+import { soundNote, soundZone } from '../ballistics/soundBarrier.ts'
 import { chipRow, clockDial, openSheet, readout, readoutPair, segmented, setClock, setReadout, setSelected, stepper } from '../design/components.ts'
 import { combine, guessNote, type RifleData } from '../data/profiles.ts'
 import { RANGE_STEPS_YD, MAX_RANGE_YD, MIN_RANGE_YD, stepRange, stepWindSpeed } from '../data/shootControls.ts'
@@ -57,6 +58,7 @@ export function renderShootPage(root: HTMLElement): void {
     )}
     <div class="shot-notes">
       <p data-sub>Loading the ballistics engine…</p>
+      <p class="sound-note" data-sound-note></p>
       <p data-breakdown></p>
       <p data-mv-note hidden><a href="#/log">MV estimated from factory data — log confirmed hits to true it</a></p>
       <p data-guess-note hidden><a href="#/rifles"></a></p>
@@ -136,8 +138,11 @@ export function renderShootPage(root: HTMLElement): void {
       setReadout(root, 'elev', { dir: elevDir, value: elev.value })
       setReadout(root, 'wind', { dir: wind.dir, value: wind.value })
       $('[data-sub]').textContent = `${velocityText(s.velocity)} · ${timeText(s.timeOfFlight)} · ${d.shoot.rangeYd} yd`
+      // Same numbers, plus a plain warning where the drag model is least reliable.
+      $('[data-sound-note]').textContent = soundNote(soundZone(s.mach, s.muzzleMach), s.mach)
     } catch (e) {
       if (run !== latest) return
+      $('[data-sound-note]').textContent = ''
       setReadout(root, 'elev', { dir: '', value: '–' })
       setReadout(root, 'wind', { dir: '', value: '–' })
       $('[data-sub]').textContent = e instanceof BallisticsError ? e.message : 'Could not calculate this shot.'

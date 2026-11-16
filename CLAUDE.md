@@ -207,6 +207,16 @@ flat, high contrast. **No camo, no skulls, no gradients, no shadows, no decorati
   bullet diameter AND bullet length.
 - US-unit inputs (`src/shotInputs.ts`) are converted to SI in `toShotInput` only.
 
+- **Speed of sound** (`src/ballistics/soundBarrier.ts`, owner's limits): the engine
+  passes on the library's own Mach figures (`mach`, `muzzleMach` in `RangeSolution`;
+  never compute the speed of sound by hand). Loads leaving the muzzle at Mach 1.2+
+  get "Nearing the speed of sound" at Mach 1.2–1.0 and "Below the speed of sound —
+  beyond reliable range" under 1.0; rimfire (muzzle under 1.2) never does. Shown on
+  Shoot, as divider lines in the range card, and per target on stage cards (screen,
+  print, picture). Holds themselves never change. Card rows store mach (data version
+  10); older cards count as out of date ("New in this version: speed-of-sound notes").
+  Scope elevation travel isn't collected yet, so there's no dial-limit warning (owner: later).
+
 ## Accuracy reference tests
 
 - `src/accuracy/cases/*.json` are comparisons exported from the Check accuracy

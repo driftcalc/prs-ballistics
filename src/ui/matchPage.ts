@@ -5,7 +5,7 @@
 //   #/match/<id>/card/<n>    full-screen stage card, swipe between stages
 import { BallisticsError } from '../ballistics/index.ts'
 import { openSheet, emptyState } from '../design/components.ts'
-import { cardIsStale, type Match, type Stage } from '../data/match.ts'
+import { cardIsStale, cardLacksMach, type Match, type Stage } from '../data/match.ts'
 import { newId, type RifleProfile } from '../data/profiles.ts'
 import { currentProfile, getData, updateData, type AppData } from '../data/store.ts'
 import { computeCard } from '../match/cards.ts'
@@ -165,10 +165,13 @@ function openMatchDetails(matchId?: string): void {
 
 // ---------- One match ----------
 
-function staleBanner(count: number): string {
+function staleBanner(stale: Stage[]): string {
+  const count = stale.length
   if (!count) return ''
+  // Cards from before the speed-of-sound notes are out of date because of the app update, not the conditions.
+  const why = stale.every(cardLacksMach) ? 'New in this version: speed-of-sound notes.' : 'Conditions changed.'
   return `<div class="banner" role="status" data-stale>
-    <p><strong>Conditions changed.</strong> ${count} card${count === 1 ? ' is' : 's are'} out of date.</p>
+    <p><strong>${why}</strong> ${count} card${count === 1 ? ' is' : 's are'} out of date.</p>
     <button class="btn btn-primary" type="button" data-action="update">Update all cards</button></div>`
 }
 
@@ -185,7 +188,7 @@ function renderMatch(root: HTMLElement, matchId: string): void {
         <span>${escapeHtml(conditionsSummary(d.conditions))}</span>${icon('next')}</button>
     </div>
     ${rifle ? '' : `<div class="banner error" role="alert"><p>This match's rifle was deleted. Pick a rifle under the match details.</p></div>`}
-    ${staleBanner(stale.length)}
+    ${staleBanner(stale)}
     <ul class="errors" data-errors></ul>
     ${
       m.stages.length
@@ -230,7 +233,7 @@ function renderMatch(root: HTMLElement, matchId: string): void {
           const fresh = findMatch(now, matchId)!
           root.querySelector('[data-action="conditions"] span')!.textContent = conditionsSummary(now.conditions)
           root.querySelector('[data-stale]')?.remove()
-          root.querySelector('[data-errors]')!.insertAdjacentHTML('beforebegin', staleBanner(staleStages(now, fresh).length))
+          root.querySelector('[data-errors]')!.insertAdjacentHTML('beforebegin', staleBanner(staleStages(now, fresh)))
           root.querySelector<HTMLButtonElement>('[data-action="print"]')?.toggleAttribute('disabled', staleStages(now, fresh).length > 0)
         })
       case 'update': {
@@ -402,10 +405,11 @@ function renderCardView(root: HTMLElement, matchId: string, n: number): void {
   const i = Math.min(Math.max(n, 1), m.stages.length)
   const stage = m.stages[i - 1]
   const view = cardViewOf(stage, i, m.stages.length, d.settings.angleUnit, d.settings.holdMode, guessesFor(d, m))
-  const stale = staleStages(d, m).length
+  const staleList = staleStages(d, m)
+  const stale = staleList.length
 
   root.innerHTML = `
-    ${staleBanner(stale)}
+    ${staleBanner(staleList)}
     <ul class="errors" data-errors></ul>
     <div class="card-swipe" data-card>${view ? stageCardHtml(view) : `<p class="card-working">Working out ${escapeHtml(stage.name)}…</p>`}</div>
     <div class="card-tools">

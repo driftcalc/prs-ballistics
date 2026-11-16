@@ -104,7 +104,7 @@ describe('upgrading saved data', () => {
   })
 
   it('version 9 data keeps its guesses as saved (a confirmed 1:8 stays confirmed)', () => {
-    const v9 = { ...emptyData(), version: 9 } as AppData
+    const v9 = { ...emptyData(), version: 9 } as unknown as AppData
     v9.profiles = [{ id: 'a', name: 'Checked', rifle: rifleOf(DEFAULT_INPUTS), updatedAt: '' }]
     expect(upgradeSaved(v9).profiles[0].guessed).toBeUndefined()
   })

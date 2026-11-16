@@ -1,6 +1,7 @@
 // Range card (#/card/<rifle id>): elevation and wind both sides at the card
 // wind speeds, every 25 or 50 yd from 100 yd to the max. Worked out live from
 // the current conditions, so it is never out of date. Printable.
+import { soundLabel, soundZone, type SoundZone } from '../ballistics/soundBarrier.ts'
 import { segmented, setSelected, stepper, emptyState } from '../design/components.ts'
 import type { CardRow } from '../data/match.ts'
 import { guessedText, guessNote, type RifleProfile } from '../data/profiles.ts'
@@ -28,10 +29,20 @@ export function rangeTableHtml(card: RangeCard, unit: Unit, mode: 'dial' | 'hold
       ${r.wind.map((w) => `<td class="tone-wind"><span>${hold(w.fromLeftRad, unit, 'windage', mode)}</span><span>${hold(w.fromRightRad, unit, 'windage', mode)}</span></td>`).join('')}
     </tr>`
   const missing = (yd: number) => `<tr><th scope="row">${yd}</th><td>—</td>${windsMph.map(() => '<td>—</td>').join('')}</tr>`
+  // A full-width line where the bullet first nears, and first drops below, the speed of sound.
+  const divider = (zone: SoundZone) =>
+    `<tr class="range-divider" data-sound-divider="${zone}"><td colspan="${2 + windsMph.length}">${soundLabel(zone)} from here — holds less reliable</td></tr>`
+  let last: SoundZone = 'ok'
+  const rows = card.rows.map((r) => {
+    const zone = r.mach === undefined || r.muzzleMach === undefined ? 'ok' : soundZone(r.mach, r.muzzleMach)
+    const line = zone !== 'ok' && zone !== last ? divider(zone) : ''
+    if (zone !== 'ok') last = zone
+    return line + row(r)
+  })
   return `<table class="range-table">
       <thead><tr><th scope="col">Yd</th><th scope="col" class="tone-elev">Elev ${unit === 'mil' ? 'MIL' : 'MOA'}</th>
         ${windsMph.map((m) => `<th scope="col" class="tone-wind">${m} mph<br />L · R</th>`).join('')}</tr></thead>
-      <tbody>${card.rows.map(row).join('')}${card.unreachableYd.map(missing).join('')}</tbody>
+      <tbody>${rows.join('')}${card.unreachableYd.map(missing).join('')}</tbody>
     </table>`
 }
 

@@ -3,6 +3,7 @@
 // and as a picture to share or keep on the lock screen.
 import type { Stage } from '../data/match.ts'
 import { guessedText, type GuessableKey, type RifleData } from '../data/profiles.ts'
+import { soundLabel, soundZone } from '../ballistics/soundBarrier.ts'
 import { downloadFile } from './download.ts'
 import { printArea } from './print.ts'
 import { conditionsSummary } from './conditionsSheet.ts'
@@ -18,7 +19,8 @@ export interface CardView {
   conditions: string
   unitLabel: 'MIL' | 'MOA'
   modeLabel: 'DIAL' | 'HOLD'
-  rows: { name: string; rangeYd: number; elev: string; winds: { mph: number; left: string; right: string }[] }[]
+  /** `sound` = "Below the speed of sound" etc., or '' when the hold is in reliable range. */
+  rows: { name: string; rangeYd: number; elev: string; winds: { mph: number; left: string; right: string }[]; sound: string }[]
   order: string[]
   /** "Guessed: twist 1:8", or '' when the rifle's values are all confirmed. */
   guessed: string
@@ -53,6 +55,7 @@ export function cardViewOf(
       rangeYd: r.rangeYd,
       elev: text(r.elevationRad, 'elevation'),
       winds: r.wind.map((w) => ({ mph: w.mph, left: text(w.fromLeftRad, 'windage'), right: text(w.fromRightRad, 'windage') })),
+      sound: r.mach === undefined || r.muzzleMach === undefined ? '' : soundLabel(soundZone(r.mach, r.muzzleMach)),
     })),
     order: stage.order,
     guessed: guessedLine(c.rifle, guessed),
@@ -66,6 +69,9 @@ function guessedLine(rifle: RifleData, guessed?: GuessableKey[]): string {
 }
 
 const orderText = (order: string[]) => (order.length ? `Order: ${order.join(' → ')}` : '')
+
+/** "T3: below the speed of sound — less reliable", one per affected target (print). */
+const soundLines = (v: CardView) => v.rows.filter((r) => r.sound).map((r) => `${r.name}: ${r.sound.toLowerCase()} — less reliable`)
 
 /** On-screen card (huge text). */
 export function stageCardHtml(v: CardView): string {
@@ -84,6 +90,7 @@ export function stageCardHtml(v: CardView): string {
         <span class="stage-row-target"><strong>${escapeHtml(r.name)}</strong> ${r.rangeYd} yd</span>
         <strong class="stage-row-elev tone-elev">${r.elev}</strong>
         ${r.winds.map((w) => `<span class="stage-row-wind tone-wind"><span>${w.mph} mph</span><strong>${w.left} · ${w.right}</strong></span>`).join('')}
+        ${r.sound ? `<span class="stage-row-sound" data-row-sound>${escapeHtml(r.sound)} — less reliable</span>` : ''}
       </li>`,
         )
         .join('')}
@@ -105,6 +112,9 @@ function printCardHtml(v: CardView): string {
         .map((r) => `<tr><td>${escapeHtml(r.name)}</td><td>${r.rangeYd}</td><td>${r.elev}</td>${r.winds.map((w) => `<td>${w.left} · ${w.right}</td>`).join('')}</tr>`)
         .join('')}</tbody>
     </table>
+    ${soundLines(v)
+      .map((s) => `<p class="print-order">${escapeHtml(s)}</p>`)
+      .join('')}
     ${v.order.length ? `<p class="print-order">${escapeHtml(orderText(v.order))}</p>` : ''}
   </section>`
 }
@@ -129,7 +139,8 @@ export async function stageCardImage(v: CardView): Promise<Blob> {
   // Sizes chosen so the picture still reads when shown phone-width (about a third of 1080px).
   const windH = 72
   const rowH = 132 + (v.rows[0]?.winds.length ?? 0) * windH + 48
-  const H = pad * 2 + 260 + (v.guessed ? 64 : 0) + v.rows.length * rowH + (v.order.length ? 96 : 0)
+  const soundH = 64 // extra line under a target near or below the speed of sound
+  const H = pad * 2 + 260 + (v.guessed ? 64 : 0) + v.rows.length * rowH + v.rows.filter((r) => r.sound).length * soundH + (v.order.length ? 96 : 0)
   const canvas = document.createElement('canvas')
   canvas.width = W
   canvas.height = H
@@ -169,6 +180,10 @@ export async function stageCardImage(v: CardView): Promise<Blob> {
       y += windH
       text(`${w.mph} mph`, pad, y, 56, 800, color.wind)
       text(`${w.left} · ${w.right}`, W - pad, y, 64, 900, color.wind, 'right')
+    }
+    if (r.sound) {
+      y += soundH
+      text(`${r.sound} — less reliable`, pad, y, 44, 800, color.text)
     }
     y += 60
   }

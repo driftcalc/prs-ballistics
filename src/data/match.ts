@@ -11,6 +11,13 @@ export interface CardRow {
   elevationRad: number
   /** Right = positive, for wind FROM the left (9 o'clock) and FROM the right (3 o'clock), per card wind speed. */
   wind: { mph: number; fromLeftRad: number; fromRightRad: number }[]
+  /**
+   * The library's Mach figures (calm air) at the target and at the muzzle, for the
+   * speed-of-sound warning (data version 10). Cards from before have none and
+   * count as out of date until updated.
+   */
+  mach?: number
+  muzzleMach?: number
 }
 
 /** Holds worked out for a stage, and exactly what they were worked out for. */
@@ -52,6 +59,9 @@ const same = (a: object, b: object) => {
  * targets it should show. Cards are never redone silently; the Match screen
  * offers "Update all cards" instead.
  */
+/** A card worked out before cards knew about the speed of sound (data version 10). */
+export const cardLacksMach = (stage: Stage): boolean => !!stage.card?.rows.some((r) => r.mach === undefined || r.muzzleMach === undefined)
+
 export function cardIsStale(stage: Stage, rifle: RifleData | undefined, conditions: Conditions, windsMph: number[]): boolean {
   const c = stage.card
   if (!c || !rifle) return true
@@ -59,6 +69,7 @@ export function cardIsStale(stage: Stage, rifle: RifleData | undefined, conditio
     !same(c.rifle, rifle) ||
     !same(c.conditions, conditions) ||
     c.windsMph.join() !== windsMph.join() ||
+    cardLacksMach(stage) ||
     c.rows.map((r) => `${r.name} ${r.rangeYd}`).join() !== stage.targets.map((t) => `${t.name} ${t.rangeYd}`).join()
   )
 }

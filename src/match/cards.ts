@@ -25,6 +25,8 @@ export async function computeCard(stage: Stage, profile: RifleProfile, condition
     rangeYd: t.rangeYd,
     elevationRad: calm[i].elevation,
     wind: winds.map((w) => ({ mph: w.mph, fromLeftRad: w.left[i].windage, fromRightRad: w.right[i].windage })),
+    mach: calm[i].mach,
+    muzzleMach: calm[i].muzzleMach,
   }))
   return {
     computedAt: now.toISOString(),

@@ -26,7 +26,9 @@ import {
 // 8 = rifles may have truingHistory (changes the truing assistant applied, for Revert; optional, nothing to convert).
 // 9 = rifles may have `guessed` (twist / sight height the app filled in, not yet confirmed). Older rifles whose
 //     twist or sight height is still exactly the app's typical value get it marked, since nobody may have checked it.
-export const DATA_VERSION = 9
+// 10 = stage card rows may have mach / muzzleMach (speed-of-sound warning). Nothing to convert: cards without
+//      them count as out of date, so the Match screen asks to "Update all cards" (they are never changed silently).
+export const DATA_VERSION = 10
 const STORE_KEY = 'prs.data'
 
 export interface ShootState extends WindInputs {

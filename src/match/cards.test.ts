@@ -1,7 +1,7 @@
 // Stage card numbers must be exactly what Shoot (and the logbook) show for the
 // same rifle, weather, range and wind.
 import { describe, expect, it } from 'vitest'
-import { cardIsStale, type Stage } from '../data/match.ts'
+import { cardIsStale, cardLacksMach, type Stage } from '../data/match.ts'
 import { predict } from '../data/log.ts'
 import { DEFAULT_CONDITIONS, DEFAULT_RIFLE, type RifleProfile } from '../data/profiles.ts'
 import { radiansToMil } from '../units/index.ts'
@@ -57,5 +57,19 @@ describe('stage cards', () => {
     expect(cardIsStale(s, profile.rifle, DEFAULT_CONDITIONS, [4, 8])).toBe(true)
     expect(cardIsStale({ ...s, targets: [{ name: 'T1', rangeYd: 620 }] }, profile.rifle, DEFAULT_CONDITIONS, [5, 10])).toBe(true)
     expect(cardIsStale({ ...stage }, profile.rifle, DEFAULT_CONDITIONS, [5, 10])).toBe(true) // never worked out
+  })
+
+  it('stores the Mach figures from the same solve, and cards from before them count as out of date', async () => {
+    const card = await computeCard(stage, profile, DEFAULT_CONDITIONS, [5])
+    // 2700 fps leaves the muzzle at about Mach 2.4 and slows with distance.
+    expect(card.rows[0].muzzleMach).toBeCloseTo(2.42, 1)
+    expect(card.rows[1].muzzleMach).toBe(card.rows[0].muzzleMach)
+    expect(card.rows[0].mach!).toBeGreaterThan(card.rows[1].mach!)
+    expect(card.rows[1].mach!).toBeLessThan(card.rows[1].muzzleMach!)
+    const old = { ...card, rows: card.rows.map(({ mach, muzzleMach, ...r }) => r) }
+    const s = { ...stage, card: old }
+    expect(cardLacksMach(s)).toBe(true)
+    expect(cardIsStale(s, profile.rifle, DEFAULT_CONDITIONS, [5])).toBe(true)
+    expect(cardLacksMach({ ...stage, card })).toBe(false)
   })
 })

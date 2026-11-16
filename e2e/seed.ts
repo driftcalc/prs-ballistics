@@ -55,7 +55,7 @@ function seedFull(o: { theme: Theme; glove: boolean; leftHanded: boolean; rifles
       leftHanded: o.leftHanded,
       holdMode: 'dial',
       cardWindsMph: [5, 10],
-      rangeCard: { stepYd: 50, maxYd: 1000 },
+      rangeCard: { stepYd: 50, maxYd: 1600 }, // far enough for the speed-of-sound lines
       lastBackupAt: now,
       installTipDismissed: true,
     },
@@ -90,7 +90,8 @@ function seedFull(o: { theme: Theme; glove: boolean; leftHanded: boolean; rifles
               createdAt: now,
               stages: [
                 { id: 's1', name: 'Stage 1 · Barricade', targets: [{ name: 'T1', rangeYd: 611 }, { name: 'T2', rangeYd: 639 }, { name: 'T3', rangeYd: 700 }], order: ['T1', 'T3', 'T2', 'T1'] },
-                { id: 's2', name: 'Stage 2', targets: [{ name: 'T1', rangeYd: 425 }, { name: 'PLATE', rangeYd: 1012 }], order: [] },
+                // FAR is past the speed of sound for this load, so the card shows its warning.
+                { id: 's2', name: 'Stage 2', targets: [{ name: 'T1', rangeYd: 425 }, { name: 'PLATE', rangeYd: 1012 }, { name: 'FAR', rangeYd: 1500 }], order: [] },
               ],
             },
           ],

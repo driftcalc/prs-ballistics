@@ -54,7 +54,7 @@ function sampleData(): AppData {
             rifle: d.profiles[0].rifle,
             conditions: d.conditions,
             windsMph: [4, 8],
-            rows: [{ name: 'T1', rangeYd: 611, elevationRad: 0.004, wind: [{ mph: 4, fromLeftRad: -0.0005, fromRightRad: 0.0004 }] }],
+            rows: [{ name: 'T1', rangeYd: 611, elevationRad: 0.004, wind: [{ mph: 4, fromLeftRad: -0.0005, fromRightRad: 0.0004 }], mach: 1.46, muzzleMach: 2.42 }],
           },
         },
         { id: 's2', name: 'Stage 2', targets: [{ name: 'T1', rangeYd: 400 }], order: [] },

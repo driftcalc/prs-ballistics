@@ -417,6 +417,11 @@ button:not(.btn):not(.tab):active,
   text-align: center;
 }
 
+/* Speed-of-sound warning: same colour as the other notes, weight makes it stand out. */
+.sound-note {
+  font-weight: 800;
+}
+
 /* A note that is a whole link (MV estimated, guessed values) is a full-size tap target. */
 .shot-notes p > a:only-child {
   display: flex;
@@ -1059,6 +1064,13 @@ body:has(main.field-screen) .appfoot {
   white-space: nowrap;
 }
 
+/* "Below the speed of sound — less reliable" under a target: full width, plain text colour. */
+.stage-row-sound {
+  flex-basis: 100%;
+  font-size: var(--fs-field);
+  font-weight: 800;
+}
+
 .stage-row-wind {
   flex-basis: 100%;
   display: flex;
@@ -1135,6 +1147,14 @@ body:has(main.field-screen) .appfoot {
 .range-table td span {
   display: block;
   font-weight: 800;
+}
+
+/* "Below the speed of sound from here": a full-width line across the table. */
+.range-table .range-divider td {
+  text-align: left;
+  white-space: normal;
+  font-weight: 800;
+  border-top: var(--line-w) solid var(--line);
 }
 
 .range-note {
