@@ -10,7 +10,7 @@ import {
   toRiflesCsv,
   type ImportBundle,
 } from '../data/backup.ts'
-import { getData, replaceData, RESCUE_PREFIX, updateData } from '../data/store.ts'
+import { getData, replaceData, RESCUE_PREFIX, updateData, type AppData } from '../data/store.ts'
 import { keysStartingWith, loadRaw, remove } from './storage.ts'
 import { downloadFile } from './download.ts'
 import { escapeHtml } from './format.ts'
@@ -20,13 +20,30 @@ import { icon } from '../design/icons.ts'
 
 const today = () => new Date().toISOString().slice(0, 10)
 
-function lastBackupText(): string {
-  const d = getData()
+/** The date sentence, and the overdue nudge when a backup is due. Plain text only. */
+function lastBackupParts(d: AppData, now = new Date()): { base: string; nudge: string | null } {
   const at = d.settings.lastBackupAt
   const base = at ? `Last full backup: ${new Date(at).toLocaleString()}.` : 'No full backup exported yet.'
-  if (!backupOverdue(d)) return base
-  const days = daysSinceBackup(d)
-  return `${base} ${icon('warning')} ${days === undefined ? 'Export one now' : `That was ${days} days ago — export a fresh one`} so a lost or reset phone doesn't take your data with it.`
+  if (!backupOverdue(d, now)) return { base, nudge: null }
+  const days = daysSinceBackup(d, now)
+  const when = days === undefined ? 'Export one now' : `That was ${days} days ago — export a fresh one`
+  return { base, nudge: `${when} so a lost or reset phone doesn't take your data with it.` }
+}
+
+/**
+ * Last-backup line as HTML. The warning icon is real markup; the words are
+ * escaped so a date (or anything else in the sentence) can't be read as HTML.
+ */
+export function lastBackupHtml(d: AppData = getData(), now = new Date()): string {
+  const { base, nudge } = lastBackupParts(d, now)
+  if (!nudge) return escapeHtml(base)
+  return `${escapeHtml(base)} ${icon('warning')} ${escapeHtml(nudge)}`
+}
+
+/** Writes the last-backup line, including the warning icon when one is due. */
+function showLastBackup(note: HTMLElement, d = getData()): void {
+  note.classList.toggle('backup-due', backupOverdue(d))
+  note.innerHTML = lastBackupHtml(d)
 }
 
 /** Copies of saved data the app couldn't read (kept instead of being thrown away). */
@@ -58,7 +75,7 @@ export function renderDataPage(root: HTMLElement): void {
         ${d.log.length} logged shot${d.log.length === 1 ? '' : 's'},
         ${Object.keys(d.comparisons).length} comparison${Object.keys(d.comparisons).length === 1 ? '' : 's'}, weather and settings.
         Export a backup after changes — clearing browser data or removing the app deletes it.</p>
-      <p class="${backupOverdue(d) ? 'backup-due' : ''}" data-last-backup>${escapeHtml(lastBackupText())}</p>
+      <p data-last-backup></p>
     </section>
 
     ${rescueSection()}
@@ -80,12 +97,13 @@ export function renderDataPage(root: HTMLElement): void {
       <div data-import-result></div>
     </section>`
 
+  showLastBackup(root.querySelector<HTMLElement>('[data-last-backup]')!, d)
+
   root.querySelector('[data-action="export-json"]')!.addEventListener('click', () => {
     downloadFile(`spin-drift-backup-${today()}.json`, toBackupJson(getData()), 'application/json')
     updateData((data) => void (data.settings.lastBackupAt = new Date().toISOString()))
-    const note = root.querySelector('[data-last-backup]')!
-    note.textContent = lastBackupText()
-    note.classList.remove('backup-due')
+    // Same writer as the first paint, so a refresh still shows a real icon if a backup is still due.
+    showLastBackup(root.querySelector<HTMLElement>('[data-last-backup]')!)
     document.querySelector('[data-action="settings"]')?.removeAttribute('data-due')
   })
 
