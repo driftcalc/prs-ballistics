@@ -1,5 +1,5 @@
 // Compares our results with numbers copied from another ballistics app
-// (Hornady, Applied Ballistics). Used by the Check accuracy page AND by the
+// (Hornady, Applied Ballistics, JBM). Used by the Check accuracy page AND by the
 // automatic tests, so both always judge the same way.
 import type { BallisticsEngine } from '../ballistics/index.ts'
 import { toShotInput, type UsShotInputs } from '../shotInputs.ts'
@@ -16,7 +16,7 @@ const FLOAT_NOISE = 1e-9
 
 export const RANGES_YD = [100, 200, 300, 400, 500, 600, 700, 800, 900, 1000]
 
-export const SOURCES = ['Hornady', 'Applied Ballistics', 'Other'] as const
+export const SOURCES = ['Hornady', 'Applied Ballistics', 'JBM', 'Other'] as const
 export type Source = (typeof SOURCES)[number]
 
 /** One row as typed from the other app. Blank = null. */

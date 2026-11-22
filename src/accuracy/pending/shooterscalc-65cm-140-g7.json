@@ -1,0 +1,37 @@
+{
+  "name": "6.5 CM 140 gr, G7 0.300, 2700 fps, standard air",
+  "source": "Other",
+  "appVersion": "ShootersCalculator.com Ballistic Trajectory Calculator (web), checked 2026-11-22",
+  "notes": "Free point-mass G1/G7 calculator at https://shooterscalculator.com/ballistic-trajectory-chart.php. Inputs: G7 0.300, 140 gr, 2700 fps, zero 100 yd, sight height 2 in, angle 0, wind 10 mph at 90 deg (from the right), Correct for Atmosphere on, altitude 0 ft, 59 F, 29.92 inHg, 0% humidity. No spin drift or Coriolis in that calculator, so bullet length is left out here (spin drift off). Numbers copied from its MIL columns; windage is the hold to the right for wind from the right.",
+  "createdAt": "2026-11-22T00:00:00.000Z",
+  "inputs": {
+    "muzzleVelocityFps": 2700,
+    "bc": 0.3,
+    "dragModel": "G7",
+    "bulletWeightGr": 140,
+    "bulletDiameterIn": 0.264,
+    "sightHeightIn": 2,
+    "zeroRangeYd": 100,
+    "twistIn": 8,
+    "twistDirection": "right",
+    "temperatureF": 59,
+    "atmosphereMode": "pressure",
+    "stationPressureInHg": 29.92,
+    "altitudeFt": 0,
+    "humidityPct": 0,
+    "windSpeedMph": 10,
+    "windClock": 3
+  },
+  "rows": [
+    { "rangeYd": 100, "elevationMil": 0.0, "windageMil": 0.17, "velocityFps": 2551, "timeOfFlightS": 0.11 },
+    { "rangeYd": 200, "elevationMil": 0.47, "windageMil": 0.33, "velocityFps": 2407, "timeOfFlightS": 0.24 },
+    { "rangeYd": 300, "elevationMil": 1.18, "windageMil": 0.5, "velocityFps": 2267, "timeOfFlightS": 0.36 },
+    { "rangeYd": 400, "elevationMil": 2.0, "windageMil": 0.68, "velocityFps": 2132, "timeOfFlightS": 0.5 },
+    { "rangeYd": 500, "elevationMil": 2.93, "windageMil": 0.88, "velocityFps": 2001, "timeOfFlightS": 0.65 },
+    { "rangeYd": 600, "elevationMil": 3.94, "windageMil": 1.09, "velocityFps": 1875, "timeOfFlightS": 0.8 },
+    { "rangeYd": 700, "elevationMil": 5.06, "windageMil": 1.32, "velocityFps": 1752, "timeOfFlightS": 0.97 },
+    { "rangeYd": 800, "elevationMil": 6.3, "windageMil": 1.56, "velocityFps": 1635, "timeOfFlightS": 1.14 },
+    { "rangeYd": 900, "elevationMil": 7.66, "windageMil": 1.81, "velocityFps": 1521, "timeOfFlightS": 1.33 },
+    { "rangeYd": 1000, "elevationMil": 9.16, "windageMil": 2.09, "velocityFps": 1411, "timeOfFlightS": 1.54 }
+  ]
+}
